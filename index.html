@@ -465,6 +465,14 @@ const MODULES = [
 ];
 
 // ── AUTH ──
+function showStatus(msg){ 
+  const e = document.getElementById('loginErr'); 
+  e.style.background='var(--teal-lt)';
+  e.style.color='var(--teal)';
+  e.style.border='0.5px solid var(--teal-md)';
+  e.textContent = msg; 
+  e.style.display = 'block'; 
+}
 async function doLogin(){
   const email = document.getElementById('loginEmail').value.trim();
   const pass = document.getElementById('loginPass').value;
@@ -491,10 +499,12 @@ async function doSignOut(){
 // ── LOAD APP ──
 async function loadApp(user){
   currentUser = user;
+  showStatus('Loading profile for ' + user.email + '...');
   // Get profile
   const { data: profile, error: profileErr } = await sb.from('profiles').select('*, companies(name, slug)').eq('id', user.id).single();
+  console.log('Profile result:', profile, 'Error:', profileErr);
   if(profileErr || !profile){
-    showErr('Profile error: ' + (profileErr?.message || 'No profile found. Contact your administrator.'));
+    showErr('Profile error: ' + (profileErr?.message || 'No profile found') + ' | Code: ' + (profileErr?.code || 'none'));
     await sb.auth.signOut();
     document.getElementById('loginWrap').style.display = 'flex';
     return;
