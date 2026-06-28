@@ -520,56 +520,59 @@ async function doSignOut(){
 // ── LOAD APP ──
 async function loadApp(user){
   currentUser = user;
-  showStatus('Signing you in…');
+  showStatus('Loading your profile...');
+  console.log('loadApp called for:', user.email, 'id:', user.id);
 
-  // Extract token from localStorage directly
-  showStatus('Getting token...');
-  let token = user.access_token || '';
-  if(!token){
-    try{
-      const stored = localStorage.getItem('sb-zxserlkhwkfoqiepurdr-auth-token');
-      const parsed = JSON.parse(stored || '{}');
-      token = parsed?.access_token || parsed?.data?.session?.access_token || '';
-    } catch(e){ console.log('localStorage parse error:', e); }
-  }
-  console.log('Token found:', token ? 'YES ('+token.substring(0,20)+'...)' : 'NO');
-
-  showStatus('Fetching profile...');
-  const profUrl = SUPABASE_URL + '/rest/v1/profiles?id=eq.' + user.id + '&limit=1';
-  console.log('Fetching:', profUrl);
-  
-  let profRes, profArr;
   try {
-    profRes = await fetch(profUrl, { 
-      headers:{ 
-        'apikey': SUPABASE_ANON, 
-        'Authorization': 'Bearer ' + token,
-        'Content-Type': 'application/json'
-      }
-    });
-    profArr = await profRes.json();
-    console.log('Profile status:', profRes.status, 'Data:', profArr);
+    // Simple direct query — let Supabase client handle auth headers
+    const { data, error } = await sb
+      .from('profiles')
+      .select('*, companies(name, slug)')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    console.log('Profile data:', data, 'Error:', error);
+
+    if(error){
+      showErr('Database error: ' + error.message + ' (' + error.code + ')');
+      await sb.auth.signOut();
+      document.getElementById('loginWrap').style.display = 'flex';
+      return;
+    }
+
+    if(!data){
+      showErr('No profile found for ' + user.email + '. Contact your administrator.');
+      await sb.auth.signOut();
+      document.getElementById('loginWrap').style.display = 'flex';
+      return;
+    }
+
+    currentProfile = data;
+
+    // Update UI
+    document.getElementById('loginWrap').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    const initials = (data.full_name || '?').split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+    document.getElementById('topAvatar').textContent = initials;
+    document.getElementById('topName').textContent = data.full_name;
+    document.getElementById('topCompany').textContent = data.companies?.name || '';
+    document.getElementById('welcomeName').textContent = 'Welcome, ' + (data.full_name.split(' ')[0]);
+    document.getElementById('welcomeSub').textContent = (data.companies?.name || '') + ' · Compliance training';
+
+    if(data.role === 'admin'){
+      document.getElementById('adminTab').style.display = 'block';
+    }
+
+    await loadCompletions();
+    renderModuleGrid();
+    renderWelcomeStats();
+    if(data.role === 'admin') renderAdminTable();
+
   } catch(e) {
-    showErr('Fetch error: ' + e.message);
-    return;
+    showErr('Unexpected error: ' + e.message);
+    console.error(e);
   }
-
-  const profile = profArr?.[0];
-  if(!profile){
-    showErr('Profile not found. Status: ' + profRes.status + ' Response: ' + JSON.stringify(profArr));
-    await sb.auth.signOut();
-    document.getElementById('loginWrap').style.display = 'flex';
-    return;
-  }
-
-  // Get company
-  const coRes = await fetch(
-    SUPABASE_URL + '/rest/v1/companies?id=eq.' + profile.company_id + '&limit=1',
-    { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + token }}
-  );
-  const coArr = await coRes.json();
-  profile.companies = coArr?.[0] || {};
-  currentProfile = profile;
+}
 
 
 // ── RENDER MODULES ──
@@ -763,7 +766,6 @@ async function renderAdminTable(){
 }
 
 // ── INIT ── (handled in DOMContentLoaded)
-}
 </script>
 </body>
 </html>
