@@ -164,6 +164,19 @@ body{font-family:'Sora',system-ui,sans-serif;background:#f0f2f5;color:var(--text
 .status-bar.err{background:var(--red-lt);color:var(--red);border:0.5px solid #fca5a5}
 .spinner{width:14px;height:14px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
 @keyframes spin{to{transform:rotate(360deg)}}
+
+.callout{border-left:4px solid var(--teal);background:var(--teal-lt);padding:12px 16px;border-radius:0 8px 8px 0;margin:12px 0;font-size:13px;color:#0a6b58;line-height:1.65}
+.callout.warn{border-color:var(--gold);background:var(--gold-lt);color:#92710a}
+.callout.danger{border-color:var(--red);background:var(--red-lt);color:var(--red)}
+.section-body ul,.section-body ol{padding-left:1.25rem;margin:.5rem 0}
+.section-body li{margin-bottom:.35rem;font-size:14px;line-height:1.7}
+.section-body p{font-size:14px;line-height:1.75;margin-bottom:.75rem}
+.section-body strong{color:var(--navy)}
+.listen-bar{display:flex;align-items:center;gap:8px;background:var(--teal-lt);border:0.5px solid var(--teal-md);border-radius:var(--radius);padding:8px 12px;margin-bottom:1rem;flex-wrap:wrap}
+.listen-btn{display:inline-flex;align-items:center;gap:6px;background:var(--teal);color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit}
+.listen-btn.playing{background:var(--navy)}
+.speed-btn{padding:4px 8px;border-radius:6px;border:0.5px solid var(--teal-md);background:var(--white);color:var(--teal);font-size:13px;font-weight:700;cursor:pointer}
+.speed-label{font-size:12px;font-weight:700;color:var(--teal);min-width:28px;text-align:center}
 </style>
 </head>
 <body>
@@ -249,6 +262,7 @@ body{font-family:'Sora',system-ui,sans-serif;background:#f0f2f5;color:var(--text
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="selko-comply-modules.js"></script>
 <script>
 window.addEventListener("load", function(){
 if(typeof supabase === "undefined"){ document.body.innerHTML="<p style='padding:2rem;color:red'>Failed to load Supabase library. Check your internet connection.</p>"; return; }
@@ -274,214 +288,17 @@ document.addEventListener('DOMContentLoaded', function(){
 
 let currentUser = null;
 let currentProfile = null;
+let currentTrack = 'newhire';
+let speechRate = 0.92;
+let speechPlaying = false;
+let speechUtterance = null;
 let completedModules = new Set();
 let currentModule = null;
 let currentSection = 0;
 let quizAnswered = false;
 let authToken = ''; // stores JWT after login
 
-// ── TRAINING MODULES CONTENT ──
-const MODULES = [
-  {
-    id: 'hipaa',
-    name: 'HIPAA Fundamentals',
-    icon: '🔒',
-    desc: 'Privacy and security requirements for protected health information.',
-    tags: ['hipaa','annual'],
-    mins: 15,
-    required: true,
-    sections: [
-      {
-        eyebrow: 'Section 1 of 4',
-        title: 'What is HIPAA?',
-        body: `The Health Insurance Portability and Accountability Act (HIPAA) sets national standards for protecting sensitive patient health information from being disclosed without the patient's consent or knowledge.<br><br>
-        As a clinician or staff member working in home health, you interact with <strong>Protected Health Information (PHI)</strong> every day — patient names, diagnoses, treatment plans, billing information, and more.<br><br>
-        HIPAA applies to all of us. Violations can result in fines up to $50,000 per violation and criminal penalties.`,
-        keyPoints: ['PHI includes any information that identifies a patient and relates to their health','HIPAA applies to all workforce members — clinical and administrative','You have a duty to protect patient information at all times']
-      },
-      {
-        eyebrow: 'Section 2 of 4',
-        title: 'Protected Health Information (PHI)',
-        body: `PHI is any individually identifiable health information. This includes:<br><br>
-        <ul>
-          <li>Patient names, addresses, phone numbers, email addresses</li>
-          <li>Dates (birth, admission, discharge)</li>
-          <li>Social Security numbers, medical record numbers</li>
-          <li>Diagnoses, treatment plans, medications</li>
-          <li>Photos, voice recordings, or video of patients</li>
-        </ul><br>
-        <strong>Electronic PHI (ePHI)</strong> is PHI stored or transmitted electronically — emails, EHR records, phone dictations, and text messages all qualify.`,
-        keyPoints: ['18 types of identifiers make health information "protected"','ePHI includes emails, texts, and digital records','Never photograph patients without written authorization']
-      },
-      {
-        eyebrow: 'Section 3 of 4',
-        title: 'Your responsibilities in the field',
-        body: `Working in home health means you are in patients\' homes with direct access to their most sensitive information. Your responsibilities include:<br><br>
-        <ul>
-          <li><strong>Minimum necessary rule</strong> — only access PHI you need to do your job</li>
-          <li><strong>Secure communication</strong> — use approved channels only; no personal texting of patient info</li>
-          <li><strong>Device security</strong> — lock your device when not in use; report lost devices immediately</li>
-          <li><strong>Verbal privacy</strong> — be careful discussing patient information in public spaces</li>
-          <li><strong>Reporting</strong> — report suspected breaches to your supervisor immediately</li>
-        </ul>`,
-        keyPoints: ['Use only approved apps and devices for patient communication','A lost phone with patient info is a reportable breach','Report any suspected privacy violation within 24 hours']
-      },
-      {
-        eyebrow: 'Section 4 of 4 — Knowledge check',
-        title: 'HIPAA quiz',
-        isQuiz: true,
-        question: 'A patient calls and asks you to text their diagnosis to their adult child. What should you do?',
-        options: [
-          'Text the diagnosis since the patient gave verbal permission',
-          'Decline — verbal permission is not sufficient; a written authorization is required',
-          'Email the diagnosis instead since email is more secure than text',
-          'Share the information since family members are always allowed to receive PHI'
-        ],
-        correct: 1,
-        explanation: 'Correct. Sharing PHI with a third party — even a family member — requires written authorization from the patient. Verbal permission is not sufficient under HIPAA. Approved communication channels and written consent are required.'
-      }
-    ]
-  },
-  {
-    id: 'infection',
-    name: 'Infection Control',
-    icon: '🧤',
-    desc: 'Standard precautions, hand hygiene, and home health safety protocols.',
-    tags: ['clinical','annual'],
-    mins: 12,
-    required: true,
-    sections: [
-      {
-        eyebrow: 'Section 1 of 3',
-        title: 'Standard precautions in the home',
-        body: `Standard precautions are the foundation of infection prevention. They apply to every patient, every visit, regardless of diagnosis.<br><br>
-        In the home health setting, standard precautions include:<br><br>
-        <ul>
-          <li><strong>Hand hygiene</strong> — before and after every patient contact</li>
-          <li><strong>Gloves</strong> — when contact with blood, body fluids, or non-intact skin is anticipated</li>
-          <li><strong>Masks and eye protection</strong> — when splashing of body fluids is possible</li>
-          <li><strong>Gown</strong> — when clothing may become contaminated</li>
-          <li><strong>Safe sharps handling</strong> — never recap needles; use sharps containers</li>
-        </ul>`,
-        keyPoints: ['Standard precautions apply to ALL patients, not just those with known infections','Hand hygiene is the single most effective infection prevention measure','Always bring your own PPE — never assume the home has supplies']
-      },
-      {
-        eyebrow: 'Section 2 of 3',
-        title: 'Hand hygiene technique',
-        body: `Proper hand hygiene means either washing with soap and water for at least 20 seconds or using alcohol-based hand sanitizer with at least 60% alcohol.<br><br>
-        <strong>Wash with soap and water when:</strong>
-        <ul>
-          <li>Hands are visibly soiled</li>
-          <li>After contact with C. difficile (Clostridioides difficile)</li>
-          <li>Before eating</li>
-          <li>After using the restroom</li>
-        </ul><br>
-        <strong>5 moments for hand hygiene:</strong><br>
-        Before patient contact → Before aseptic tasks → After body fluid exposure → After patient contact → After contact with patient surroundings`,
-        keyPoints: ['20 seconds minimum for soap and water washing','Alcohol sanitizer does NOT work against C. diff — use soap and water','Clean hands before AND after every patient contact']
-      },
-      {
-        eyebrow: 'Section 3 of 3 — Knowledge check',
-        title: 'Infection control quiz',
-        isQuiz: true,
-        question: 'Your patient has a known C. difficile infection. After completing your treatment, what is the correct hand hygiene method?',
-        options: [
-          'Alcohol-based hand sanitizer — it kills all pathogens including C. diff',
-          'Either soap and water or sanitizer — both are equally effective',
-          'Soap and water only — alcohol sanitizer is not effective against C. diff spores',
-          'Gloves are sufficient — hand hygiene is not needed if gloves were worn'
-        ],
-        correct: 2,
-        explanation: 'Correct. C. difficile produces spores that are NOT killed by alcohol-based hand sanitizers. Soap and water is the only effective hand hygiene method after contact with a C. diff patient. Gloves must also be worn AND hand hygiene performed after removing gloves.'
-      }
-    ]
-  },
-  {
-    id: 'emergency',
-    name: 'Emergency Procedures',
-    icon: '🚨',
-    desc: 'What to do in a medical emergency, fall, or safety incident in the home.',
-    tags: ['clinical','annual'],
-    mins: 10,
-    required: true,
-    sections: [
-      {
-        eyebrow: 'Section 1 of 2',
-        title: 'Responding to a medical emergency',
-        body: `A medical emergency can happen at any visit. Your response in the first few minutes can save a life.<br><br>
-        <strong>If a patient loses consciousness or stops breathing:</strong>
-        <ul>
-          <li>Call 911 immediately — do not delay</li>
-          <li>Begin CPR if trained and patient is unresponsive with no normal breathing</li>
-          <li>Stay with the patient until EMS arrives</li>
-          <li>Notify your supervisor as soon as possible</li>
-          <li>Document the incident fully in the medical record</li>
-        </ul><br>
-        <strong>If a patient falls during your visit:</strong>
-        <ul>
-          <li>Do not move the patient until you have assessed for injury</li>
-          <li>Call 911 if there is any concern for fracture, head injury, or inability to get up safely</li>
-          <li>Complete an incident report within 24 hours</li>
-        </ul>`,
-        keyPoints: ['Call 911 first — never delay emergency services','Do not move a fall patient until injury is assessed','Every incident must be documented and reported to your supervisor']
-      },
-      {
-        eyebrow: 'Section 2 of 2 — Knowledge check',
-        title: 'Emergency procedures quiz',
-        isQuiz: true,
-        question: 'You arrive for a visit and find your patient unresponsive on the floor. What is your first action?',
-        options: [
-          'Call your supervisor to report the situation',
-          'Begin CPR immediately',
-          'Call 911',
-          'Check for a medical alert bracelet before taking any action'
-        ],
-        correct: 2,
-        explanation: 'Correct. Calling 911 is always the first priority in a life-threatening emergency. EMS should be activated before CPR is begun so that advanced care is on the way. After calling 911, begin CPR if the patient is unresponsive and not breathing normally.'
-      }
-    ]
-  },
-  {
-    id: 'documentation',
-    name: 'Documentation Standards',
-    icon: '📝',
-    desc: 'Medicare compliance, skilled care requirements, and documentation integrity.',
-    tags: ['clinical','annual'],
-    mins: 12,
-    required: true,
-    sections: [
-      {
-        eyebrow: 'Section 1 of 2',
-        title: 'What makes documentation skilled and compliant',
-        body: `Medicare requires that home health documentation demonstrate <strong>skilled care</strong> — services that require the training of a licensed therapist and cannot safely be performed by the patient or caregiver alone.<br><br>
-        Every visit note must include:<br>
-        <ul>
-          <li>Skilled service provided (specific techniques, not just "exercises")</li>
-          <li>Patient's response to treatment with objective measures where possible</li>
-          <li>Progress toward functional goals</li>
-          <li>Medical necessity — why the service cannot be done without a skilled clinician</li>
-          <li>Homebound status support</li>
-        </ul><br>
-        <strong>What to avoid:</strong> Vague language ("patient tolerated treatment well"), copy-paste from previous visits without individualization, or documentation that reads like maintenance rather than skilled care.`,
-        keyPoints: ['Every note must demonstrate skilled, medically necessary care','Objective measurements (ROM, strength, functional status) are critical','Never copy-paste the same note — each visit must reflect that day\'s care']
-      },
-      {
-        eyebrow: 'Section 2 of 2 — Knowledge check',
-        title: 'Documentation quiz',
-        isQuiz: true,
-        question: 'Which of the following best demonstrates skilled PT care in a visit note?',
-        options: [
-          '"Patient performed exercises. Tolerated well."',
-          '"Skilled PT provided per plan of care. Patient progressing."',
-          '"Clinician performed manual therapy to bilateral hip flexors with 15% improvement in passive hip flexion ROM from 85° to 98°. Patient reports pain reduced from 6/10 to 3/10 following treatment."',
-          '"HEP reviewed with patient. No new complaints."'
-        ],
-        correct: 2,
-        explanation: 'Correct. Skilled documentation must include specific interventions, objective measurements, and patient response. Option C demonstrates the skilled nature of the care (manual therapy), includes measurable outcomes (ROM degrees, pain scale), and shows the direct result of the clinician\'s skilled intervention.'
-      }
-    ]
-  }
-];
+// Modules loaded from selko-comply-modules.js
 
 // ── AUTH ──
 function showStatus(msg){ 
@@ -565,14 +382,19 @@ async function loadApp(user){
     document.getElementById('welcomeName').textContent = 'Welcome, ' + (data.full_name.split(' ')[0]);
     document.getElementById('welcomeSub').textContent = (data.companies?.name || '') + ' · Compliance training';
 
+    console.log('Role check:', data.role, '| Is admin:', data.role === 'admin');
     if(data.role === 'admin'){
       document.getElementById('adminTab').style.display = 'block';
+      console.log('Admin tab shown');
     }
 
     await loadCompletions();
     renderModuleGrid();
     renderWelcomeStats();
-    if(data.role === 'admin') renderAdminTable();
+    if(data.role === 'admin'){
+      console.log('Calling renderAdminTable...');
+      renderAdminTable();
+    }
 
   } catch(e) {
     showErr('Unexpected error: ' + e.message);
@@ -597,6 +419,15 @@ async function loadCompletions(){
   }
 }
 
+// ── TRACK ──
+function setTrack(track, btn){
+  currentTrack = track;
+  document.querySelectorAll('#trackNew,#trackAnnual').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderModuleGrid();
+  renderWelcomeStats();
+}
+
 // ── RENDER MODULES ──
 function renderModuleGrid(){
   const grid = document.getElementById('moduleGrid');
@@ -616,8 +447,9 @@ function renderModuleGrid(){
 }
 
 function renderWelcomeStats(){
-  const total = MODULES.length;
-  const done = MODULES.filter(m => completedModules.has(m.id)).length;
+  const mods = MODULES.filter(m => m.track.includes(currentTrack));
+  const total = mods.length;
+  const done = mods.filter(m => completedModules.has(m.id)).length;
   const pct = Math.round((done/total)*100);
   document.getElementById('welcomeStats').innerHTML = `
     <div class="welcome-stat"><div class="welcome-stat-num">${done}/${total}</div><div class="welcome-stat-label">Completed</div></div>
@@ -631,9 +463,11 @@ function openModule(id){
   if(!currentModule) return;
   currentSection = 0;
   quizAnswered = false;
+  if(window.speechSynthesis) window.speechSynthesis.cancel();
+  speechPlaying = false;
   document.getElementById('moduleGrid').style.display = 'none';
   document.getElementById('trainingViewer').style.display = 'block';
-  document.getElementById('viewerTitle').textContent = currentModule.name;
+  document.getElementById('viewerTitle').textContent = currentModule.title;
   renderSection();
 }
 
@@ -643,81 +477,119 @@ function closeTraining(){
 }
 
 function renderSection(){
-  const s = currentModule.sections[currentSection];
-  const total = currentModule.sections.length;
-  const pct = Math.round(((currentSection+1)/total)*100);
+  const total = currentModule.slides.length + 1; // +1 for quiz slide
+  const pct = Math.round((currentSection / (total)) * 100);
   document.getElementById('progressBar').style.width = pct + '%';
 
-  let html = '';
-  if(s.isQuiz){
-    html = `<div class="quiz-card">
-      <div class="section-eyebrow">${s.eyebrow}</div>
-      <div class="quiz-q">${s.question}</div>
-      <div class="quiz-options">
-        ${s.options.map((o,i)=>`<button class="quiz-opt" id="opt${i}" onclick="answerQuiz(${i})">${o}</button>`).join('')}
+  if(currentSection < currentModule.slides.length){
+    const s = currentModule.slides[currentSection];
+    document.getElementById('trainingContent').innerHTML = `
+      <div class="listen-bar">
+        <button class="listen-btn" id="listenBtn" onclick="toggleListen()">🔊 Listen</button>
+        <button class="speed-btn" onclick="adjustSpeed(-0.1)">🐢</button>
+        <span class="speed-label" id="speedLabel">1×</span>
+        <button class="speed-btn" onclick="adjustSpeed(0.1)">🐇</button>
+        <span style="font-size:12px;color:var(--teal);flex:1" id="listenLabel">Tap to hear this slide read aloud</span>
       </div>
-      <div class="quiz-feedback" id="quizFeedback"></div>
-    </div>`;
+      <div class="section-card">
+        <div class="section-eyebrow" style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--teal);margin-bottom:.5rem">Slide ${currentSection+1} of ${currentModule.slides.length}</div>
+        <div class="section-title" style="font-size:17px;font-weight:600;color:var(--navy);margin-bottom:.75rem">${s.title}</div>
+        <div class="section-body">${s.content}</div>
+      </div>`;
+    document.getElementById('navActions').innerHTML = `
+      <button class="btn" onclick="prevSection()" ${currentSection===0?'disabled':''}>← Previous</button>
+      <button class="btn primary" onclick="nextSection()">Next →</button>`;
   } else {
-    html = `<div class="section-card">
-      <div class="section-eyebrow">${s.eyebrow}</div>
-      <div class="section-title">${s.title}</div>
-      <div class="section-body">${s.body}</div>
-      ${s.keyPoints ? `<div class="key-points"><div class="key-points-title">Key points</div><ul>${s.keyPoints.map(p=>`<li>${p}</li>`).join('')}</ul></div>` : ''}
-    </div>`;
-  }
-
-  // Last section = attestation
-  const isLast = currentSection === total - 1;
-  const isQuiz = s.isQuiz;
-
-  document.getElementById('trainingContent').innerHTML = html;
-  document.getElementById('navActions').innerHTML = `
-    <button class="btn" onclick="prevSection()" ${currentSection===0?'disabled':''}>← Previous</button>
-    ${isLast && isQuiz ? '' : `<button class="btn primary" id="nextBtn" onclick="nextSection()" ${isQuiz&&!quizAnswered?'disabled':''}>Next →</button>`}
-  `;
-
-  // Last quiz = show attestation after answering
-  if(isLast && isQuiz){
-    // attestation added after quiz answered
+    renderQuizSlide();
   }
 }
 
-function answerQuiz(i){
-  if(quizAnswered) return;
-  const s = currentModule.sections[currentSection];
-  quizAnswered = true;
-  const opts = document.querySelectorAll('.quiz-opt');
-  opts.forEach(o => o.disabled = true);
-  opts[i].classList.add(i === s.correct ? 'correct' : 'wrong');
-  if(i !== s.correct) opts[s.correct].classList.add('correct');
-  const fb = document.getElementById('quizFeedback');
-  fb.textContent = s.explanation;
-  fb.className = 'quiz-feedback ' + (i === s.correct ? 'correct' : 'wrong');
-  fb.style.display = 'block';
-
-  // If last section, show attestation
-  const isLast = currentSection === currentModule.sections.length - 1;
-  if(isLast){
-    setTimeout(() => {
-      document.getElementById('trainingContent').innerHTML += `
-        <div class="attest-card" id="attestCard">
-          <div class="attest-title">Training attestation</div>
-          <div class="attest-text">By completing this attestation, you confirm that you have reviewed and understood the content in this training module and agree to apply these standards in your work.</div>
-          <label class="attest-check"><input type="checkbox" id="attestCheck" onchange="toggleComplete()"><span>I have completed <strong>${currentModule.name}</strong> and understand my responsibilities as outlined in this training. (${new Date().getFullYear()})</span></label>
-          <button class="complete-btn" id="completeBtn" onclick="completeModule()" disabled>Mark complete ✓</button>
-        </div>`;
-    }, 400);
-  } else {
-    document.getElementById('nextBtn').disabled = false;
+function renderQuizSlide(){
+  if(completedModules.has(currentModule.id)){
+    document.getElementById('trainingContent').innerHTML = `<div class="section-card" style="text-align:center;padding:2rem"><div style="font-size:48px;margin-bottom:1rem">✅</div><div style="font-size:17px;font-weight:600;color:var(--navy);margin-bottom:.5rem">Module already complete</div><p style="color:var(--muted);font-size:13px">You have already completed this module. Click back to return to your dashboard.</p></div>`;
+    document.getElementById('navActions').innerHTML = `<button class="btn" onclick="closeTraining()">← Back to training</button>`;
+    return;
   }
+  const qs = currentModule.quiz;
+  document.getElementById('trainingContent').innerHTML = `
+    <div class="section-card">
+      <div class="section-eyebrow" style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--gold);margin-bottom:.5rem">Knowledge check — ${qs.length} questions</div>
+      <div class="section-title" style="font-size:17px;font-weight:600;color:var(--navy);margin-bottom:1rem">Answer all questions to complete this module</div>
+      ${qs.map((q,qi)=>`
+        <div class="quiz-card" style="margin-bottom:1rem" id="qq${qi}">
+          <div class="qa-q" style="font-size:14px;font-weight:500;color:var(--navy);margin-bottom:.75rem">${qi+1}. ${q.q}</div>
+          ${q.options.map((o,oi)=>`<button class="quiz-opt" id="opt_${qi}_${oi}" onclick="selectOpt(${qi},${oi})">${o}</button>`).join('')}
+          <div class="quiz-feedback" id="qf${qi}" style="display:none;margin-top:.5rem;padding:8px 12px;border-radius:var(--radius);font-size:12px;line-height:1.5"></div>
+        </div>`).join('')}
+    </div>`;
+  document.getElementById('navActions').innerHTML = `
+    <button class="btn" onclick="prevSection()">← Review slides</button>
+    <button class="btn primary" id="submitBtn" onclick="submitQuiz()" disabled>Submit quiz →</button>`;
+}
+
+let quizSelections = {};
+
+function selectOpt(qi, oi){
+  quizSelections[qi] = oi;
+  // Update button styles for this question
+  currentModule.quiz[qi].options.forEach((_,i)=>{
+    const btn = document.getElementById('opt_'+qi+'_'+i);
+    if(btn){ btn.style.background=''; btn.style.borderColor=''; btn.style.color=''; }
+  });
+  const sel = document.getElementById('opt_'+qi+'_'+oi);
+  if(sel){ sel.style.background='var(--teal-lt)'; sel.style.borderColor='var(--teal)'; sel.style.color='var(--teal)'; }
+  // Enable submit if all answered
+  const allDone = currentModule.quiz.every((_,i) => quizSelections[i] !== undefined);
+  const btn = document.getElementById('submitBtn');
+  if(btn) btn.disabled = !allDone;
+}
+
+function submitQuiz(){
+  let correct = 0;
+  const qs = currentModule.quiz;
+  qs.forEach((q,qi)=>{
+    const chosen = quizSelections[qi];
+    const right = chosen === q.answer;
+    if(right) correct++;
+    qs[qi].options.forEach((_,oi)=>{
+      const btn = document.getElementById('opt_'+qi+'_'+oi);
+      if(!btn) return;
+      btn.disabled = true;
+      if(oi === q.answer){ btn.style.background='var(--green-lt)'; btn.style.borderColor='#86efac'; btn.style.color='var(--green)'; }
+      else if(oi === chosen && !right){ btn.style.background='var(--red-lt)'; btn.style.borderColor='#fca5a5'; btn.style.color='var(--red)'; }
+    });
+    const fb = document.getElementById('qf'+qi);
+    if(fb){ fb.style.display='block'; fb.textContent=q.explanation; fb.style.background=right?'var(--green-lt)':'var(--red-lt)'; fb.style.color=right?'var(--green)':'var(--red)'; }
+  });
+  const score = Math.round((correct/qs.length)*100);
+  const passed = score >= (currentModule.passScore || 80);
+  document.getElementById('submitBtn').style.display='none';
+  
+  // Add result + attestation
+  document.getElementById('trainingContent').innerHTML += `
+    <div class="section-card" style="margin-top:1rem;background:${passed?'var(--teal-lt)':'var(--red-lt)'};border-color:${passed?'var(--teal-md)':'#fca5a5'}">
+      <div style="font-size:32px;font-weight:700;color:${passed?'var(--teal)':'var(--red)'}">${score}%</div>
+      <div style="font-size:14px;font-weight:500;color:${passed?'#0a6b58':'var(--red)'};">${correct} of ${qs.length} correct · ${passed?'Passed ✓':'Did not pass — please retake'}</div>
+      ${passed ? `
+        <div class="attest-card" style="margin-top:1.25rem;background:var(--navy);border-radius:10px;padding:1.25rem">
+          <div style="font-size:14px;font-weight:600;color:#fff;margin-bottom:.5rem">Training attestation</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.65);margin-bottom:1rem;line-height:1.6">By signing below, I confirm that I have reviewed all content in this module and understand my responsibilities.</div>
+          <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;margin-bottom:.75rem">
+            <input type="checkbox" id="attestCheck" onchange="toggleComplete()" style="accent-color:var(--teal);margin-top:2px">
+            <span style="font-size:12px;color:rgba(255,255,255,.8)">I have completed <strong>${currentModule.title}</strong> and understand my responsibilities. (${new Date().getFullYear()})</span>
+          </label>
+          <button class="complete-btn" id="completeBtn" onclick="completeModule(${score})" disabled>Mark complete ✓</button>
+        </div>` : `
+        <div style="margin-top:1rem"><button class="btn" onclick="openModule('${currentModule.id}')">↺ Retake module</button></div>`}
+    </div>`;
 }
 
 function toggleComplete(){
-  document.getElementById('completeBtn').disabled = !document.getElementById('attestCheck').checked;
+  const btn = document.getElementById('completeBtn');
+  if(btn) btn.disabled = !document.getElementById('attestCheck').checked;
 }
 
-async function completeModule(){
+async function completeModule(score){
   const btn = document.getElementById('completeBtn');
   btn.disabled = true; btn.textContent = 'Saving…';
   const payload = {
@@ -747,8 +619,14 @@ async function completeModule(){
   setTimeout(() => { closeTraining(); renderModuleGrid(); renderWelcomeStats(); }, 1200);
 }
 
-function prevSection(){ if(currentSection > 0){ currentSection--; quizAnswered = false; renderSection(); } }
-function nextSection(){ if(currentSection < currentModule.sections.length - 1){ currentSection++; quizAnswered = false; renderSection(); } }
+function prevSection(){ 
+  if(window.speechSynthesis) window.speechSynthesis.cancel(); speechPlaying = false;
+  if(currentSection > 0){ currentSection--; quizSelections={}; renderSection(); } 
+}
+function nextSection(){ 
+  if(window.speechSynthesis) window.speechSynthesis.cancel(); speechPlaying = false;
+  currentSection++; quizSelections={}; renderSection(); 
+}
 
 // ── TABS ──
 function showTab(tab){
@@ -760,11 +638,13 @@ function showTab(tab){
 
 // ── ADMIN TABLE ──
 async function renderAdminTable(){
+  console.log('renderAdminTable called, company_id:', currentProfile.company_id);
   const staffRes = await fetch(
     SUPABASE_URL + '/rest/v1/compliance_staff?company_id=eq.' + currentProfile.company_id + '&order=full_name',
     { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON) }}
   );
   const staff = await staffRes.json();
+  console.log('Staff fetch status:', staffRes.status, '| Count:', Array.isArray(staff) ? staff.length : 'error', staff);
 
   const compRes = await fetch(
     SUPABASE_URL + '/rest/v1/compliance_completions?company_id=eq.' + currentProfile.company_id,
@@ -802,6 +682,50 @@ async function renderAdminTable(){
 }
 
 // ── INIT ── (handled in DOMContentLoaded)
+
+// ── TEXT TO SPEECH ──
+function getSlideText(){
+  if(!currentModule || currentSection >= currentModule.slides.length) return '';
+  const s = currentModule.slides[currentSection];
+  const tmp = document.createElement('div');
+  tmp.innerHTML = s.title + '. ' + s.content;
+  return tmp.textContent.replace(/[ \t\n]+/g,' ').trim();
+}
+
+function toggleListen(){
+  if(speechPlaying){ window.speechSynthesis.cancel(); speechPlaying=false; updateListenBtn(false); }
+  else { startListen(); }
+}
+
+function startListen(){
+  if(!window.speechSynthesis) return;
+  const text = getSlideText();
+  speechUtterance = new SpeechSynthesisUtterance(text);
+  speechUtterance.rate = speechRate; speechUtterance.pitch = 1.0;
+  const voices = window.speechSynthesis.getVoices();
+  const v = voices.find(v=>v.lang==='en-US'&&v.name.includes('Google')) || voices.find(v=>v.lang.startsWith('en-US'));
+  if(v) speechUtterance.voice = v;
+  speechUtterance.onstart = ()=>{ speechPlaying=true; updateListenBtn(true); };
+  speechUtterance.onend = speechUtterance.onerror = ()=>{ speechPlaying=false; updateListenBtn(false); };
+  window.speechSynthesis.speak(speechUtterance);
+}
+
+function updateListenBtn(playing){
+  const btn = document.getElementById('listenBtn');
+  const lbl = document.getElementById('listenLabel');
+  if(btn){ btn.textContent = playing ? '⏹ Stop' : '🔊 Listen'; btn.className='listen-btn'+(playing?' playing':''); }
+  if(lbl) lbl.textContent = playing ? 'Reading aloud…' : 'Tap to replay';
+}
+
+function adjustSpeed(delta){
+  speechRate = Math.min(1.5, Math.max(0.5, Math.round((speechRate+delta)*10)/10));
+  const lbl = document.getElementById('speedLabel');
+  if(lbl) lbl.textContent = speechRate.toFixed(1).replace('.0','') + 'x';
+  if(speechPlaying){ window.speechSynthesis.cancel(); setTimeout(startListen, 100); }
+}
+
+if(window.speechSynthesis){ window.speechSynthesis.getVoices(); window.speechSynthesis.onvoiceschanged=()=>window.speechSynthesis.getVoices(); }
+
 </script>
 </body>
 </html>
