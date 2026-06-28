@@ -492,8 +492,13 @@ async function doSignOut(){
 async function loadApp(user){
   currentUser = user;
   // Get profile
-  const { data: profile } = await sb.from('profiles').select('*, companies(name, slug)').eq('id', user.id).single();
-  if(!profile){ showErr('No profile found. Contact your administrator.'); return; }
+  const { data: profile, error: profileErr } = await sb.from('profiles').select('*, companies(name, slug)').eq('id', user.id).single();
+  if(profileErr || !profile){
+    showErr('Profile error: ' + (profileErr?.message || 'No profile found. Contact your administrator.'));
+    await sb.auth.signOut();
+    document.getElementById('loginWrap').style.display = 'flex';
+    return;
+  }
   currentProfile = profile;
 
   // Update UI
