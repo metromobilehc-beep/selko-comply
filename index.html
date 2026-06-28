@@ -579,6 +579,22 @@ async function loadApp(user){
 }
 
 
+// ── LOAD COMPLETIONS ──
+async function loadCompletions(){
+  try {
+    const res = await fetch(
+      SUPABASE_URL + '/rest/v1/compliance_completions?staff_id=eq.' + currentUser.id + '&select=module_id',
+      { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON }}
+    );
+    const data = await res.json();
+    completedModules = new Set((data || []).map(r => r.module_id));
+    console.log('Completed modules:', [...completedModules]);
+  } catch(e) {
+    console.log('loadCompletions error:', e);
+    completedModules = new Set();
+  }
+}
+
 // ── RENDER MODULES ──
 function renderModuleGrid(){
   const grid = document.getElementById('moduleGrid');
@@ -702,16 +718,27 @@ function toggleComplete(){
 async function completeModule(){
   const btn = document.getElementById('completeBtn');
   btn.disabled = true; btn.textContent = 'Saving…';
-  const { error } = await sb.from('compliance_completions').upsert({
+  const payload = {
     staff_id: currentUser.id,
     company_id: currentProfile.company_id,
     module_id: currentModule.id,
     module_name: currentModule.name,
     completed_at: new Date().toISOString(),
     year: new Date().getFullYear()
-  }, { onConflict: 'staff_id,module_id' });
-
-  if(error){ btn.disabled = false; btn.textContent = 'Error — try again'; return; }
+  };
+  const res = await fetch(
+    SUPABASE_URL + '/rest/v1/compliance_completions',
+    { method: 'POST',
+      headers:{ 
+        'apikey': SUPABASE_ANON,
+        'Authorization': 'Bearer ' + SUPABASE_ANON,
+        'Content-Type': 'application/json',
+        'Prefer': 'resolution=merge-duplicates'
+      },
+      body: JSON.stringify(payload)
+    }
+  );
+  if(!res.ok){ btn.disabled = false; btn.textContent = 'Error — try again'; return; }
   completedModules.add(currentModule.id);
   btn.textContent = '✓ Completed!';
   btn.style.background = 'var(--green)';
@@ -731,14 +758,17 @@ function showTab(tab){
 
 // ── ADMIN TABLE ──
 async function renderAdminTable(){
-  const { data: staff } = await sb.from('compliance_staff')
-    .select('*')
-    .eq('company_id', currentProfile.company_id)
-    .order('name');
+  const staffRes = await fetch(
+    SUPABASE_URL + '/rest/v1/compliance_staff?company_id=eq.' + currentProfile.company_id + '&order=full_name',
+    { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON }}
+  );
+  const staff = await staffRes.json();
 
-  const { data: completions } = await sb.from('compliance_completions')
-    .select('*')
-    .eq('company_id', currentProfile.company_id);
+  const compRes = await fetch(
+    SUPABASE_URL + '/rest/v1/compliance_completions?company_id=eq.' + currentProfile.company_id,
+    { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON }}
+  );
+  const completions = await compRes.json();
 
   if(!staff || !staff.length){ document.getElementById('adminTable').innerHTML = '<p style="color:var(--muted);font-size:13px">No staff records found.</p>'; return; }
 
