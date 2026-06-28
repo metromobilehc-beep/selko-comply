@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Selko Comply</title>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -249,10 +248,25 @@ body{font-family:'Sora',system-ui,sans-serif;background:#f0f2f5;color:var(--text
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+window.addEventListener("load", function(){
+if(typeof supabase === "undefined"){ document.body.innerHTML="<p style='padding:2rem;color:red'>Failed to load Supabase library. Check your internet connection.</p>"; return; }
+});
 const SUPABASE_URL = 'https://zxserlkhwkfoqiepurdr.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp4c2VybGtod2tmb3FpZXB1cmRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0NDM1NDIsImV4cCI6MjA5NjAxOTU0Mn0.cA9LJSn5t4sIbIemdQGQsdwtQFwb-6Q9xIZi48UYq34';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+let sb;
+document.addEventListener('DOMContentLoaded', function(){
+  if(typeof supabase === 'undefined'){
+    document.body.innerHTML='<p style="padding:2rem;font-family:sans-serif;color:red">Supabase library failed to load. Check internet connection and try again.</p>';
+    return;
+  }
+  sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+  // Init auth listener
+  sb.auth.onAuthStateChange(async (event, session) => {
+    if(session?.user && !currentUser) await loadApp(session.user);
+  });
+});
 
 let currentUser = null;
 let currentProfile = null;
@@ -720,10 +734,7 @@ async function renderAdminTable(){
     </table>`;
 }
 
-// ── INIT ──
-sb.auth.onAuthStateChange(async (event, session) => {
-  if(session?.user && !currentUser) await loadApp(session.user);
-});
+// ── INIT ── (handled in DOMContentLoaded)
 </script>
 </body>
 </html>
