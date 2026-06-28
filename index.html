@@ -664,18 +664,24 @@ async function renderAdminTable(){
 
   const compByStaff = {};
   (completions || []).forEach(c => {
-    if(!compByStaff[c.staff_id]) compByStaff[c.staff_id] = new Set();
-    compByStaff[c.staff_id].add(c.module_id);
+    // Key by staff_id (auth UUID) and also by employee_name for legacy records
+    const key = c.staff_id || c.employee_name;
+    if(key){
+      if(!compByStaff[key]) compByStaff[key] = new Set();
+      compByStaff[key].add(c.module_id);
+    }
   });
 
+  const trackMods = (typeof MODULES !== 'undefined') ? MODULES : [];
   const rows = staff.map(s => {
-    const done = compByStaff[s.id] ? compByStaff[s.id].size : 0;
-    const total = MODULES.length;
+    const sid = s.id || s.full_name; // fallback to name if no id
+    const done = compByStaff[sid] ? compByStaff[sid].size : 0;
+    const total = trackMods.length;
     const pillClass = done === total ? 'all' : done > 0 ? 'some' : 'none';
     const pillText = done === total ? '✓ Complete' : `${done}/${total}`;
-    const dots = MODULES.map(m => `<div class="mdot ${compByStaff[s.id]?.has(m.id)?'done':'todo'}" title="${m.name}"></div>`).join('');
+    const dots = trackMods.map(m => `<div class="mdot ${compByStaff[sid]?.has(m.id)?'done':'todo'}" title="${m.title||m.name||''}"></div>`).join('');
     return `<tr>
-      <td style="font-weight:500">${s.name}</td>
+      <td style="font-weight:500">${s.full_name || s.name || '—'}</td>
       <td>${s.role || '—'}</td>
       <td><span class="progress-pill ${pillClass}">${pillText}</span></td>
       <td><div class="module-dots">${dots}</div></td>
