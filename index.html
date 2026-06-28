@@ -524,28 +524,32 @@ async function loadApp(user){
   console.log('loadApp called for:', user.email, 'id:', user.id);
 
   try {
-    // Simple direct query — let Supabase client handle auth headers
-    const { data, error } = await sb
-      .from('profiles')
-      .select('*, companies(name, slug)')
-      .eq('id', user.id)
-      .maybeSingle();
-
-    console.log('Profile data:', data, 'Error:', error);
-
-    if(error){
-      showErr('Database error: ' + error.message + ' (' + error.code + ')');
-      await sb.auth.signOut();
-      document.getElementById('loginWrap').style.display = 'flex';
-      return;
-    }
+    // Use anon key directly — RLS is off on profiles, so this works
+    console.log('Fetching profile via REST...');
+    const profRes = await fetch(
+      SUPABASE_URL + '/rest/v1/profiles?id=eq.' + user.id + '&select=*',
+      { headers:{ 
+        'apikey': SUPABASE_ANON,
+        'Authorization': 'Bearer ' + SUPABASE_ANON
+      }}
+    );
+    const profArr = await profRes.json();
+    console.log('Profile REST response:', profRes.status, profArr);
+    const data = profArr?.[0];
 
     if(!data){
-      showErr('No profile found for ' + user.email + '. Contact your administrator.');
-      await sb.auth.signOut();
-      document.getElementById('loginWrap').style.display = 'flex';
+      showErr('No profile found. Status: ' + profRes.status);
       return;
     }
+
+    // Get company separately
+    const coRes = await fetch(
+      SUPABASE_URL + '/rest/v1/companies?id=eq.' + data.company_id + '&select=name,slug',
+      { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON }}
+    );
+    const coArr = await coRes.json();
+    data.companies = coArr?.[0] || {};
+    console.log('Company:', data.companies);
 
     currentProfile = data;
 
