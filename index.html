@@ -502,7 +502,9 @@ async function doLogin(){
   btn.disabled = true; btn.textContent = 'Signing in…';
   const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
   if(error){ showErr(error.message); btn.disabled = false; btn.textContent = 'Sign in'; return; }
-  await loadApp(data.user);
+  // Pass session token directly so loadApp doesn't need to call getSession
+  const userWithToken = { ...data.user, access_token: data.session?.access_token };
+  await loadApp(userWithToken);
 }
 
 function showErr(msg){ const e = document.getElementById('loginErr'); e.textContent = msg; e.style.display = 'block'; }
@@ -520,11 +522,10 @@ async function loadApp(user){
   currentUser = user;
   showStatus('Signing you in…');
 
-  // Use direct REST fetch with explicit Bearer token
-  showStatus('Getting session...');
-  const sessionResult = await sb.auth.getSession();
-  console.log('Session result:', sessionResult);
-  const token = sessionResult?.data?.session?.access_token || '';
+  // Extract token directly from the user object passed in — no extra API call needed
+  showStatus('Getting token...');
+  const token = user.access_token || 
+    JSON.parse(localStorage.getItem('sb-zxserlkhwkfoqiepurdr-auth-token') || '{}')?.access_token || '';
   console.log('Token:', token ? token.substring(0,20)+'...' : 'MISSING');
 
   showStatus('Fetching profile...');
