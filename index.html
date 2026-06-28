@@ -520,20 +520,36 @@ async function loadApp(user){
   currentUser = user;
   showStatus('Signing you in…');
 
-  // Use direct REST fetch with explicit Bearer token to bypass any RLS client issues
-  const { data:{ session } } = await sb.auth.getSession();
-  const token = session?.access_token || '';
+  // Use direct REST fetch with explicit Bearer token
+  showStatus('Getting session...');
+  const sessionResult = await sb.auth.getSession();
+  console.log('Session result:', sessionResult);
+  const token = sessionResult?.data?.session?.access_token || '';
+  console.log('Token:', token ? token.substring(0,20)+'...' : 'MISSING');
 
-  const profRes = await fetch(
-    SUPABASE_URL + '/rest/v1/profiles?id=eq.' + user.id + '&limit=1',
-    { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + token }}
-  );
-  const profArr = await profRes.json();
-  console.log('Profile REST:', profRes.status, profArr);
+  showStatus('Fetching profile...');
+  const profUrl = SUPABASE_URL + '/rest/v1/profiles?id=eq.' + user.id + '&limit=1';
+  console.log('Fetching:', profUrl);
+  
+  let profRes, profArr;
+  try {
+    profRes = await fetch(profUrl, { 
+      headers:{ 
+        'apikey': SUPABASE_ANON, 
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json'
+      }
+    });
+    profArr = await profRes.json();
+    console.log('Profile status:', profRes.status, 'Data:', profArr);
+  } catch(e) {
+    showErr('Fetch error: ' + e.message);
+    return;
+  }
+
   const profile = profArr?.[0];
-
   if(!profile){
-    showErr('Could not load profile. Status: ' + profRes.status);
+    showErr('Profile not found. Status: ' + profRes.status + ' Response: ' + JSON.stringify(profArr));
     await sb.auth.signOut();
     document.getElementById('loginWrap').style.display = 'flex';
     return;
