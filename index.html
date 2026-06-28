@@ -179,8 +179,8 @@ body{font-family:'Sora',system-ui,sans-serif;background:#f0f2f5;color:var(--text
     <div class="login-module">📋 Selko Comply — compliance training</div>
     <div class="login-err" id="loginErr"></div>
     <div class="field"><label>Email</label><input type="email" id="loginEmail" placeholder="you@practice.com" autocomplete="email"></div>
-    <div class="field"><label>Password</label><input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
-    <button class="login-btn" id="loginBtn" onclick="doLogin()">Sign in</button>
+    <div class="field"><label>Password</label><input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password" id="loginPassInput"></div>
+    <button class="login-btn" id="loginBtn" id="loginBtnTrigger">Sign in</button>
     <div class="login-footer">Powered by <span>Selko</span> · selko360.com</div>
   </div>
 </div>
@@ -199,7 +199,7 @@ body{font-family:'Sora',system-ui,sans-serif;background:#f0f2f5;color:var(--text
         <div id="topName" style="color:#fff;font-size:13px"></div>
         <div class="top-company" id="topCompany"></div>
       </div>
-      <button class="top-signout" onclick="doSignOut()">Sign out</button>
+      <button class="top-signout" id="signOutBtn">Sign out</button>
     </div>
   </div>
 
@@ -262,6 +262,10 @@ document.addEventListener('DOMContentLoaded', function(){
     return;
   }
   sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+  // Wire up event listeners
+  document.getElementById('loginBtnTrigger')?.addEventListener('click', doLogin);
+  document.getElementById('loginPassInput')?.addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
+  document.getElementById('signOutBtn')?.addEventListener('click', doSignOut);
   // Init auth listener
   sb.auth.onAuthStateChange(async (event, session) => {
     if(session?.user && !currentUser) await loadApp(session.user);
