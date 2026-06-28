@@ -494,8 +494,8 @@ function showStatus(msg){
 async function doLogin(){
   console.log('doLogin called');
   const email = document.getElementById('loginEmail').value.trim();
-  const pass = document.getElementById('loginPass').value;
-  const btn = document.getElementById('loginBtn');
+  const pass = document.getElementById('loginPassInput').value;
+  const btn = document.getElementById('loginBtnTrigger');
   const err = document.getElementById('loginErr');
   err.style.display = 'none';
   if(!email || !pass){ showErr('Enter your email and password.'); return; }
