@@ -367,7 +367,7 @@ async function loadApp(user){
       { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON) }}
     );
     const coArr = await coRes.json();
-    data.companies = coArr?.[0] || {};
+    data.companies = (Array.isArray(coArr) && coArr.length) ? coArr[0] : { name: 'Metro Mobile Health Care', slug: 'metro' };
     console.log('Company:', data.companies);
 
     currentProfile = data;
@@ -431,26 +431,34 @@ function setTrack(track, btn){
 // ── RENDER MODULES ──
 function renderModuleGrid(){
   const grid = document.getElementById('moduleGrid');
-  grid.innerHTML = MODULES.map(m => {
+  if(!grid) return;
+  if(typeof MODULES === 'undefined' || !MODULES || !MODULES.length){
+    grid.innerHTML = '<p style="color:var(--muted);font-size:13px;padding:1rem">Training modules loading...</p>';
+    return;
+  }
+  const mods = MODULES.filter(m => m && m.track && m.track.includes(currentTrack));
+  grid.innerHTML = mods.map(m => {
     const done = completedModules.has(m.id);
-    return `<div class="module-card${done?' completed':''}" onclick="${done?'null':'openModule(\''+m.id+'\')'}">
+    return `<div class="module-card${done?' completed':''}" onclick="openModule('${m.id}')">
       <div class="module-status ${done?'done':'required'}">${done?'✓ Complete':'Required'}</div>
-      <div class="module-icon">${m.icon}</div>
-      <div class="module-name">${m.name}</div>
-      <div class="module-desc">${m.desc}</div>
+      <div class="module-icon">${m.icon||'📋'}</div>
+      <div class="module-name">${m.title||m.name||'Module'}</div>
+      <div class="module-desc">${m.desc||m.description||''}</div>
       <div class="module-meta">
-        ${m.tags.map(t=>`<span class="module-tag ${t}">${t==='annual'?'Annual required':t==='hipaa'?'HIPAA':t==='clinical'?'Clinical':'—'}</span>`).join('')}
-        <span class="module-tag mins">~${m.mins} min</span>
+        <span class="module-tag clinical">${m.track.includes('annual')?'Annual required':'New hire'}</span>
+        <span class="module-tag mins">~${m.mins||15} min</span>
+        ${done?'<span class="module-tag clinical" style="background:var(--green-lt);color:var(--green);border-color:#86efac">✓ Done</span>':''}
       </div>
     </div>`;
   }).join('');
 }
 
 function renderWelcomeStats(){
-  const mods = MODULES.filter(m => m.track.includes(currentTrack));
+  if(typeof MODULES === 'undefined' || !MODULES) return;
+  const mods = MODULES.filter(m => m && m.track && m.track.includes(currentTrack));
   const total = mods.length;
   const done = mods.filter(m => completedModules.has(m.id)).length;
-  const pct = Math.round((done/total)*100);
+  const pct = total ? Math.round((done/total)*100) : 0;
   document.getElementById('welcomeStats').innerHTML = `
     <div class="welcome-stat"><div class="welcome-stat-num">${done}/${total}</div><div class="welcome-stat-label">Completed</div></div>
     <div class="welcome-stat"><div class="welcome-stat-num">${pct}%</div><div class="welcome-stat-label">Progress</div></div>
