@@ -492,6 +492,7 @@ function showStatus(msg){
   e.style.display = 'block'; 
 }
 async function doLogin(){
+  console.log('doLogin called');
   const email = document.getElementById('loginEmail').value.trim();
   const pass = document.getElementById('loginPass').value;
   const btn = document.getElementById('loginBtn');
