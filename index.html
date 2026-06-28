@@ -499,46 +499,36 @@ async function doSignOut(){
 // ── LOAD APP ──
 async function loadApp(user){
   currentUser = user;
-  showStatus('Loading profile for ' + user.email + '...');
-  // Get profile
-  const { data: profile, error: profileErr } = await sb.from('profiles').select('*, companies(name, slug)').eq('id', user.id).single();
-  console.log('Profile result:', profile, 'Error:', profileErr);
-  if(profileErr || !profile){
-    showErr('Profile error: ' + (profileErr?.message || 'No profile found') + ' | Code: ' + (profileErr?.code || 'none'));
+  showStatus('Signing you in…');
+
+  // Use direct REST fetch with explicit Bearer token to bypass any RLS client issues
+  const { data:{ session } } = await sb.auth.getSession();
+  const token = session?.access_token || '';
+
+  const profRes = await fetch(
+    SUPABASE_URL + '/rest/v1/profiles?id=eq.' + user.id + '&limit=1',
+    { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + token }}
+  );
+  const profArr = await profRes.json();
+  console.log('Profile REST:', profRes.status, profArr);
+  const profile = profArr?.[0];
+
+  if(!profile){
+    showErr('Could not load profile. Status: ' + profRes.status);
     await sb.auth.signOut();
     document.getElementById('loginWrap').style.display = 'flex';
     return;
   }
+
+  // Get company
+  const coRes = await fetch(
+    SUPABASE_URL + '/rest/v1/companies?id=eq.' + profile.company_id + '&limit=1',
+    { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + token }}
+  );
+  const coArr = await coRes.json();
+  profile.companies = coArr?.[0] || {};
   currentProfile = profile;
 
-  // Update UI
-  document.getElementById('loginWrap').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  const initials = (profile.full_name || '?').split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
-  document.getElementById('topAvatar').textContent = initials;
-  document.getElementById('topName').textContent = profile.full_name;
-  document.getElementById('topCompany').textContent = profile.companies?.name || '';
-  document.getElementById('welcomeName').textContent = 'Welcome, ' + (profile.full_name.split(' ')[0]);
-  document.getElementById('welcomeSub').textContent = profile.companies?.name + ' · Compliance training';
-
-  // Show admin tab if admin
-  if(profile.role === 'admin'){
-    document.getElementById('adminTab').style.display = 'block';
-  }
-
-  // Load completions
-  await loadCompletions();
-  renderModuleGrid();
-  renderWelcomeStats();
-  if(profile.role === 'admin') renderAdminTable();
-}
-
-async function loadCompletions(){
-  const { data } = await sb.from('compliance_completions')
-    .select('module_id')
-    .eq('staff_id', currentUser.id);
-  completedModules = new Set((data || []).map(r => r.module_id));
-}
 
 // ── RENDER MODULES ──
 function renderModuleGrid(){
