@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Selko Comply</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0D1B3D;--navy2:#1E3A8A;--teal:#0BA7A0;--teal-lt:#e4f7f3;--teal-md:#b2e8de;
+  --gold:#c9a84c;--gold-lt:#fdf6e3;--gold-md:#f0d88a;
+  --text:#1a1a1a;--muted:#6B7280;--border:#e2e6ea;--surface:#f8f9fb;--white:#fff;
+  --red:#dc2626;--red-lt:#fef2f2;--green:#16a34a;--green-lt:#dcfce7;
+  --radius:8px;
+}
+body{font-family:'Sora',system-ui,sans-serif;background:#f0f2f5;color:var(--text);min-height:100vh}
+
+/* ── TOPBAR ── */
+.topbar{background:var(--navy);height:52px;display:flex;align-items:center;padding:0 1.5rem;gap:12px;position:sticky;top:0;z-index:50}
+.logo{display:flex;align-items:center;gap:8px;text-decoration:none}
+.logo-mark{width:30px;height:30px;background:var(--teal);border-radius:7px;display:flex;align-items:center;justify-content:center}
+.logo-mark img{width:20px;height:auto}
+.logo-name{font-size:17px;font-weight:700;color:#fff;letter-spacing:-.01em}
+.logo-name span{color:var(--teal)}
+.logo-module{font-size:12px;color:rgba(255,255,255,.45);margin-left:2px;font-weight:400}
+.top-space{flex:1}
+.top-user{display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,.6)}
+.top-avatar{width:30px;height:30px;border-radius:50%;background:var(--teal);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;flex-shrink:0}
+.top-company{font-size:11px;color:rgba(255,255,255,.4)}
+.top-signout{background:rgba(255,255,255,.1);border:none;color:rgba(255,255,255,.6);font-size:12px;padding:5px 10px;border-radius:6px;cursor:pointer;font-family:'Sora',system-ui,sans-serif}
+.top-signout:hover{background:rgba(255,255,255,.18);color:#fff}
+
+/* ── LOGIN ── */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;background:#f0f2f5}
+.login-card{background:var(--white);border-radius:16px;border:0.5px solid var(--border);padding:2.5rem;width:100%;max-width:380px}
+.login-logo{display:flex;align-items:center;gap:10px;margin-bottom:.5rem}
+.login-logo .mark{width:42px;height:42px;background:var(--navy);border-radius:10px;display:flex;align-items:center;justify-content:center}
+.login-logo .mark img{width:28px;height:auto}
+.login-logo .name{font-size:24px;font-weight:700;color:var(--navy)}
+.login-logo .name span{color:var(--teal)}
+.login-tagline{font-size:12px;color:var(--muted);margin-bottom:2rem;letter-spacing:.03em}
+.login-module{font-size:13px;font-weight:500;color:var(--navy);margin-bottom:1.5rem;padding:.75rem 1rem;background:var(--teal-lt);border-radius:var(--radius);border-left:3px solid var(--teal)}
+.field{margin-bottom:1rem}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em}
+.field input{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:14px;color:var(--text);background:var(--white);font-family:'Sora',system-ui,sans-serif;transition:border-color .12s}
+.field input:focus{outline:none;border-color:var(--teal)}
+.login-btn{width:100%;padding:11px;background:var(--navy);color:#fff;border:none;border-radius:var(--radius);font-size:14px;font-weight:600;cursor:pointer;font-family:'Sora',system-ui,sans-serif;margin-top:.5rem;transition:background .12s}
+.login-btn:hover{background:var(--navy2)}
+.login-btn:disabled{background:var(--border);color:var(--muted);cursor:not-allowed}
+.login-err{font-size:13px;color:var(--red);background:var(--red-lt);border:0.5px solid #fca5a5;border-radius:var(--radius);padding:9px 12px;margin-bottom:1rem;display:none}
+.login-footer{text-align:center;font-size:11px;color:var(--muted);margin-top:1.5rem}
+.login-footer span{color:var(--teal);font-weight:600}
+
+/* ── LAYOUT ── */
+.app{display:none}
+.page{max-width:900px;margin:0 auto;padding:1.5rem}
+
+/* ── CARDS ── */
+.card{background:var(--white);border:0.5px solid var(--border);border-radius:12px;padding:1.25rem;margin-bottom:1rem}
+.card-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:1rem}
+
+/* ── WELCOME BAR ── */
+.welcome-bar{background:var(--navy);border-radius:12px;padding:1.25rem 1.5rem;display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:1rem}
+.welcome-left h2{font-size:18px;font-weight:600;color:#fff;margin-bottom:3px}
+.welcome-left p{font-size:13px;color:rgba(255,255,255,.5)}
+.welcome-stats{display:flex;gap:1rem}
+.welcome-stat{text-align:center}
+.welcome-stat-num{font-size:22px;font-weight:700;color:var(--teal)}
+.welcome-stat-label{font-size:11px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.06em}
+
+/* ── TABS ── */
+.tab-bar{display:flex;gap:4px;background:var(--surface);border-radius:10px;padding:4px;margin-bottom:1.25rem}
+.tab-btn{flex:1;padding:8px;border:none;background:transparent;border-radius:7px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;font-family:'Sora',system-ui,sans-serif;transition:all .12s}
+.tab-btn.active{background:var(--white);color:var(--navy);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+
+/* ── TRAINING MODULES ── */
+.module-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:600px){.module-grid{grid-template-columns:1fr}}
+.module-card{border:1.5px solid var(--border);border-radius:12px;padding:1.25rem;background:var(--white);cursor:pointer;transition:all .15s;position:relative;overflow:hidden}
+.module-card:hover{border-color:var(--teal);box-shadow:0 2px 8px rgba(11,167,160,.1)}
+.module-card.completed{border-color:var(--teal);background:var(--teal-lt)}
+.module-card.locked{opacity:.5;cursor:not-allowed}
+.module-status{position:absolute;top:12px;right:12px;font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px}
+.module-status.done{background:var(--green-lt);color:var(--green)}
+.module-status.todo{background:var(--surface);color:var(--muted);border:0.5px solid var(--border)}
+.module-status.required{background:var(--gold-lt);color:#92710a;border:0.5px solid var(--gold-md)}
+.module-icon{font-size:28px;margin-bottom:.75rem}
+.module-name{font-size:14px;font-weight:600;color:var(--navy);margin-bottom:4px}
+.module-desc{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:.75rem}
+.module-meta{display:flex;gap:8px;flex-wrap:wrap}
+.module-tag{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:500}
+.module-tag.annual{background:var(--gold-lt);color:#92710a;border:0.5px solid var(--gold-md)}
+.module-tag.hipaa{background:#f0e4ff;color:#7c3aed;border:0.5px solid #d8b4fe}
+.module-tag.clinical{background:var(--teal-lt);color:#0a6b58;border:0.5px solid var(--teal-md)}
+.module-tag.mins{background:var(--surface);color:var(--muted);border:0.5px solid var(--border)}
+
+/* ── TRAINING VIEWER ── */
+.training-viewer{display:none}
+.training-header{display:flex;align-items:center;gap:12px;margin-bottom:1.25rem}
+.back-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:0.5px solid var(--border);border-radius:var(--radius);background:var(--white);color:var(--text);font-size:13px;cursor:pointer;font-family:'Sora',system-ui,sans-serif;font-weight:500}
+.back-btn:hover{background:var(--surface)}
+.training-progress{background:var(--surface);border-radius:12px;height:6px;margin-bottom:1.5rem;overflow:hidden}
+.training-progress-bar{height:100%;background:var(--teal);border-radius:12px;transition:width .3s}
+.section-card{background:var(--white);border:0.5px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1rem}
+.section-eyebrow{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--teal);margin-bottom:.5rem}
+.section-title{font-size:17px;font-weight:600;color:var(--navy);margin-bottom:.75rem}
+.section-body{font-size:14px;color:var(--text);line-height:1.8}
+.section-body ul{padding-left:1.25rem;margin:.5rem 0}
+.section-body li{margin-bottom:.35rem}
+.section-body strong{color:var(--navy)}
+.key-points{background:var(--teal-lt);border:0.5px solid var(--teal-md);border-radius:var(--radius);padding:1rem 1.25rem;margin-top:1rem}
+.key-points-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--teal);margin-bottom:.5rem}
+.key-points ul{padding-left:1rem;font-size:13px;color:#0a6b58;line-height:1.7}
+
+/* ── QUIZ ── */
+.quiz-card{background:var(--white);border:0.5px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1rem}
+.quiz-q{font-size:15px;font-weight:500;color:var(--navy);margin-bottom:1rem;line-height:1.5}
+.quiz-options{display:flex;flex-direction:column;gap:8px}
+.quiz-opt{padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--radius);cursor:pointer;font-size:13px;font-family:'Sora',system-ui,sans-serif;background:var(--white);text-align:left;color:var(--text);transition:all .12s;line-height:1.4}
+.quiz-opt:hover:not(:disabled){border-color:var(--teal);background:var(--teal-lt)}
+.quiz-opt.correct{border-color:var(--green);background:var(--green-lt);color:var(--green)}
+.quiz-opt.wrong{border-color:var(--red);background:var(--red-lt);color:var(--red)}
+.quiz-feedback{font-size:13px;padding:10px 12px;border-radius:var(--radius);margin-top:.75rem;display:none;line-height:1.5}
+.quiz-feedback.correct{background:var(--green-lt);color:var(--green)}
+.quiz-feedback.wrong{background:var(--red-lt);color:var(--red)}
+
+/* ── ATTESTATION ── */
+.attest-card{background:var(--navy);border-radius:12px;padding:1.5rem;color:#fff;margin-bottom:1rem}
+.attest-title{font-size:15px;font-weight:600;margin-bottom:.75rem}
+.attest-text{font-size:13px;color:rgba(255,255,255,.7);line-height:1.7;margin-bottom:1.25rem}
+.attest-check{display:flex;align-items:flex-start;gap:10px;margin-bottom:1rem;cursor:pointer}
+.attest-check input{accent-color:var(--teal);width:16px;height:16px;flex-shrink:0;margin-top:2px;cursor:pointer}
+.attest-check span{font-size:13px;color:rgba(255,255,255,.8);line-height:1.5}
+.complete-btn{width:100%;padding:12px;background:var(--teal);border:none;border-radius:var(--radius);font-size:14px;font-weight:600;color:#fff;cursor:pointer;font-family:'Sora',system-ui,sans-serif;transition:background .12s}
+.complete-btn:hover:not(:disabled){background:#089478}
+.complete-btn:disabled{background:rgba(255,255,255,.15);color:rgba(255,255,255,.4);cursor:not-allowed}
+
+/* ── NAV ACTIONS ── */
+.nav-actions{display:flex;gap:8px;justify-content:space-between;margin-top:1rem}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:var(--radius);border:0.5px solid var(--border);background:var(--white);color:var(--text);font-size:13px;cursor:pointer;font-family:'Sora',system-ui,sans-serif;font-weight:500;transition:all .12s}
+.btn:hover{background:var(--surface)}
+.btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}
+.btn.primary:hover{background:#089478}
+
+/* ── ADMIN VIEW ── */
+.staff-table{width:100%;border-collapse:collapse;font-size:13px}
+.staff-table th{padding:8px 12px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);background:var(--surface);border-bottom:0.5px solid var(--border)}
+.staff-table td{padding:10px 12px;border-bottom:0.5px solid var(--border);vertical-align:middle}
+.staff-table tr:last-child td{border-bottom:none}
+.progress-pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px}
+.progress-pill.all{background:var(--green-lt);color:var(--green)}
+.progress-pill.some{background:var(--gold-lt);color:#92710a}
+.progress-pill.none{background:var(--red-lt);color:var(--red)}
+.module-dots{display:flex;gap:4px;flex-wrap:wrap}
+.mdot{width:10px;height:10px;border-radius:50%}
+.mdot.done{background:var(--teal)}
+.mdot.todo{background:var(--border)}
+
+/* ── STATUS BAR ── */
+.status-bar{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:1rem;font-weight:500}
+.status-bar.loading{background:#fef9ec;color:#92710a;border:0.5px solid #f6e298}
+.status-bar.ok{background:var(--teal-lt);color:#0a6b58;border:0.5px solid var(--teal-md)}
+.status-bar.err{background:var(--red-lt);color:var(--red);border:0.5px solid #fca5a5}
+.spinner{width:14px;height:14px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="mark"><img src="selko-icon-white.png" alt="Selko" onerror="this.style.display='none';this.parentElement.innerHTML='&#9670;'"></div>
+      <div class="name">Sel<span>ko</span></div>
+    </div>
+    <div class="login-tagline">Where clarity meets care</div>
+    <div class="login-module">📋 Selko Comply — compliance training</div>
+    <div class="login-err" id="loginErr"></div>
+    <div class="field"><label>Email</label><input type="email" id="loginEmail" placeholder="you@practice.com" autocomplete="email"></div>
+    <div class="field"><label>Password</label><input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">Sign in</button>
+    <div class="login-footer">Powered by <span>Selko</span> · selko360.com</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app" id="app">
+  <div class="topbar">
+    <a class="logo" href="#">
+      <div class="logo-mark"><img src="selko-icon-white.png" alt="Selko" onerror="this.style.display='none'"></div>
+      <span class="logo-name">Sel<span>ko</span> <span class="logo-module">Comply</span></span>
+    </a>
+    <div class="top-space"></div>
+    <div class="top-user">
+      <div class="top-avatar" id="topAvatar"></div>
+      <div>
+        <div id="topName" style="color:#fff;font-size:13px"></div>
+        <div class="top-company" id="topCompany"></div>
+      </div>
+      <button class="top-signout" onclick="doSignOut()">Sign out</button>
+    </div>
+  </div>
+
+  <div class="page">
+    <div id="statusBar"></div>
+
+    <!-- WELCOME -->
+    <div class="welcome-bar" id="welcomeBar">
+      <div class="welcome-left">
+        <h2 id="welcomeName">Welcome back</h2>
+        <p id="welcomeSub">Complete your required training below</p>
+      </div>
+      <div class="welcome-stats" id="welcomeStats"></div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tab-bar" id="tabBar">
+      <button class="tab-btn active" onclick="showTab('training')">My training</button>
+      <button class="tab-btn" id="adminTab" onclick="showTab('admin')" style="display:none">Staff overview</button>
+    </div>
+
+    <!-- TRAINING TAB -->
+    <div id="trainingTab">
+      <div id="moduleGrid" class="module-grid"></div>
+    </div>
+
+    <!-- ADMIN TAB -->
+    <div id="adminTab2" style="display:none">
+      <div class="card">
+        <div class="card-title">Staff compliance status</div>
+        <div id="adminTable"></div>
+      </div>
+    </div>
+
+    <!-- TRAINING VIEWER -->
+    <div class="training-viewer" id="trainingViewer">
+      <div class="training-header">
+        <button class="back-btn" onclick="closeTraining()">← Back to training</button>
+        <span id="viewerTitle" style="font-size:14px;font-weight:600;color:var(--navy)"></span>
+      </div>
+      <div class="training-progress"><div class="training-progress-bar" id="progressBar" style="width:0%"></div></div>
+      <div id="trainingContent"></div>
+      <div class="nav-actions" id="navActions"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://zxserlkhwkfoqiepurdr.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp4c2VybGtod2tmb3FpZXB1cmRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc3MDgwMzEsImV4cCI6MjA2MzI4NDAzMX0.aTiegMaIBqkoFkvaOBe78wXDZpNNBMZRbHkFoExIZi48UYq34';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+let currentUser = null;
+let currentProfile = null;
+let completedModules = new Set();
+let currentModule = null;
+let currentSection = 0;
+let quizAnswered = false;
+
+// ── TRAINING MODULES CONTENT ──
+const MODULES = [
+  {
+    id: 'hipaa',
+    name: 'HIPAA Fundamentals',
+    icon: '🔒',
+    desc: 'Privacy and security requirements for protected health information.',
+    tags: ['hipaa','annual'],
+    mins: 15,
+    required: true,
+    sections: [
+      {
+        eyebrow: 'Section 1 of 4',
+        title: 'What is HIPAA?',
+        body: `The Health Insurance Portability and Accountability Act (HIPAA) sets national standards for protecting sensitive patient health information from being disclosed without the patient's consent or knowledge.<br><br>
+        As a clinician or staff member working in home health, you interact with <strong>Protected Health Information (PHI)</strong> every day — patient names, diagnoses, treatment plans, billing information, and more.<br><br>
+        HIPAA applies to all of us. Violations can result in fines up to $50,000 per violation and criminal penalties.`,
+        keyPoints: ['PHI includes any information that identifies a patient and relates to their health','HIPAA applies to all workforce members — clinical and administrative','You have a duty to protect patient information at all times']
+      },
+      {
+        eyebrow: 'Section 2 of 4',
+        title: 'Protected Health Information (PHI)',
+        body: `PHI is any individually identifiable health information. This includes:<br><br>
+        <ul>
+          <li>Patient names, addresses, phone numbers, email addresses</li>
+          <li>Dates (birth, admission, discharge)</li>
+          <li>Social Security numbers, medical record numbers</li>
+          <li>Diagnoses, treatment plans, medications</li>
+          <li>Photos, voice recordings, or video of patients</li>
+        </ul><br>
+        <strong>Electronic PHI (ePHI)</strong> is PHI stored or transmitted electronically — emails, EHR records, phone dictations, and text messages all qualify.`,
+        keyPoints: ['18 types of identifiers make health information "protected"','ePHI includes emails, texts, and digital records','Never photograph patients without written authorization']
+      },
+      {
+        eyebrow: 'Section 3 of 4',
+        title: 'Your responsibilities in the field',
+        body: `Working in home health means you are in patients\' homes with direct access to their most sensitive information. Your responsibilities include:<br><br>
+        <ul>
+          <li><strong>Minimum necessary rule</strong> — only access PHI you need to do your job</li>
+          <li><strong>Secure communication</strong> — use approved channels only; no personal texting of patient info</li>
+          <li><strong>Device security</strong> — lock your device when not in use; report lost devices immediately</li>
+          <li><strong>Verbal privacy</strong> — be careful discussing patient information in public spaces</li>
+          <li><strong>Reporting</strong> — report suspected breaches to your supervisor immediately</li>
+        </ul>`,
+        keyPoints: ['Use only approved apps and devices for patient communication','A lost phone with patient info is a reportable breach','Report any suspected privacy violation within 24 hours']
+      },
+      {
+        eyebrow: 'Section 4 of 4 — Knowledge check',
+        title: 'HIPAA quiz',
+        isQuiz: true,
+        question: 'A patient calls and asks you to text their diagnosis to their adult child. What should you do?',
+        options: [
+          'Text the diagnosis since the patient gave verbal permission',
+          'Decline — verbal permission is not sufficient; a written authorization is required',
+          'Email the diagnosis instead since email is more secure than text',
+          'Share the information since family members are always allowed to receive PHI'
+        ],
+        correct: 1,
+        explanation: 'Correct. Sharing PHI with a third party — even a family member — requires written authorization from the patient. Verbal permission is not sufficient under HIPAA. Approved communication channels and written consent are required.'
+      }
+    ]
+  },
+  {
+    id: 'infection',
+    name: 'Infection Control',
+    icon: '🧤',
+    desc: 'Standard precautions, hand hygiene, and home health safety protocols.',
+    tags: ['clinical','annual'],
+    mins: 12,
+    required: true,
+    sections: [
+      {
+        eyebrow: 'Section 1 of 3',
+        title: 'Standard precautions in the home',
+        body: `Standard precautions are the foundation of infection prevention. They apply to every patient, every visit, regardless of diagnosis.<br><br>
+        In the home health setting, standard precautions include:<br><br>
+        <ul>
+          <li><strong>Hand hygiene</strong> — before and after every patient contact</li>
+          <li><strong>Gloves</strong> — when contact with blood, body fluids, or non-intact skin is anticipated</li>
+          <li><strong>Masks and eye protection</strong> — when splashing of body fluids is possible</li>
+          <li><strong>Gown</strong> — when clothing may become contaminated</li>
+          <li><strong>Safe sharps handling</strong> — never recap needles; use sharps containers</li>
+        </ul>`,
+        keyPoints: ['Standard precautions apply to ALL patients, not just those with known infections','Hand hygiene is the single most effective infection prevention measure','Always bring your own PPE — never assume the home has supplies']
+      },
+      {
+        eyebrow: 'Section 2 of 3',
+        title: 'Hand hygiene technique',
+        body: `Proper hand hygiene means either washing with soap and water for at least 20 seconds or using alcohol-based hand sanitizer with at least 60% alcohol.<br><br>
+        <strong>Wash with soap and water when:</strong>
+        <ul>
+          <li>Hands are visibly soiled</li>
+          <li>After contact with C. difficile (Clostridioides difficile)</li>
+          <li>Before eating</li>
+          <li>After using the restroom</li>
+        </ul><br>
+        <strong>5 moments for hand hygiene:</strong><br>
+        Before patient contact → Before aseptic tasks → After body fluid exposure → After patient contact → After contact with patient surroundings`,
+        keyPoints: ['20 seconds minimum for soap and water washing','Alcohol sanitizer does NOT work against C. diff — use soap and water','Clean hands before AND after every patient contact']
+      },
+      {
+        eyebrow: 'Section 3 of 3 — Knowledge check',
+        title: 'Infection control quiz',
+        isQuiz: true,
+        question: 'Your patient has a known C. difficile infection. After completing your treatment, what is the correct hand hygiene method?',
+        options: [
+          'Alcohol-based hand sanitizer — it kills all pathogens including C. diff',
+          'Either soap and water or sanitizer — both are equally effective',
+          'Soap and water only — alcohol sanitizer is not effective against C. diff spores',
+          'Gloves are sufficient — hand hygiene is not needed if gloves were worn'
+        ],
+        correct: 2,
+        explanation: 'Correct. C. difficile produces spores that are NOT killed by alcohol-based hand sanitizers. Soap and water is the only effective hand hygiene method after contact with a C. diff patient. Gloves must also be worn AND hand hygiene performed after removing gloves.'
+      }
+    ]
+  },
+  {
+    id: 'emergency',
+    name: 'Emergency Procedures',
+    icon: '🚨',
+    desc: 'What to do in a medical emergency, fall, or safety incident in the home.',
+    tags: ['clinical','annual'],
+    mins: 10,
+    required: true,
+    sections: [
+      {
+        eyebrow: 'Section 1 of 2',
+        title: 'Responding to a medical emergency',
+        body: `A medical emergency can happen at any visit. Your response in the first few minutes can save a life.<br><br>
+        <strong>If a patient loses consciousness or stops breathing:</strong>
+        <ul>
+          <li>Call 911 immediately — do not delay</li>
+          <li>Begin CPR if trained and patient is unresponsive with no normal breathing</li>
+          <li>Stay with the patient until EMS arrives</li>
+          <li>Notify your supervisor as soon as possible</li>
+          <li>Document the incident fully in the medical record</li>
+        </ul><br>
+        <strong>If a patient falls during your visit:</strong>
+        <ul>
+          <li>Do not move the patient until you have assessed for injury</li>
+          <li>Call 911 if there is any concern for fracture, head injury, or inability to get up safely</li>
+          <li>Complete an incident report within 24 hours</li>
+        </ul>`,
+        keyPoints: ['Call 911 first — never delay emergency services','Do not move a fall patient until injury is assessed','Every incident must be documented and reported to your supervisor']
+      },
+      {
+        eyebrow: 'Section 2 of 2 — Knowledge check',
+        title: 'Emergency procedures quiz',
+        isQuiz: true,
+        question: 'You arrive for a visit and find your patient unresponsive on the floor. What is your first action?',
+        options: [
+          'Call your supervisor to report the situation',
+          'Begin CPR immediately',
+          'Call 911',
+          'Check for a medical alert bracelet before taking any action'
+        ],
+        correct: 2,
+        explanation: 'Correct. Calling 911 is always the first priority in a life-threatening emergency. EMS should be activated before CPR is begun so that advanced care is on the way. After calling 911, begin CPR if the patient is unresponsive and not breathing normally.'
+      }
+    ]
+  },
+  {
+    id: 'documentation',
+    name: 'Documentation Standards',
+    icon: '📝',
+    desc: 'Medicare compliance, skilled care requirements, and documentation integrity.',
+    tags: ['clinical','annual'],
+    mins: 12,
+    required: true,
+    sections: [
+      {
+        eyebrow: 'Section 1 of 2',
+        title: 'What makes documentation skilled and compliant',
+        body: `Medicare requires that home health documentation demonstrate <strong>skilled care</strong> — services that require the training of a licensed therapist and cannot safely be performed by the patient or caregiver alone.<br><br>
+        Every visit note must include:<br>
+        <ul>
+          <li>Skilled service provided (specific techniques, not just "exercises")</li>
+          <li>Patient's response to treatment with objective measures where possible</li>
+          <li>Progress toward functional goals</li>
+          <li>Medical necessity — why the service cannot be done without a skilled clinician</li>
+          <li>Homebound status support</li>
+        </ul><br>
+        <strong>What to avoid:</strong> Vague language ("patient tolerated treatment well"), copy-paste from previous visits without individualization, or documentation that reads like maintenance rather than skilled care.`,
+        keyPoints: ['Every note must demonstrate skilled, medically necessary care','Objective measurements (ROM, strength, functional status) are critical','Never copy-paste the same note — each visit must reflect that day\'s care']
+      },
+      {
+        eyebrow: 'Section 2 of 2 — Knowledge check',
+        title: 'Documentation quiz',
+        isQuiz: true,
+        question: 'Which of the following best demonstrates skilled PT care in a visit note?',
+        options: [
+          '"Patient performed exercises. Tolerated well."',
+          '"Skilled PT provided per plan of care. Patient progressing."',
+          '"Clinician performed manual therapy to bilateral hip flexors with 15% improvement in passive hip flexion ROM from 85° to 98°. Patient reports pain reduced from 6/10 to 3/10 following treatment."',
+          '"HEP reviewed with patient. No new complaints."'
+        ],
+        correct: 2,
+        explanation: 'Correct. Skilled documentation must include specific interventions, objective measurements, and patient response. Option C demonstrates the skilled nature of the care (manual therapy), includes measurable outcomes (ROM degrees, pain scale), and shows the direct result of the clinician\'s skilled intervention.'
+      }
+    ]
+  }
+];
+
+// ── AUTH ──
+async function doLogin(){
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  const btn = document.getElementById('loginBtn');
+  const err = document.getElementById('loginErr');
+  err.style.display = 'none';
+  if(!email || !pass){ showErr('Enter your email and password.'); return; }
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+  if(error){ showErr(error.message); btn.disabled = false; btn.textContent = 'Sign in'; return; }
+  await loadApp(data.user);
+}
+
+function showErr(msg){ const e = document.getElementById('loginErr'); e.textContent = msg; e.style.display = 'block'; }
+
+async function doSignOut(){
+  await sb.auth.signOut();
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('loginWrap').style.display = 'flex';
+  document.getElementById('loginPass').value = '';
+  currentUser = null; currentProfile = null;
+}
+
+// ── LOAD APP ──
+async function loadApp(user){
+  currentUser = user;
+  // Get profile
+  const { data: profile } = await sb.from('profiles').select('*, companies(name, slug)').eq('id', user.id).single();
+  if(!profile){ showErr('No profile found. Contact your administrator.'); return; }
+  currentProfile = profile;
+
+  // Update UI
+  document.getElementById('loginWrap').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  const initials = (profile.full_name || '?').split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('topAvatar').textContent = initials;
+  document.getElementById('topName').textContent = profile.full_name;
+  document.getElementById('topCompany').textContent = profile.companies?.name || '';
+  document.getElementById('welcomeName').textContent = 'Welcome, ' + (profile.full_name.split(' ')[0]);
+  document.getElementById('welcomeSub').textContent = profile.companies?.name + ' · Compliance training';
+
+  // Show admin tab if admin
+  if(profile.role === 'admin'){
+    document.getElementById('adminTab').style.display = 'block';
+  }
+
+  // Load completions
+  await loadCompletions();
+  renderModuleGrid();
+  renderWelcomeStats();
+  if(profile.role === 'admin') renderAdminTable();
+}
+
+async function loadCompletions(){
+  const { data } = await sb.from('compliance_completions')
+    .select('module_id')
+    .eq('staff_id', currentUser.id);
+  completedModules = new Set((data || []).map(r => r.module_id));
+}
+
+// ── RENDER MODULES ──
+function renderModuleGrid(){
+  const grid = document.getElementById('moduleGrid');
+  grid.innerHTML = MODULES.map(m => {
+    const done = completedModules.has(m.id);
+    return `<div class="module-card${done?' completed':''}" onclick="${done?'null':'openModule(\''+m.id+'\')'}">
+      <div class="module-status ${done?'done':'required'}">${done?'✓ Complete':'Required'}</div>
+      <div class="module-icon">${m.icon}</div>
+      <div class="module-name">${m.name}</div>
+      <div class="module-desc">${m.desc}</div>
+      <div class="module-meta">
+        ${m.tags.map(t=>`<span class="module-tag ${t}">${t==='annual'?'Annual required':t==='hipaa'?'HIPAA':t==='clinical'?'Clinical':'—'}</span>`).join('')}
+        <span class="module-tag mins">~${m.mins} min</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderWelcomeStats(){
+  const total = MODULES.length;
+  const done = MODULES.filter(m => completedModules.has(m.id)).length;
+  const pct = Math.round((done/total)*100);
+  document.getElementById('welcomeStats').innerHTML = `
+    <div class="welcome-stat"><div class="welcome-stat-num">${done}/${total}</div><div class="welcome-stat-label">Completed</div></div>
+    <div class="welcome-stat"><div class="welcome-stat-num">${pct}%</div><div class="welcome-stat-label">Progress</div></div>
+  `;
+}
+
+// ── TRAINING VIEWER ──
+function openModule(id){
+  currentModule = MODULES.find(m => m.id === id);
+  if(!currentModule) return;
+  currentSection = 0;
+  quizAnswered = false;
+  document.getElementById('moduleGrid').style.display = 'none';
+  document.getElementById('trainingViewer').style.display = 'block';
+  document.getElementById('viewerTitle').textContent = currentModule.name;
+  renderSection();
+}
+
+function closeTraining(){
+  document.getElementById('trainingViewer').style.display = 'none';
+  document.getElementById('moduleGrid').style.display = 'grid';
+}
+
+function renderSection(){
+  const s = currentModule.sections[currentSection];
+  const total = currentModule.sections.length;
+  const pct = Math.round(((currentSection+1)/total)*100);
+  document.getElementById('progressBar').style.width = pct + '%';
+
+  let html = '';
+  if(s.isQuiz){
+    html = `<div class="quiz-card">
+      <div class="section-eyebrow">${s.eyebrow}</div>
+      <div class="quiz-q">${s.question}</div>
+      <div class="quiz-options">
+        ${s.options.map((o,i)=>`<button class="quiz-opt" id="opt${i}" onclick="answerQuiz(${i})">${o}</button>`).join('')}
+      </div>
+      <div class="quiz-feedback" id="quizFeedback"></div>
+    </div>`;
+  } else {
+    html = `<div class="section-card">
+      <div class="section-eyebrow">${s.eyebrow}</div>
+      <div class="section-title">${s.title}</div>
+      <div class="section-body">${s.body}</div>
+      ${s.keyPoints ? `<div class="key-points"><div class="key-points-title">Key points</div><ul>${s.keyPoints.map(p=>`<li>${p}</li>`).join('')}</ul></div>` : ''}
+    </div>`;
+  }
+
+  // Last section = attestation
+  const isLast = currentSection === total - 1;
+  const isQuiz = s.isQuiz;
+
+  document.getElementById('trainingContent').innerHTML = html;
+  document.getElementById('navActions').innerHTML = `
+    <button class="btn" onclick="prevSection()" ${currentSection===0?'disabled':''}>← Previous</button>
+    ${isLast && isQuiz ? '' : `<button class="btn primary" id="nextBtn" onclick="nextSection()" ${isQuiz&&!quizAnswered?'disabled':''}>Next →</button>`}
+  `;
+
+  // Last quiz = show attestation after answering
+  if(isLast && isQuiz){
+    // attestation added after quiz answered
+  }
+}
+
+function answerQuiz(i){
+  if(quizAnswered) return;
+  const s = currentModule.sections[currentSection];
+  quizAnswered = true;
+  const opts = document.querySelectorAll('.quiz-opt');
+  opts.forEach(o => o.disabled = true);
+  opts[i].classList.add(i === s.correct ? 'correct' : 'wrong');
+  if(i !== s.correct) opts[s.correct].classList.add('correct');
+  const fb = document.getElementById('quizFeedback');
+  fb.textContent = s.explanation;
+  fb.className = 'quiz-feedback ' + (i === s.correct ? 'correct' : 'wrong');
+  fb.style.display = 'block';
+
+  // If last section, show attestation
+  const isLast = currentSection === currentModule.sections.length - 1;
+  if(isLast){
+    setTimeout(() => {
+      document.getElementById('trainingContent').innerHTML += `
+        <div class="attest-card" id="attestCard">
+          <div class="attest-title">Training attestation</div>
+          <div class="attest-text">By completing this attestation, you confirm that you have reviewed and understood the content in this training module and agree to apply these standards in your work.</div>
+          <label class="attest-check"><input type="checkbox" id="attestCheck" onchange="toggleComplete()"><span>I have completed <strong>${currentModule.name}</strong> and understand my responsibilities as outlined in this training. (${new Date().getFullYear()})</span></label>
+          <button class="complete-btn" id="completeBtn" onclick="completeModule()" disabled>Mark complete ✓</button>
+        </div>`;
+    }, 400);
+  } else {
+    document.getElementById('nextBtn').disabled = false;
+  }
+}
+
+function toggleComplete(){
+  document.getElementById('completeBtn').disabled = !document.getElementById('attestCheck').checked;
+}
+
+async function completeModule(){
+  const btn = document.getElementById('completeBtn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  const { error } = await sb.from('compliance_completions').upsert({
+    staff_id: currentUser.id,
+    company_id: currentProfile.company_id,
+    module_id: currentModule.id,
+    module_name: currentModule.name,
+    completed_at: new Date().toISOString(),
+    year: new Date().getFullYear()
+  }, { onConflict: 'staff_id,module_id' });
+
+  if(error){ btn.disabled = false; btn.textContent = 'Error — try again'; return; }
+  completedModules.add(currentModule.id);
+  btn.textContent = '✓ Completed!';
+  btn.style.background = 'var(--green)';
+  setTimeout(() => { closeTraining(); renderModuleGrid(); renderWelcomeStats(); }, 1200);
+}
+
+function prevSection(){ if(currentSection > 0){ currentSection--; quizAnswered = false; renderSection(); } }
+function nextSection(){ if(currentSection < currentModule.sections.length - 1){ currentSection++; quizAnswered = false; renderSection(); } }
+
+// ── TABS ──
+function showTab(tab){
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  document.getElementById('trainingTab').style.display = tab==='training'?'block':'none';
+  document.getElementById('adminTab2').style.display = tab==='admin'?'block':'none';
+}
+
+// ── ADMIN TABLE ──
+async function renderAdminTable(){
+  const { data: staff } = await sb.from('compliance_staff')
+    .select('*')
+    .eq('company_id', currentProfile.company_id)
+    .order('name');
+
+  const { data: completions } = await sb.from('compliance_completions')
+    .select('*')
+    .eq('company_id', currentProfile.company_id);
+
+  if(!staff || !staff.length){ document.getElementById('adminTable').innerHTML = '<p style="color:var(--muted);font-size:13px">No staff records found.</p>'; return; }
+
+  const compByStaff = {};
+  (completions || []).forEach(c => {
+    if(!compByStaff[c.staff_id]) compByStaff[c.staff_id] = new Set();
+    compByStaff[c.staff_id].add(c.module_id);
+  });
+
+  const rows = staff.map(s => {
+    const done = compByStaff[s.id] ? compByStaff[s.id].size : 0;
+    const total = MODULES.length;
+    const pillClass = done === total ? 'all' : done > 0 ? 'some' : 'none';
+    const pillText = done === total ? '✓ Complete' : `${done}/${total}`;
+    const dots = MODULES.map(m => `<div class="mdot ${compByStaff[s.id]?.has(m.id)?'done':'todo'}" title="${m.name}"></div>`).join('');
+    return `<tr>
+      <td style="font-weight:500">${s.name}</td>
+      <td>${s.role || '—'}</td>
+      <td><span class="progress-pill ${pillClass}">${pillText}</span></td>
+      <td><div class="module-dots">${dots}</div></td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('adminTable').innerHTML = `
+    <table class="staff-table">
+      <thead><tr><th>Name</th><th>Role</th><th>Status</th><th>Modules</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+// ── INIT ──
+sb.auth.onAuthStateChange(async (event, session) => {
+  if(session?.user && !currentUser) await loadApp(session.user);
+});
+</script>
+</body>
+</html>
