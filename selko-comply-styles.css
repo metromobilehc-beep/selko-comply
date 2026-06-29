@@ -46,7 +46,7 @@ body{font-family:'Sora',system-ui,sans-serif;background:#f0f2f5;color:var(--text
 
 /* ── LAYOUT ── */
 .app{display:none}
-.page{max-width:900px;margin:0 auto;padding:1.5rem}
+.page{max-width:1200px;margin:0 auto;padding:1.5rem}
 
 /* ── CARDS ── */
 .card{background:var(--white);border:0.5px solid var(--border);border-radius:12px;padding:1.25rem;margin-bottom:1rem}
@@ -136,7 +136,7 @@ body{font-family:'Sora',system-ui,sans-serif;background:#f0f2f5;color:var(--text
 .btn.primary:hover{background:#089478}
 
 /* ── ADMIN VIEW ── */
-.staff-table{width:100%;border-collapse:collapse;font-size:13px;min-width:900px}
+.staff-table{width:100%;border-collapse:collapse;font-size:13px;min-width:1100px}
 .staff-table th{padding:8px 12px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);background:var(--surface);border-bottom:0.5px solid var(--border)}
 .staff-table td{padding:8px 12px;border-bottom:0.5px solid var(--border);vertical-align:middle}
 .staff-table tr:last-child td{border-bottom:none}
@@ -169,5 +169,5 @@ body{font-family:'Sora',system-ui,sans-serif;background:#f0f2f5;color:var(--text
 .listen-btn.playing{background:var(--navy)}
 .speed-btn{padding:4px 8px;border-radius:6px;border:0.5px solid var(--teal-md);background:var(--white);color:var(--teal);font-size:13px;font-weight:700;cursor:pointer}
 .speed-label{font-size:12px;font-weight:700;color:var(--teal);min-width:28px;text-align:center}
-.staff-table td:last-child{white-space:nowrap;min-width:340px}
-.staff-table td:last-child .btn{white-space:nowrap}
+.staff-table td:last-child{white-space:nowrap;min-width:420px}
+.staff-table td:last-child .btn{white-space:nowrap;font-size:11px;padding:4px 8px}
