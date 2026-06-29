@@ -140,11 +140,31 @@
         <!-- Add company form -->
         <div id="addCompanyForm" style="display:none" class="card">
           <div class="card-title">New company</div>
+          <div style="background:var(--teal-lt);border:0.5px solid var(--teal-md);border-radius:8px;padding:10px 14px;margin-bottom:1rem;font-size:12px;color:#0a6b58;line-height:1.6">
+            <strong>How to fill this out:</strong> Enter the agency name exactly as they use it. The URL ID is generated automatically. Enter the billing/admin contact email. Choose Standard for new clients — upgrade to Pro when they pay for branding.
+          </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem">
-            <div><label>Company name</label><input type="text" id="newCoName" placeholder="Acme Home Health"></div>
-            <div><label>Slug</label><input type="text" id="newCoSlug" placeholder="acme"></div>
-            <div><label>Admin email</label><input type="email" id="newCoEmail" placeholder="admin@acme.com"></div>
-            <div><label>Plan</label><select id="newCoPlan"><option value="standard">Standard</option><option value="pro">Pro</option></select></div>
+            <div>
+              <label>Company name <span style="font-weight:400;color:var(--muted)">(full legal or trade name)</span></label>
+              <input type="text" id="newCoName" placeholder="e.g. Acme Home Health, LLC" oninput="autoSlug(this.value)">
+            </div>
+            <div>
+              <label>URL ID — slug <span style="font-weight:400;color:var(--muted)">(auto-filled, lowercase no spaces)</span></label>
+              <input type="text" id="newCoSlug" placeholder="e.g. acme-home-health">
+              <div style="font-size:11px;color:var(--muted);margin-top:3px">This becomes their portal URL: comply.selko360.com?org=<strong id="slugPreview">slug</strong></div>
+            </div>
+            <div>
+              <label>Admin email <span style="font-weight:400;color:var(--muted)">(who logs in first)</span></label>
+              <input type="email" id="newCoEmail" placeholder="e.g. director@acmehomehealth.com">
+            </div>
+            <div>
+              <label>Plan</label>
+              <select id="newCoPlan">
+                <option value="standard">Standard — $39/mo (generic content)</option>
+                <option value="pro">Pro — $79/mo (branded + customized)</option>
+              </select>
+              <div style="font-size:11px;color:var(--muted);margin-top:3px">Start new clients on Standard. Upgrade in Settings when they pay for Pro.</div>
+            </div>
           </div>
           <div style="display:flex;gap:8px">
             <button class="btn primary" onclick="saveNewCompany()">Create company</button>
@@ -162,6 +182,9 @@
 
           <input type="hidden" id="drawerCompanyId">
 
+          <div style="background:var(--teal-lt);border:0.5px solid var(--teal-md);border-radius:8px;padding:10px 14px;margin-bottom:1rem;font-size:12px;color:#0a6b58;line-height:1.6">
+            <strong>Settings guide:</strong> Fill in what you know — leave blank anything that doesn't apply yet. Contacts appear in training modules for Pro clients. Custom variables replace generic terms like "your state" with real values. Feature flags control which Selko modules this company can access.
+          </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.25rem">
             <div><label>Company name</label><input type="text" id="dCoName"></div>
             <div><label>Plan</label>
@@ -171,21 +194,28 @@
                 <option value="enterprise">Enterprise</option>
               </select>
             </div>
-            <div><label>Logo URL</label><input type="url" id="dCoLogo" placeholder="https://...or upload below"></div>
+            <div>
+              <label>Logo URL <span style="font-weight:400;color:var(--muted)">(paste link or upload below)</span></label>
+              <input type="url" id="dCoLogo" placeholder="https://...">
+              <div style="font-size:11px;color:var(--muted);margin-top:3px">Pro only — shows on their login screen</div>
+            </div>
             <div style="display:flex;align-items:flex-end;gap:8px">
               <div style="flex:1"><label>Upload logo</label><input type="file" id="dCoLogoFile" accept="image/*" style="padding:6px 8px;font-size:12px" onchange="uploadLogo(this)"></div>
             </div>
           </div>
 
-          <div class="card-title">Contacts</div>
+          <div class="card-title">Contacts <span style="font-size:11px;font-weight:400;color:var(--muted);text-transform:none;letter-spacing:0">— Pro plan only · appears in training modules</span></div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.25rem">
-            <div><label>Privacy Officer</label><input type="text" id="dPrivacyOfficer" placeholder="Jane Smith, DPT"></div>
-            <div><label>Privacy email</label><input type="email" id="dPrivacyEmail" placeholder="privacy@company.com"></div>
-            <div><label>Backup contact</label><input type="text" id="dBackupContact" placeholder="Backup supervisor name"></div>
-            <div><label>Org email</label><input type="email" id="dOrgEmail" placeholder="info@company.com"></div>
+            <div><label>Privacy Officer <span style="font-weight:400;color:var(--muted)">(name + credentials)</span></label><input type="text" id="dPrivacyOfficer" placeholder="e.g. Jane Smith, DPT"></div>
+            <div><label>Privacy Officer email</label><input type="email" id="dPrivacyEmail" placeholder="e.g. privacy@company.com"></div>
+            <div><label>Backup contact <span style="font-weight:400;color:var(--muted)">(secondary supervisor)</span></label><input type="text" id="dBackupContact" placeholder="e.g. John Doe, PT"></div>
+            <div><label>General org email</label><input type="email" id="dOrgEmail" placeholder="e.g. info@company.com"></div>
           </div>
 
-          <div class="card-title">Custom variables</div>
+          <div class="card-title">Custom variables <span style="font-size:11px;font-weight:400;color:var(--muted);text-transform:none;letter-spacing:0">— Pro plan only · replaces generic terms in modules</span></div>
+          <div style="background:var(--gold-lt);border:0.5px solid var(--gold-md);border-radius:8px;padding:8px 12px;margin-bottom:.75rem;font-size:11px;color:#92710a">
+            These replace placeholder text in training modules. E.g. "your state" → "Oklahoma". Leave blank to keep generic language.
+          </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.25rem">
             <div><label>State</label><input type="text" id="dState" placeholder="Oklahoma"></div>
             <div><label>APS hotline</label><input type="text" id="dApsHotline" placeholder="1-800-522-3511"></div>

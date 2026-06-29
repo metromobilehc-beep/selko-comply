@@ -935,6 +935,19 @@ async function viewAsAdmin(companyId){
   renderAdminTable();
 }
 
+function autoSlug(name){
+  const slug = name.toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .substring(0, 30);
+  const slugEl = document.getElementById('newCoSlug');
+  const previewEl = document.getElementById('slugPreview');
+  if(slugEl) slugEl.value = slug;
+  if(previewEl) previewEl.textContent = slug || 'slug';
+}
+
 function showAddCompany(){
   document.getElementById('addCompanyForm').style.display = 'block';
   document.getElementById('newCoName').focus();
