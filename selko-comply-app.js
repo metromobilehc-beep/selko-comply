@@ -107,7 +107,17 @@ async function loadApp(user){
       { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON) }}
     );
     const coArr = await coRes.json();
-    data.companies = (Array.isArray(coArr) && coArr.length) ? coArr[0] : { name: 'Metro Mobile Health Care', slug: 'metro' };
+    if(Array.isArray(coArr) && coArr.length){
+      data.companies = coArr[0];
+    } else {
+      console.log('Company fetch empty — retrying with anon key');
+      const coRes2 = await fetch(
+        SUPABASE_URL + '/rest/v1/companies?id=eq.' + data.company_id + '&select=*',
+        { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON }}
+      );
+      const coArr2 = await coRes2.json();
+      data.companies = (Array.isArray(coArr2) && coArr2.length) ? coArr2[0] : { name: 'Your Organization', slug: '' };
+    }
     console.log('Company:', data.companies);
 
     currentProfile = data;
