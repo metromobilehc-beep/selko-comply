@@ -36,7 +36,7 @@ let authToken = ''; // stores JWT after login
 const EMAILJS_SERVICE_ID = 'service_wnhqs7e';
 const EMAILJS_TEMPLATE_ID = 'template_gq1z2x6';
 const EMAILJS_PUBLIC_KEY = 'kc6pC-rqwD0xph-A0';
-const TOOL_URL = 'https://metromobilehc-beep.github.io/selko-comply';
+const TOOL_URL = 'https://comply.selko360.com';
 
 // Modules loaded from selko-comply-modules.js
 
@@ -177,7 +177,8 @@ function renderModuleGrid(){
     grid.innerHTML = '<p style="color:var(--muted);font-size:13px;padding:1rem">Training modules loading...</p>';
     return;
   }
-  const isAdmin = currentProfile && currentProfile.role === 'admin';
+  const isAdmin = currentProfile && (currentProfile.role === 'admin' || currentProfile.role === 'owner');
+  console.log('Module filter — role:', currentProfile?.role, 'isAdmin:', isAdmin);
   const mods = MODULES.filter(m => m && m.track && m.track.includes(currentTrack) && (!m.adminOnly || isAdmin));
   grid.innerHTML = mods.map(m => {
     const done = completedModules.has(m.id);
