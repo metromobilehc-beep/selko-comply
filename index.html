@@ -1,6 +1,3 @@
-
-
-Selko comply · HTML
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,182 +5,11 @@ Selko comply · HTML
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Selko Comply</title>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --navy:#0D1B3D;--navy2:#1E3A8A;--teal:#0BA7A0;--teal-lt:#e4f7f3;--teal-md:#b2e8de;
-  --gold:#c9a84c;--gold-lt:#fdf6e3;--gold-md:#f0d88a;
-  --text:#1a1a1a;--muted:#6B7280;--border:#e2e6ea;--surface:#f8f9fb;--white:#fff;
-  --red:#dc2626;--red-lt:#fef2f2;--green:#16a34a;--green-lt:#dcfce7;
-  --radius:8px;
-}
-body{font-family:'Sora',system-ui,sans-serif;background:#f0f2f5;color:var(--text);min-height:100vh}
- 
-/* ── TOPBAR ── */
-.topbar{background:var(--navy);height:52px;display:flex;align-items:center;padding:0 1.5rem;gap:12px;position:sticky;top:0;z-index:50}
-.logo{display:flex;align-items:center;gap:8px;text-decoration:none}
-.logo-mark{width:30px;height:30px;background:var(--teal);border-radius:7px;display:flex;align-items:center;justify-content:center}
-.logo-mark img{width:20px;height:auto}
-.logo-name{font-size:17px;font-weight:700;color:#fff;letter-spacing:-.01em}
-.logo-name span{color:var(--teal)}
-.logo-module{font-size:12px;color:rgba(255,255,255,.45);margin-left:2px;font-weight:400}
-.top-space{flex:1}
-.top-user{display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,.6)}
-.top-avatar{width:30px;height:30px;border-radius:50%;background:var(--teal);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;flex-shrink:0}
-.top-company{font-size:11px;color:rgba(255,255,255,.4)}
-.top-signout{background:rgba(255,255,255,.1);border:none;color:rgba(255,255,255,.6);font-size:12px;padding:5px 10px;border-radius:6px;cursor:pointer;font-family:'Sora',system-ui,sans-serif}
-.top-signout:hover{background:rgba(255,255,255,.18);color:#fff}
- 
-/* ── LOGIN ── */
-.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;background:#f0f2f5}
-.login-card{background:var(--white);border-radius:16px;border:0.5px solid var(--border);padding:2.5rem;width:100%;max-width:380px}
-.login-logo{display:flex;align-items:center;gap:10px;margin-bottom:.5rem}
-.login-logo .mark{width:42px;height:42px;background:var(--navy);border-radius:10px;display:flex;align-items:center;justify-content:center}
-.login-logo .mark img{width:28px;height:auto}
-.login-logo .name{font-size:24px;font-weight:700;color:var(--navy)}
-.login-logo .name span{color:var(--teal)}
-.login-tagline{font-size:12px;color:var(--muted);margin-bottom:2rem;letter-spacing:.03em}
-.login-module{font-size:13px;font-weight:500;color:var(--navy);margin-bottom:1.5rem;padding:.75rem 1rem;background:var(--teal-lt);border-radius:var(--radius);border-left:3px solid var(--teal)}
-.field{margin-bottom:1rem}
-.field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em}
-.field input{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:14px;color:var(--text);background:var(--white);font-family:'Sora',system-ui,sans-serif;transition:border-color .12s}
-.field input:focus{outline:none;border-color:var(--teal)}
-.login-btn{width:100%;padding:11px;background:var(--navy);color:#fff;border:none;border-radius:var(--radius);font-size:14px;font-weight:600;cursor:pointer;font-family:'Sora',system-ui,sans-serif;margin-top:.5rem;transition:background .12s}
-.login-btn:hover{background:var(--navy2)}
-.login-btn:disabled{background:var(--border);color:var(--muted);cursor:not-allowed}
-.login-err{font-size:13px;color:var(--red);background:var(--red-lt);border:0.5px solid #fca5a5;border-radius:var(--radius);padding:9px 12px;margin-bottom:1rem;display:none}
-.login-footer{text-align:center;font-size:11px;color:var(--muted);margin-top:1.5rem}
-.login-footer span{color:var(--teal);font-weight:600}
- 
-/* ── LAYOUT ── */
-.app{display:none}
-.page{max-width:900px;margin:0 auto;padding:1.5rem}
- 
-/* ── CARDS ── */
-.card{background:var(--white);border:0.5px solid var(--border);border-radius:12px;padding:1.25rem;margin-bottom:1rem}
-.card-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:1rem}
- 
-/* ── WELCOME BAR ── */
-.welcome-bar{background:var(--navy);border-radius:12px;padding:1.25rem 1.5rem;display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:1rem}
-.welcome-left h2{font-size:18px;font-weight:600;color:#fff;margin-bottom:3px}
-.welcome-left p{font-size:13px;color:rgba(255,255,255,.5)}
-.welcome-stats{display:flex;gap:1rem}
-.welcome-stat{text-align:center}
-.welcome-stat-num{font-size:22px;font-weight:700;color:var(--teal)}
-.welcome-stat-label{font-size:11px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.06em}
- 
-/* ── TABS ── */
-.tab-bar{display:flex;gap:4px;background:var(--surface);border-radius:10px;padding:4px;margin-bottom:1.25rem}
-.tab-btn{flex:1;padding:8px;border:none;background:transparent;border-radius:7px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;font-family:'Sora',system-ui,sans-serif;transition:all .12s}
-.tab-btn.active{background:var(--white);color:var(--navy);box-shadow:0 1px 3px rgba(0,0,0,.08)}
- 
-/* ── TRAINING MODULES ── */
-.module-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-@media(max-width:600px){.module-grid{grid-template-columns:1fr}}
-.module-card{border:1.5px solid var(--border);border-radius:12px;padding:1.25rem;background:var(--white);cursor:pointer;transition:all .15s;position:relative;overflow:hidden}
-.module-card:hover{border-color:var(--teal);box-shadow:0 2px 8px rgba(11,167,160,.1)}
-.module-card.completed{border-color:var(--teal);background:var(--teal-lt)}
-.module-card.locked{opacity:.5;cursor:not-allowed}
-.module-status{position:absolute;top:12px;right:12px;font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px}
-.module-status.done{background:var(--green-lt);color:var(--green)}
-.module-status.todo{background:var(--surface);color:var(--muted);border:0.5px solid var(--border)}
-.module-status.required{background:var(--gold-lt);color:#92710a;border:0.5px solid var(--gold-md)}
-.module-icon{font-size:28px;margin-bottom:.75rem}
-.module-name{font-size:14px;font-weight:600;color:var(--navy);margin-bottom:4px}
-.module-desc{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:.75rem}
-.module-meta{display:flex;gap:8px;flex-wrap:wrap}
-.module-tag{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:500}
-.module-tag.annual{background:var(--gold-lt);color:#92710a;border:0.5px solid var(--gold-md)}
-.module-tag.hipaa{background:#f0e4ff;color:#7c3aed;border:0.5px solid #d8b4fe}
-.module-tag.clinical{background:var(--teal-lt);color:#0a6b58;border:0.5px solid var(--teal-md)}
-.module-tag.mins{background:var(--surface);color:var(--muted);border:0.5px solid var(--border)}
- 
-/* ── TRAINING VIEWER ── */
-.training-viewer{display:none}
-.training-header{display:flex;align-items:center;gap:12px;margin-bottom:1.25rem}
-.back-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:0.5px solid var(--border);border-radius:var(--radius);background:var(--white);color:var(--text);font-size:13px;cursor:pointer;font-family:'Sora',system-ui,sans-serif;font-weight:500}
-.back-btn:hover{background:var(--surface)}
-.training-progress{background:var(--surface);border-radius:12px;height:6px;margin-bottom:1.5rem;overflow:hidden}
-.training-progress-bar{height:100%;background:var(--teal);border-radius:12px;transition:width .3s}
-.section-card{background:var(--white);border:0.5px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1rem}
-.section-eyebrow{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--teal);margin-bottom:.5rem}
-.section-title{font-size:17px;font-weight:600;color:var(--navy);margin-bottom:.75rem}
-.section-body{font-size:14px;color:var(--text);line-height:1.8}
-.section-body ul{padding-left:1.25rem;margin:.5rem 0}
-.section-body li{margin-bottom:.35rem}
-.section-body strong{color:var(--navy)}
-.key-points{background:var(--teal-lt);border:0.5px solid var(--teal-md);border-radius:var(--radius);padding:1rem 1.25rem;margin-top:1rem}
-.key-points-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--teal);margin-bottom:.5rem}
-.key-points ul{padding-left:1rem;font-size:13px;color:#0a6b58;line-height:1.7}
- 
-/* ── QUIZ ── */
-.quiz-card{background:var(--white);border:0.5px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1rem}
-.quiz-q{font-size:15px;font-weight:500;color:var(--navy);margin-bottom:1rem;line-height:1.5}
-.quiz-options{display:flex;flex-direction:column;gap:8px}
-.quiz-opt{padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--radius);cursor:pointer;font-size:13px;font-family:'Sora',system-ui,sans-serif;background:var(--white);text-align:left;color:var(--text);transition:all .12s;line-height:1.4}
-.quiz-opt:hover:not(:disabled){border-color:var(--teal);background:var(--teal-lt)}
-.quiz-opt.correct{border-color:var(--green);background:var(--green-lt);color:var(--green)}
-.quiz-opt.wrong{border-color:var(--red);background:var(--red-lt);color:var(--red)}
-.quiz-feedback{font-size:13px;padding:10px 12px;border-radius:var(--radius);margin-top:.75rem;display:none;line-height:1.5}
-.quiz-feedback.correct{background:var(--green-lt);color:var(--green)}
-.quiz-feedback.wrong{background:var(--red-lt);color:var(--red)}
- 
-/* ── ATTESTATION ── */
-.attest-card{background:var(--navy);border-radius:12px;padding:1.5rem;color:#fff;margin-bottom:1rem}
-.attest-title{font-size:15px;font-weight:600;margin-bottom:.75rem}
-.attest-text{font-size:13px;color:rgba(255,255,255,.7);line-height:1.7;margin-bottom:1.25rem}
-.attest-check{display:flex;align-items:flex-start;gap:10px;margin-bottom:1rem;cursor:pointer}
-.attest-check input{accent-color:var(--teal);width:16px;height:16px;flex-shrink:0;margin-top:2px;cursor:pointer}
-.attest-check span{font-size:13px;color:rgba(255,255,255,.8);line-height:1.5}
-.complete-btn{width:100%;padding:12px;background:var(--teal);border:none;border-radius:var(--radius);font-size:14px;font-weight:600;color:#fff;cursor:pointer;font-family:'Sora',system-ui,sans-serif;transition:background .12s}
-.complete-btn:hover:not(:disabled){background:#089478}
-.complete-btn:disabled{background:rgba(255,255,255,.15);color:rgba(255,255,255,.4);cursor:not-allowed}
- 
-/* ── NAV ACTIONS ── */
-.nav-actions{display:flex;gap:8px;justify-content:space-between;margin-top:1rem}
-.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:var(--radius);border:0.5px solid var(--border);background:var(--white);color:var(--text);font-size:13px;cursor:pointer;font-family:'Sora',system-ui,sans-serif;font-weight:500;transition:all .12s}
-.btn:hover{background:var(--surface)}
-.btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}
-.btn.primary:hover{background:#089478}
- 
-/* ── ADMIN VIEW ── */
-.staff-table{width:100%;border-collapse:collapse;font-size:13px}
-.staff-table th{padding:8px 12px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);background:var(--surface);border-bottom:0.5px solid var(--border)}
-.staff-table td{padding:10px 12px;border-bottom:0.5px solid var(--border);vertical-align:middle}
-.staff-table tr:last-child td{border-bottom:none}
-.progress-pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px}
-.progress-pill.all{background:var(--green-lt);color:var(--green)}
-.progress-pill.some{background:var(--gold-lt);color:#92710a}
-.progress-pill.none{background:var(--red-lt);color:var(--red)}
-.module-dots{display:flex;gap:4px;flex-wrap:wrap}
-.mdot{width:10px;height:10px;border-radius:50%}
-.mdot.done{background:var(--teal)}
-.mdot.todo{background:var(--border)}
- 
-/* ── STATUS BAR ── */
-.status-bar{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:1rem;font-weight:500}
-.status-bar.loading{background:#fef9ec;color:#92710a;border:0.5px solid #f6e298}
-.status-bar.ok{background:var(--teal-lt);color:#0a6b58;border:0.5px solid var(--teal-md)}
-.status-bar.err{background:var(--red-lt);color:var(--red);border:0.5px solid #fca5a5}
-.spinner{width:14px;height:14px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
-@keyframes spin{to{transform:rotate(360deg)}}
- 
-.callout{border-left:4px solid var(--teal);background:var(--teal-lt);padding:12px 16px;border-radius:0 8px 8px 0;margin:12px 0;font-size:13px;color:#0a6b58;line-height:1.65}
-.callout.warn{border-color:var(--gold);background:var(--gold-lt);color:#92710a}
-.callout.danger{border-color:var(--red);background:var(--red-lt);color:var(--red)}
-.section-body ul,.section-body ol{padding-left:1.25rem;margin:.5rem 0}
-.section-body li{margin-bottom:.35rem;font-size:14px;line-height:1.7}
-.section-body p{font-size:14px;line-height:1.75;margin-bottom:.75rem}
-.section-body strong{color:var(--navy)}
-.listen-bar{display:flex;align-items:center;gap:8px;background:var(--teal-lt);border:0.5px solid var(--teal-md);border-radius:var(--radius);padding:8px 12px;margin-bottom:1rem;flex-wrap:wrap}
-.listen-btn{display:inline-flex;align-items:center;gap:6px;background:var(--teal);color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit}
-.listen-btn.playing{background:var(--navy)}
-.speed-btn{padding:4px 8px;border-radius:6px;border:0.5px solid var(--teal-md);background:var(--white);color:var(--teal);font-size:13px;font-weight:700;cursor:pointer}
-.speed-label{font-size:12px;font-weight:700;color:var(--teal);min-width:28px;text-align:center}
-</style>
+<link rel="stylesheet" href="selko-comply-styles.css">
 </head>
 <body>
- 
+
+
 <!-- LOGIN -->
 <div class="login-wrap" id="loginWrap">
   <div class="login-card">
@@ -200,7 +26,7 @@ body{font-family:'Sora',system-ui,sans-serif;background:#f0f2f5;color:var(--text
     <div class="login-footer">Powered by <span>Selko</span> · selko360.com</div>
   </div>
 </div>
- 
+
 <!-- APP -->
 <div class="app" id="app">
   <div class="topbar">
@@ -218,10 +44,10 @@ body{font-family:'Sora',system-ui,sans-serif;background:#f0f2f5;color:var(--text
       <button class="top-signout" id="signOutBtn">Sign out</button>
     </div>
   </div>
- 
+
   <div class="page">
     <div id="statusBar"></div>
- 
+
     <!-- WELCOME -->
     <div class="welcome-bar" id="welcomeBar">
       <div class="welcome-left">
@@ -230,19 +56,19 @@ body{font-family:'Sora',system-ui,sans-serif;background:#f0f2f5;color:var(--text
       </div>
       <div class="welcome-stats" id="welcomeStats"></div>
     </div>
- 
+
     <!-- TABS -->
     <div class="tab-bar" id="tabBar">
       <button class="tab-btn active" onclick="showTab('training')">My training</button>
       <button class="tab-btn" id="adminTab" onclick="showTab('admin')" style="display:none">Staff overview</button>
       <button class="tab-btn" id="manageTab" onclick="showTab('manage')" style="display:none">Manage staff</button>
     </div>
- 
+
     <!-- TRAINING TAB -->
     <div id="trainingTab">
       <div id="moduleGrid" class="module-grid"></div>
     </div>
- 
+
     <!-- ADMIN TAB -->
     <div id="adminTab2" style="display:none">
       <div class="card">
@@ -250,7 +76,35 @@ body{font-family:'Sora',system-ui,sans-serif;background:#f0f2f5;color:var(--text
         <div id="adminTable"></div>
       </div>
     </div>
- 
+
+    <!-- MANAGE STAFF TAB -->
+    <div id="manageTab2" style="display:none">
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
+          <div class="card-title" style="margin:0">Staff management</div>
+          <button class="btn primary sm" onclick="showAddStaffForm()">+ Add staff member</button>
+        </div>
+        <div id="addStaffForm" style="display:none;background:var(--surface);border:0.5px solid var(--border);border-radius:10px;padding:1.25rem;margin-bottom:1rem">
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+            <div style="flex:1;min-width:160px"><label>Full name</label><input type="text" id="newName" placeholder="Jane Smith, PTA"></div>
+            <div style="flex:1;min-width:160px"><label>Email</label><input type="email" id="newEmail" placeholder="jane@email.com"></div>
+            <div style="min-width:120px"><label>Role</label><select id="newRole"><option value="clinician">Clinician</option><option value="admin">Admin</option></select></div>
+            <div style="display:flex;gap:6px">
+              <button class="btn primary" onclick="saveNewStaff()">Save</button>
+              <button class="btn ghost" onclick="hideAddStaffForm()">X</button>
+            </div>
+          </div>
+          <div id="addStaffError" style="color:var(--red);font-size:12px;margin-top:8px;display:none"></div>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="staff-table">
+            <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Modules</th><th>Actions</th></tr></thead>
+            <tbody id="staffTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <!-- TRAINING VIEWER -->
     <div class="training-viewer" id="trainingViewer">
       <div class="training-header">
@@ -261,693 +115,14 @@ body{font-family:'Sora',system-ui,sans-serif;background:#f0f2f5;color:var(--text
       <div id="trainingContent"></div>
       <div class="nav-actions" id="navActions"></div>
     </div>
- 
+
   </div>
 </div>
- 
+
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script src="selko-comply-modules.js"></script>
-<script>
-window.addEventListener("load", function(){
-if(typeof supabase === "undefined"){ document.body.innerHTML="<p style='padding:2rem;color:red'>Failed to load Supabase library. Check your internet connection.</p>"; return; }
-});
-const SUPABASE_URL = 'https://zxserlkhwkfoqiepurdr.supabase.co';
-const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp4c2VybGtod2tmb3FpZXB1cmRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0NDM1NDIsImV4cCI6MjA5NjAxOTU0Mn0.cA9LJSn5t4sIbIemdQGQsdwtQFwb-6Q9xIZi48UYq34';
-let sb;
-document.addEventListener('DOMContentLoaded', function(){
-  if(typeof supabase === 'undefined'){
-    document.body.innerHTML='<p style="padding:2rem;font-family:sans-serif;color:red">Supabase library failed to load. Check internet connection and try again.</p>';
-    return;
-  }
-  sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-  // Wire up event listeners
-  document.getElementById('loginBtnTrigger')?.addEventListener('click', doLogin);
-  document.getElementById('loginPassInput')?.addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
-  document.getElementById('signOutBtn')?.addEventListener('click', doSignOut);
-  // Init auth listener
-  sb.auth.onAuthStateChange(async (event, session) => {
-    if(session?.user && !currentUser) await loadApp(session.user);
-  });
-});
- 
-let currentUser = null;
-let currentProfile = null;
-let currentTrack = 'newhire';
-let speechRate = 0.92;
-let speechPlaying = false;
-let speechUtterance = null;
-let completedModules = new Set();
-let currentModule = null;
-let currentSection = 0;
-let quizAnswered = false;
-let authToken = ''; // stores JWT after login
- 
-// ── EMAILJS CONFIG ──
-const EMAILJS_SERVICE_ID = 'service_wnhqs7e';
-const EMAILJS_TEMPLATE_ID = 'template_gq1z2x6';
-const EMAILJS_PUBLIC_KEY = 'kc6pC-rqwD0xph-A0';
-const TOOL_URL = 'https://metromobilehc-beep.github.io/selko-comply';
- 
-// Modules loaded from selko-comply-modules.js
- 
-// ── AUTH ──
-function showStatus(msg){ 
-  const e = document.getElementById('loginErr'); 
-  e.style.background='var(--teal-lt)';
-  e.style.color='var(--teal)';
-  e.style.border='0.5px solid var(--teal-md)';
-  e.textContent = msg; 
-  e.style.display = 'block'; 
-}
-async function doLogin(){
-  console.log('doLogin called');
-  const email = document.getElementById('loginEmail').value.trim();
-  const pass = document.getElementById('loginPassInput').value;
-  const btn = document.getElementById('loginBtnTrigger');
-  const err = document.getElementById('loginErr');
-  err.style.display = 'none';
-  if(!email || !pass){ showErr('Enter your email and password.'); return; }
-  btn.disabled = true; btn.textContent = 'Signing in…';
-  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
-  if(error){ showErr(error.message); btn.disabled = false; btn.textContent = 'Sign in'; return; }
-  // Pass session token directly so loadApp doesn't need to call getSession
-  authToken = data.session?.access_token || '';
-  console.log('Auth token stored:', authToken ? 'YES' : 'NO');
-  await loadApp(data.user);
-}
- 
-function showErr(msg){ const e = document.getElementById('loginErr'); e.textContent = msg; e.style.display = 'block'; }
- 
-async function doSignOut(){
-  await sb.auth.signOut();
-  document.getElementById('app').style.display = 'none';
-  document.getElementById('loginWrap').style.display = 'flex';
-  document.getElementById('loginPass').value = '';
-  currentUser = null; currentProfile = null;
-}
- 
-// ── LOAD APP ──
-async function loadApp(user){
-  currentUser = user;
-  showStatus('Loading your profile...');
-  console.log('loadApp called for:', user.email, 'id:', user.id);
- 
-  try {
-    // Use anon key directly — RLS is off on profiles, so this works
-    console.log('Fetching profile via REST...');
-    const profRes = await fetch(
-      SUPABASE_URL + '/rest/v1/profiles?id=eq.' + user.id + '&select=*',
-      { headers:{ 
-        'apikey': SUPABASE_ANON,
-        'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON)
-      }}
-    );
-    const profArr = await profRes.json();
-    console.log('Profile REST response:', profRes.status, profArr);
-    const data = profArr?.[0];
- 
-    if(!data){
-      showErr('No profile found. Status: ' + profRes.status);
-      return;
-    }
- 
-    // Get company separately
-    const coRes = await fetch(
-      SUPABASE_URL + '/rest/v1/companies?id=eq.' + data.company_id + '&select=name,slug',
-      { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON) }}
-    );
-    const coArr = await coRes.json();
-    data.companies = (Array.isArray(coArr) && coArr.length) ? coArr[0] : { name: 'Metro Mobile Health Care', slug: 'metro' };
-    console.log('Company:', data.companies);
- 
-    currentProfile = data;
- 
-    // Update UI
-    document.getElementById('loginWrap').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-    const initials = (data.full_name || '?').split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
-    document.getElementById('topAvatar').textContent = initials;
-    document.getElementById('topName').textContent = data.full_name;
-    document.getElementById('topCompany').textContent = data.companies?.name || '';
-    document.getElementById('welcomeName').textContent = 'Welcome, ' + (data.full_name.split(' ')[0]);
-    document.getElementById('welcomeSub').textContent = (data.companies?.name || '') + ' · Compliance training';
- 
-    console.log('Role check:', data.role, '| Is admin:', data.role === 'admin');
-    if(data.role === 'admin'){
-      document.getElementById('adminTab').style.display = 'block';
-      document.getElementById('manageTab').style.display = 'block';
-      console.log('Admin tab shown');
-    }
- 
-    await loadCompletions();
-    renderModuleGrid();
-    renderWelcomeStats();
-    if(data.role === 'admin'){
-      console.log('Calling renderAdminTable...');
-      renderAdminTable();
-    }
- 
-  } catch(e) {
-    showErr('Unexpected error: ' + e.message);
-    console.error(e);
-  }
-}
- 
- 
-// ── LOAD COMPLETIONS ──
-async function loadCompletions(){
-  try {
-    const res = await fetch(
-      SUPABASE_URL + '/rest/v1/compliance_completions?staff_id=eq.' + currentUser.id + '&select=module_id',
-      { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON) }}
-    );
-    const data = await res.json();
-    completedModules = new Set((data || []).map(r => r.module_id));
-    console.log('Completed modules:', [...completedModules]);
-  } catch(e) {
-    console.log('loadCompletions error:', e);
-    completedModules = new Set();
-  }
-}
- 
-// ── TRACK ──
-function setTrack(track, btn){
-  currentTrack = track;
-  document.querySelectorAll('#trackNew,#trackAnnual').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  renderModuleGrid();
-  renderWelcomeStats();
-}
- 
-// ── RENDER MODULES ──
-function renderModuleGrid(){
-  const grid = document.getElementById('moduleGrid');
-  if(!grid) return;
-  if(typeof MODULES === 'undefined' || !MODULES || !MODULES.length){
-    grid.innerHTML = '<p style="color:var(--muted);font-size:13px;padding:1rem">Training modules loading...</p>';
-    return;
-  }
-  const mods = MODULES.filter(m => m && m.track && m.track.includes(currentTrack));
-  grid.innerHTML = mods.map(m => {
-    const done = completedModules.has(m.id);
-    return `<div class="module-card${done?' completed':''}" onclick="openModule('${m.id}')">
-      <div class="module-status ${done?'done':'required'}">${done?'✓ Complete':'Required'}</div>
-      <div class="module-icon">${m.icon||'📋'}</div>
-      <div class="module-name">${m.title||m.name||'Module'}</div>
-      <div class="module-desc">${m.desc||m.description||''}</div>
-      <div class="module-meta">
-        <span class="module-tag clinical">${m.track.includes('annual')?'Annual required':'New hire'}</span>
-        <span class="module-tag mins">~${m.mins||15} min</span>
-        ${done?'<span class="module-tag clinical" style="background:var(--green-lt);color:var(--green);border-color:#86efac">✓ Done</span>':''}
-      </div>
-    </div>`;
-  }).join('');
-}
- 
-function renderWelcomeStats(){
-  if(typeof MODULES === 'undefined' || !MODULES) return;
-  const mods = MODULES.filter(m => m && m.track && m.track.includes(currentTrack));
-  const total = mods.length;
-  const done = mods.filter(m => completedModules.has(m.id)).length;
-  const pct = total ? Math.round((done/total)*100) : 0;
-  document.getElementById('welcomeStats').innerHTML = `
-    <div class="welcome-stat"><div class="welcome-stat-num">${done}/${total}</div><div class="welcome-stat-label">Completed</div></div>
-    <div class="welcome-stat"><div class="welcome-stat-num">${pct}%</div><div class="welcome-stat-label">Progress</div></div>
-  `;
-}
- 
-// ── TRAINING VIEWER ──
-function openModule(id){
-  currentModule = MODULES.find(m => m.id === id);
-  if(!currentModule) return;
-  currentSection = 0;
-  quizAnswered = false;
-  if(window.speechSynthesis) window.speechSynthesis.cancel();
-  speechPlaying = false;
-  document.getElementById('moduleGrid').style.display = 'none';
-  document.getElementById('trainingViewer').style.display = 'block';
-  document.getElementById('viewerTitle').textContent = currentModule.title;
-  renderSection();
-}
- 
-function closeTraining(){
-  document.getElementById('trainingViewer').style.display = 'none';
-  document.getElementById('moduleGrid').style.display = 'grid';
-}
- 
-function renderSection(){
-  const total = currentModule.slides.length + 1; // +1 for quiz slide
-  const pct = Math.round((currentSection / (total)) * 100);
-  document.getElementById('progressBar').style.width = pct + '%';
- 
-  if(currentSection < currentModule.slides.length){
-    const s = currentModule.slides[currentSection];
-    document.getElementById('trainingContent').innerHTML = `
-      <div class="listen-bar">
-        <button class="listen-btn" id="listenBtn" onclick="toggleListen()">🔊 Listen</button>
-        <button class="speed-btn" onclick="adjustSpeed(-0.1)">🐢</button>
-        <span class="speed-label" id="speedLabel">1×</span>
-        <button class="speed-btn" onclick="adjustSpeed(0.1)">🐇</button>
-        <span style="font-size:12px;color:var(--teal);flex:1" id="listenLabel">Tap to hear this slide read aloud</span>
-      </div>
-      <div class="section-card">
-        <div class="section-eyebrow" style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--teal);margin-bottom:.5rem">Slide ${currentSection+1} of ${currentModule.slides.length}</div>
-        <div class="section-title" style="font-size:17px;font-weight:600;color:var(--navy);margin-bottom:.75rem">${s.title}</div>
-        <div class="section-body">${s.content}</div>
-      </div>`;
-    document.getElementById('navActions').innerHTML = `
-      <button class="btn" onclick="prevSection()" ${currentSection===0?'disabled':''}>← Previous</button>
-      <button class="btn primary" onclick="nextSection()">Next →</button>`;
-  } else {
-    renderQuizSlide();
-  }
-}
- 
-function renderQuizSlide(){
-  if(completedModules.has(currentModule.id)){
-    document.getElementById('trainingContent').innerHTML = `<div class="section-card" style="text-align:center;padding:2rem"><div style="font-size:48px;margin-bottom:1rem">✅</div><div style="font-size:17px;font-weight:600;color:var(--navy);margin-bottom:.5rem">Module already complete</div><p style="color:var(--muted);font-size:13px">You have already completed this module. Click back to return to your dashboard.</p></div>`;
-    document.getElementById('navActions').innerHTML = `<button class="btn" onclick="closeTraining()">← Back to training</button>`;
-    return;
-  }
-  const qs = currentModule.quiz;
-  document.getElementById('trainingContent').innerHTML = `
-    <div class="section-card">
-      <div class="section-eyebrow" style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--gold);margin-bottom:.5rem">Knowledge check — ${qs.length} questions</div>
-      <div class="section-title" style="font-size:17px;font-weight:600;color:var(--navy);margin-bottom:1rem">Answer all questions to complete this module</div>
-      ${qs.map((q,qi)=>`
-        <div class="quiz-card" style="margin-bottom:1rem" id="qq${qi}">
-          <div class="qa-q" style="font-size:14px;font-weight:500;color:var(--navy);margin-bottom:.75rem">${qi+1}. ${q.q}</div>
-          ${q.options.map((o,oi)=>`<button class="quiz-opt" id="opt_${qi}_${oi}" onclick="selectOpt(${qi},${oi})">${o}</button>`).join('')}
-          <div class="quiz-feedback" id="qf${qi}" style="display:none;margin-top:.5rem;padding:8px 12px;border-radius:var(--radius);font-size:12px;line-height:1.5"></div>
-        </div>`).join('')}
-    </div>`;
-  document.getElementById('navActions').innerHTML = `
-    <button class="btn" onclick="prevSection()">← Review slides</button>
-    <button class="btn primary" id="submitBtn" onclick="submitQuiz()" disabled>Submit quiz →</button>`;
-}
- 
-let quizSelections = {};
- 
-function selectOpt(qi, oi){
-  quizSelections[qi] = oi;
-  // Update button styles for this question
-  currentModule.quiz[qi].options.forEach((_,i)=>{
-    const btn = document.getElementById('opt_'+qi+'_'+i);
-    if(btn){ btn.style.background=''; btn.style.borderColor=''; btn.style.color=''; }
-  });
-  const sel = document.getElementById('opt_'+qi+'_'+oi);
-  if(sel){ sel.style.background='var(--teal-lt)'; sel.style.borderColor='var(--teal)'; sel.style.color='var(--teal)'; }
-  // Enable submit if all answered
-  const allDone = currentModule.quiz.every((_,i) => quizSelections[i] !== undefined);
-  const btn = document.getElementById('submitBtn');
-  if(btn) btn.disabled = !allDone;
-}
- 
-function submitQuiz(){
-  let correct = 0;
-  const qs = currentModule.quiz;
-  qs.forEach((q,qi)=>{
-    const chosen = quizSelections[qi];
-    const right = chosen === q.answer;
-    if(right) correct++;
-    qs[qi].options.forEach((_,oi)=>{
-      const btn = document.getElementById('opt_'+qi+'_'+oi);
-      if(!btn) return;
-      btn.disabled = true;
-      if(oi === q.answer){ btn.style.background='var(--green-lt)'; btn.style.borderColor='#86efac'; btn.style.color='var(--green)'; }
-      else if(oi === chosen && !right){ btn.style.background='var(--red-lt)'; btn.style.borderColor='#fca5a5'; btn.style.color='var(--red)'; }
-    });
-    const fb = document.getElementById('qf'+qi);
-    if(fb){ fb.style.display='block'; fb.textContent=q.explanation; fb.style.background=right?'var(--green-lt)':'var(--red-lt)'; fb.style.color=right?'var(--green)':'var(--red)'; }
-  });
-  const score = Math.round((correct/qs.length)*100);
-  const passed = score >= (currentModule.passScore || 80);
-  document.getElementById('submitBtn').style.display='none';
-  
-  // Add result + attestation
-  document.getElementById('trainingContent').innerHTML += `
-    <div class="section-card" style="margin-top:1rem;background:${passed?'var(--teal-lt)':'var(--red-lt)'};border-color:${passed?'var(--teal-md)':'#fca5a5'}">
-      <div style="font-size:32px;font-weight:700;color:${passed?'var(--teal)':'var(--red)'}">${score}%</div>
-      <div style="font-size:14px;font-weight:500;color:${passed?'#0a6b58':'var(--red)'};">${correct} of ${qs.length} correct · ${passed?'Passed ✓':'Did not pass — please retake'}</div>
-      ${passed ? `
-        <div class="attest-card" style="margin-top:1.25rem;background:var(--navy);border-radius:10px;padding:1.25rem">
-          <div style="font-size:14px;font-weight:600;color:#fff;margin-bottom:.5rem">Training attestation</div>
-          <div style="font-size:12px;color:rgba(255,255,255,.65);margin-bottom:1rem;line-height:1.6">By signing below, I confirm that I have reviewed all content in this module and understand my responsibilities.</div>
-          <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;margin-bottom:.75rem">
-            <input type="checkbox" id="attestCheck" onchange="toggleComplete()" style="accent-color:var(--teal);margin-top:2px">
-            <span style="font-size:12px;color:rgba(255,255,255,.8)">I have completed <strong>${currentModule.title}</strong> and understand my responsibilities. (${new Date().getFullYear()})</span>
-          </label>
-          <button class="complete-btn" id="completeBtn" onclick="completeModule(${score})" disabled>Mark complete ✓</button>
-        </div>` : `
-        <div style="margin-top:1rem"><button class="btn" onclick="openModule('${currentModule.id}')">↺ Retake module</button></div>`}
-    </div>`;
-}
- 
-function toggleComplete(){
-  const btn = document.getElementById('completeBtn');
-  if(btn) btn.disabled = !document.getElementById('attestCheck').checked;
-}
- 
-async function completeModule(score){
-  const btn = document.getElementById('completeBtn');
-  btn.disabled = true; btn.textContent = 'Saving…';
-  const payload = {
-    staff_id: currentUser.id,
-    company_id: currentProfile.company_id,
-    module_id: currentModule.id,
-    module_name: currentModule.name,
-    completed_at: new Date().toISOString(),
-    year: new Date().getFullYear()
-  };
-  const res = await fetch(
-    SUPABASE_URL + '/rest/v1/compliance_completions',
-    { method: 'POST',
-      headers:{ 
-        'apikey': SUPABASE_ANON,
-        'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON),
-        'Content-Type': 'application/json',
-        'Prefer': 'resolution=merge-duplicates'
-      },
-      body: JSON.stringify(payload)
-    }
-  );
-  if(!res.ok){ btn.disabled = false; btn.textContent = 'Error — try again'; return; }
-  completedModules.add(currentModule.id);
-  btn.textContent = '✓ Completed!';
-  btn.style.background = 'var(--green)';
-  setTimeout(() => { closeTraining(); renderModuleGrid(); renderWelcomeStats(); }, 1200);
-}
- 
-function prevSection(){ 
-  if(window.speechSynthesis) window.speechSynthesis.cancel(); speechPlaying = false;
-  if(currentSection > 0){ currentSection--; quizSelections={}; renderSection(); } 
-}
-function nextSection(){ 
-  if(window.speechSynthesis) window.speechSynthesis.cancel(); speechPlaying = false;
-  currentSection++; quizSelections={}; renderSection(); 
-}
- 
-// ── TABS ──
-function showTab(tab){
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  event.currentTarget.classList.add('active');
-  document.getElementById('trainingTab').style.display = tab==='training'?'block':'none';
-  document.getElementById('adminTab2').style.display = tab==='admin'?'block':'none';
-  document.getElementById('manageTab2').style.display = tab==='manage'?'block':'none';
-  if(tab==='manage') loadStaffTable();
-  if(tab==='admin') renderAdminTable();
-}
- 
-// ── ADMIN TABLE ──
-async function renderAdminTable(){
-  console.log('renderAdminTable called, company_id:', currentProfile.company_id);
-  const staffRes = await fetch(
-    SUPABASE_URL + '/rest/v1/compliance_staff?company_id=eq.' + currentProfile.company_id + '&order=full_name',
-    { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON) }}
-  );
-  const staff = await staffRes.json();
-  console.log('Staff fetch status:', staffRes.status, '| Count:', Array.isArray(staff) ? staff.length : 'error', staff);
- 
-  const compRes = await fetch(
-    SUPABASE_URL + '/rest/v1/compliance_completions?company_id=eq.' + currentProfile.company_id,
-    { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON) }}
-  );
-  const completions = await compRes.json();
- 
-  if(!staff || !staff.length){ document.getElementById('adminTable').innerHTML = '<p style="color:var(--muted);font-size:13px">No staff records found.</p>'; return; }
- 
-  const compByStaff = {};
-  (completions || []).forEach(c => {
-    // Key by staff_id (auth UUID) and also by employee_name for legacy records
-    const key = c.staff_id || c.employee_name;
-    if(key){
-      if(!compByStaff[key]) compByStaff[key] = new Set();
-      compByStaff[key].add(c.module_id);
-    }
-  });
- 
-  const trackMods = (typeof MODULES !== 'undefined') ? MODULES : [];
-  const rows = staff.map(s => {
-    const sid = s.id || s.full_name; // fallback to name if no id
-    const done = compByStaff[sid] ? compByStaff[sid].size : 0;
-    const total = trackMods.length;
-    const pillClass = done === total ? 'all' : done > 0 ? 'some' : 'none';
-    const pillText = done === total ? '✓ Complete' : `${done}/${total}`;
-    const dots = trackMods.map(m => `<div class="mdot ${compByStaff[sid]?.has(m.id)?'done':'todo'}" title="${m.title||m.name||''}"></div>`).join('');
-    return `<tr>
-      <td style="font-weight:500">${s.full_name || s.name || '—'}</td>
-      <td>${s.role || '—'}</td>
-      <td><span class="progress-pill ${pillClass}">${pillText}</span></td>
-      <td><div class="module-dots">${dots}</div></td>
-    </tr>`;
-  }).join('');
- 
-  document.getElementById('adminTable').innerHTML = `
-    <table class="staff-table">
-      <thead><tr><th>Name</th><th>Role</th><th>Status</th><th>Modules</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>`;
-}
- 
-// ── INIT ── (handled in DOMContentLoaded)
- 
- 
-// ── STAFF MANAGEMENT ──
-function showAddStaffForm(){
-  document.getElementById('addStaffForm').style.display = 'block';
-  document.getElementById('newName').focus();
-}
-function hideAddStaffForm(){
-  document.getElementById('addStaffForm').style.display = 'none';
-  ['newName','newEmail'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('addStaffError').style.display = 'none';
-}
- 
-async function loadStaffTable(){
-  const res = await fetch(
-    SUPABASE_URL + '/rest/v1/compliance_staff?company_id=eq.' + currentProfile.company_id + '&order=full_name',
-    { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON) }}
-  );
-  const staff = await res.json();
-  
-  // Get completions for module dots
-  const cRes = await fetch(
-    SUPABASE_URL + '/rest/v1/compliance_completions?company_id=eq.' + currentProfile.company_id + '&select=staff_id,module_id,employee_name',
-    { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON) }}
-  );
-  const comps = await cRes.json();
-  const compMap = {};
-  (comps || []).forEach(c => {
-    const k = c.staff_id || c.employee_name;
-    if(k){ if(!compMap[k]) compMap[k] = new Set(); compMap[k].add(c.module_id); }
-  });
- 
-  const mods = (typeof MODULES !== 'undefined') ? MODULES : [];
-  const tbody = document.getElementById('staffTbody');
-  if(!Array.isArray(staff) || !staff.length){
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:1.5rem">No staff records found.</td></tr>';
-    return;
-  }
- 
-  tbody.innerHTML = staff.map(s => {
-    const compKey = s.id;
-    const done = compMap[compKey] ? compMap[compKey].size : 0;
-    const dots = mods.map(m => `<div class="mdot ${compMap[compKey]?.has(m.id)?'done':'todo'}" title="${m.title||''}"></div>`).join('');
-    return `<tr id="srow_${s.id}">
-      <td style="font-weight:500">${s.full_name || '—'}</td>
-      <td>
-        <span style="font-size:12px;color:var(--muted)">${s.email || '<em style="opacity:.5">not set</em>'}</span>
-        <button onclick="editStaffEmail('${s.id}','${(s.full_name||'').replace(/'/g,"\'")}','${s.email||''}')" style="margin-left:5px;padding:2px 6px;font-size:10px;border:0.5px solid var(--border);border-radius:5px;background:transparent;cursor:pointer;color:var(--muted)">✏</button>
-      </td>
-      <td><span style="font-weight:500;color:${s.role==='admin'?'var(--gold)':'var(--teal)'}">${s.role||'clinician'}</span></td>
-      <td><span style="font-size:12px;font-weight:600;color:${s.active!==false?'var(--green)':'var(--red)'}">${s.active!==false?'● Active':'○ Inactive'}</span></td>
-      <td><div class="module-dots">${dots}</div></td>
-      <td>
-        <div style="display:flex;gap:5px;flex-wrap:wrap">
-          <button class="btn sm" onclick="resetStaffPin('${s.id}','${(s.full_name||'').replace(/'/g,"\'")}')">Reset PIN</button>
-          <button class="btn sm" style="border-color:${s.active!==false?'var(--red)':'var(--green)'};color:${s.active!==false?'var(--red)':'var(--green)'}" onclick="toggleStaffActive('${s.id}',${s.active!==false})">${s.active!==false?'Deactivate':'Reactivate'}</button>
-          <button class="btn sm" style="border-color:var(--gold);color:var(--gold)" onclick="toggleStaffRole('${s.id}','${s.role||'clinician'}')">${s.role==='admin'?'→ Clinician':'→ Admin'}</button>
-          ${s.email ? `<button class="btn sm" style="border-color:var(--teal);color:var(--teal)" onclick="sendReminder('${(s.full_name||'').replace(/'/g,"\'")}','${s.email}')">📧 Remind</button>` : ''}
-          <button class="btn sm" style="border-color:var(--red);color:var(--red)" onclick="deleteStaffMember('${s.id}','${(s.full_name||'').replace(/'/g,"\'")}')">Delete</button>
-        </div>
-      </td>
-    </tr>`;
-  }).join('');
-}
- 
-async function saveNewStaff(){
-  const name = document.getElementById('newName').value.trim();
-  const email = document.getElementById('newEmail').value.trim();
-  const role = document.getElementById('newRole').value;
-  const errEl = document.getElementById('addStaffError');
-  errEl.style.display = 'none';
-  if(!name){ errEl.textContent = 'Name is required.'; errEl.style.display = 'block'; return; }
-  const res = await fetch(
-    SUPABASE_URL + '/rest/v1/compliance_staff',
-    { method: 'POST',
-      headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON), 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
-      body: JSON.stringify({ full_name: name, email: email || null, role, active: true, company_id: currentProfile.company_id })
-    }
-  );
-  if(!res.ok){ const e = await res.json(); errEl.textContent = e.message || 'Error saving staff member.'; errEl.style.display = 'block'; return; }
-  hideAddStaffForm();
-  loadStaffTable();
-  showToast('✓ ' + name + ' added successfully');
-}
- 
-async function toggleStaffActive(id, currentlyActive){
-  await fetch(
-    SUPABASE_URL + '/rest/v1/compliance_staff?id=eq.' + id,
-    { method: 'PATCH',
-      headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON), 'Content-Type': 'application/json' },
-      body: JSON.stringify({ active: !currentlyActive })
-    }
-  );
-  loadStaffTable();
-  showToast(currentlyActive ? '✓ Staff member deactivated' : '✓ Staff member reactivated');
-}
- 
-async function toggleStaffRole(id, currentRole){
-  const newRole = currentRole === 'admin' ? 'clinician' : 'admin';
-  await fetch(
-    SUPABASE_URL + '/rest/v1/compliance_staff?id=eq.' + id,
-    { method: 'PATCH',
-      headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON), 'Content-Type': 'application/json' },
-      body: JSON.stringify({ role: newRole })
-    }
-  );
-  loadStaffTable();
-  showToast('✓ Role updated to ' + newRole);
-}
- 
-async function resetStaffPin(id, name){
-  const newPin = prompt('Set new PIN for ' + name + ':');
-  if(!newPin) return;
-  if(newPin.length < 4){ showToast('PIN must be at least 4 characters'); return; }
-  await fetch(
-    SUPABASE_URL + '/rest/v1/compliance_staff?id=eq.' + id,
-    { method: 'PATCH',
-      headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON), 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pin: newPin })
-    }
-  );
-  showToast('✓ PIN updated for ' + name);
-}
- 
-async function editStaffEmail(id, name, currentEmail){
-  const newEmail = prompt('Email address for ' + name + ':', currentEmail || '');
-  if(newEmail === null) return;
-  await fetch(
-    SUPABASE_URL + '/rest/v1/compliance_staff?id=eq.' + id,
-    { method: 'PATCH',
-      headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON), 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: newEmail || null })
-    }
-  );
-  loadStaffTable();
-  showToast('✓ Email updated for ' + name);
-}
- 
-async function deleteStaffMember(id, name){
-  if(!confirm('Delete ' + name + '? Training completion records will be kept.')) return;
-  await fetch(
-    SUPABASE_URL + '/rest/v1/compliance_staff?id=eq.' + id,
-    { method: 'DELETE',
-      headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON) }
-    }
-  );
-  loadStaffTable();
-  showToast('✓ ' + name + ' deleted');
-}
- 
-async function sendReminder(name, email){
-  if(!email){ showToast('No email address on file for ' + name); return; }
-  if(!confirm('Send training reminder to ' + name + ' at ' + email + '?')) return;
-  try {
-    emailjs.init(EMAILJS_PUBLIC_KEY);
-    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-      to_email: email,
-      to_name: name,
-      subject_line: 'Reminder — Complete Your Compliance Training',
-      message_body: 'This is a reminder to complete your required compliance training modules.',
-      tool_url: TOOL_URL,
-      company_name: currentProfile.companies?.name || 'Metro Mobile Health Care'
-    });
-    showToast('✓ Reminder sent to ' + name);
-  } catch(e) {
-    showToast('Failed to send reminder — check EmailJS settings');
-    console.error('EmailJS error:', e);
-  }
-}
- 
-// ── TOAST ──
-let toastTimer;
-function showToast(msg){
-  let el = document.getElementById('selko-toast');
-  if(!el){
-    el = document.createElement('div');
-    el.id = 'selko-toast';
-    el.style.cssText = 'position:fixed;bottom:24px;right:24px;background:var(--navy);color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;font-family:Sora,sans-serif;z-index:9999;opacity:0;transform:translateY(8px);transition:all .25s;pointer-events:none';
-    document.body.appendChild(el);
-  }
-  el.textContent = msg;
-  el.style.opacity = '1'; el.style.transform = 'translateY(0)';
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { el.style.opacity='0'; el.style.transform='translateY(8px)'; }, 3000);
-}
- 
-// ── TEXT TO SPEECH ──
-function getSlideText(){
-  if(!currentModule || currentSection >= currentModule.slides.length) return '';
-  const s = currentModule.slides[currentSection];
-  const tmp = document.createElement('div');
-  tmp.innerHTML = s.title + '. ' + s.content;
-  return tmp.textContent.replace(/[ \t\n]+/g,' ').trim();
-}
- 
-function toggleListen(){
-  if(speechPlaying){ window.speechSynthesis.cancel(); speechPlaying=false; updateListenBtn(false); }
-  else { startListen(); }
-}
- 
-function startListen(){
-  if(!window.speechSynthesis) return;
-  const text = getSlideText();
-  speechUtterance = new SpeechSynthesisUtterance(text);
-  speechUtterance.rate = speechRate; speechUtterance.pitch = 1.0;
-  const voices = window.speechSynthesis.getVoices();
-  const v = voices.find(v=>v.lang==='en-US'&&v.name.includes('Google')) || voices.find(v=>v.lang.startsWith('en-US'));
-  if(v) speechUtterance.voice = v;
-  speechUtterance.onstart = ()=>{ speechPlaying=true; updateListenBtn(true); };
-  speechUtterance.onend = speechUtterance.onerror = ()=>{ speechPlaying=false; updateListenBtn(false); };
-  window.speechSynthesis.speak(speechUtterance);
-}
- 
-function updateListenBtn(playing){
-  const btn = document.getElementById('listenBtn');
-  const lbl = document.getElementById('listenLabel');
-  if(btn){ btn.textContent = playing ? '⏹ Stop' : '🔊 Listen'; btn.className='listen-btn'+(playing?' playing':''); }
-  if(lbl) lbl.textContent = playing ? 'Reading aloud…' : 'Tap to replay';
-}
- 
-function adjustSpeed(delta){
-  speechRate = Math.min(1.5, Math.max(0.5, Math.round((speechRate+delta)*10)/10));
-  const lbl = document.getElementById('speedLabel');
-  if(lbl) lbl.textContent = speechRate.toFixed(1).replace('.0','') + 'x';
-  if(speechPlaying){ window.speechSynthesis.cancel(); setTimeout(startListen, 100); }
-}
- 
-if(window.speechSynthesis){ window.speechSynthesis.getVoices(); window.speechSynthesis.onvoiceschanged=()=>window.speechSynthesis.getVoices(); }
- 
-</script>
+<script src="selko-comply-app.js"></script>
 </body>
 </html>
- 
-
-
-
-
-
-
-
