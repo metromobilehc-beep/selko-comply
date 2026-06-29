@@ -227,6 +227,66 @@ function closeTraining(){
   document.getElementById('moduleGrid').style.display = 'grid';
 }
 
+function getCompanyName(){
+  return (currentProfile && currentProfile.companies && currentProfile.companies.name)
+    ? currentProfile.companies.name
+    : 'your organization';
+}
+
+function applyCompanyVars(html){
+  const co = currentProfile?.companies || {};
+  const name = co.name || 'your organization';
+  const isPro = co.plan === 'pro' || co.plan === 'enterprise';
+  const contacts = co.custom_contacts || {};
+  const vars = co.custom_vars || {};
+
+  let out = html;
+
+  // Always substitute company name
+  out = out.replace(/your organization's/g, name + "'s");
+  out = out.replace(/your organization/g, name);
+
+  // Pro substitutions
+  if(isPro){
+    // Contacts
+    if(contacts.privacy_officer){
+      out = out.replace(/your designated Privacy Officer/g, contacts.privacy_officer);
+      out = out.replace(/your designated supervisor or Privacy Officer/g, contacts.privacy_officer + ' or ' + (contacts.backup_contact || 'your backup supervisor'));
+    }
+    if(contacts.backup_contact){
+      out = out.replace(/your backup supervisor contact/g, contacts.backup_contact);
+    }
+    if(contacts.privacy_email){
+      out = out.replace(/your Privacy Officer's contact email/g, contacts.privacy_email);
+      out = out.replace(/your organization's compliance email/g, contacts.privacy_email);
+    }
+
+    // Tools and devices
+    if(vars.scheduling_tool){
+      out = out.replace(/your approved scheduling platform/g, vars.scheduling_tool);
+    }
+    if(vars.device){
+      out = out.replace(/your company-issued device/g, vars.device);
+      out = out.replace(/your organization's mobile device management system/g, vars.device + ' MDM');
+      out = out.replace(/your organization's mobile device management \(MDM\) system/g, vars.device + ' MDM');
+    }
+
+    // State-specific
+    if(vars.state){
+      out = out.replace(/your state's mandatory reporting statute/g, vars.state + ' mandatory reporting law');
+      out = out.replace(/your state's adult protective services website/g, vars.aps_website || (vars.state.toLowerCase() + ' APS website'));
+      out = out.replace(/your state's workers' compensation requirements/g, vars.state + " workers' compensation requirements");
+      out = out.replace(/your regional Federal OSHA office/g, vars.osha_region || 'your regional Federal OSHA office');
+      out = out.replace(/Severe weather can develop rapidly in your area\./g, vars.state + ' severe weather can develop rapidly.');
+    }
+    if(vars.aps_hotline){
+      out = out.replace(/your state's APS hotline/g, vars.aps_hotline);
+    }
+  }
+
+  return out;
+}
+
 function renderSection(){
   const total = currentModule.slides.length + 1; // +1 for quiz slide
   const pct = Math.round((currentSection / (total)) * 100);
@@ -245,7 +305,7 @@ function renderSection(){
       <div class="section-card">
         <div class="section-eyebrow" style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--teal);margin-bottom:.5rem">Slide ${currentSection+1} of ${currentModule.slides.length}</div>
         <div class="section-title" style="font-size:17px;font-weight:600;color:var(--navy);margin-bottom:.75rem">${s.title}</div>
-        <div class="section-body">${s.content}</div>
+        <div class="section-body">${applyCompanyVars(s.content)}</div>
       </div>`;
     document.getElementById('navActions').innerHTML = `
       <button class="btn" onclick="prevSection()" ${currentSection===0?'disabled':''}>← Previous</button>
