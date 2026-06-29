@@ -179,63 +179,62 @@
         <!-- Company settings drawer -->
         <div id="companyDrawer" style="display:none" class="card">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
-            <div class="card-title" style="margin:0" id="drawerTitle">Company settings</div>
+            <div>
+              <div class="card-title" style="margin:0" id="drawerTitle">Company settings</div>
+              <div style="font-size:12px;color:var(--muted);margin-top:3px">Quick setup for every client. Advanced settings for Pro only.</div>
+            </div>
             <button class="btn ghost sm" onclick="closeDrawer()">✕ Close</button>
           </div>
-
           <input type="hidden" id="drawerCompanyId">
 
-          <div style="background:var(--teal-lt);border:0.5px solid var(--teal-md);border-radius:8px;padding:10px 14px;margin-bottom:1rem;font-size:12px;color:#0a6b58;line-height:1.6">
-            <strong>Settings guide:</strong> Fill in what you know — leave blank anything that doesn't apply yet. Contacts appear in training modules for Pro clients. Custom variables replace generic terms like "your state" with real values. Feature flags control which Selko modules this company can access.
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.25rem">
-            <div><label>Company name</label><input type="text" id="dCoName"></div>
-            <div><label>Plan</label>
-              <select id="dCoPlan">
-                <option value="standard">Standard</option>
-                <option value="pro">Pro</option>
-                <option value="enterprise">Enterprise</option>
-              </select>
+          <!-- QUICK SETUP -->
+          <div style="background:var(--teal-lt);border:0.5px solid var(--teal-md);border-radius:10px;padding:1.25rem;margin-bottom:1rem">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--teal);margin-bottom:1rem">⚡ Quick setup — fill this for every client</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+              <div><label>Company name</label><input type="text" id="dCoName" placeholder="e.g. Acme Home Health"></div>
+              <div><label>Plan</label><select id="dCoPlan"><option value="standard">Standard — $39/mo</option><option value="pro">Pro — $79/mo</option><option value="enterprise">Enterprise</option></select></div>
+              <div><label>Admin email</label><input type="email" id="dOrgEmail" placeholder="e.g. admin@company.com"></div>
+              <div><label>Privacy Officer</label><input type="text" id="dPrivacyOfficer" placeholder="e.g. Jane Smith, DPT"></div>
+              <div><label>Privacy Officer email</label><input type="email" id="dPrivacyEmail" placeholder="e.g. privacy@company.com"></div>
+              <div><label>Backup contact</label><input type="text" id="dBackupContact" placeholder="e.g. John Doe, PT"></div>
             </div>
-            <div>
-              <label>Logo URL <span style="font-weight:400;color:var(--muted)">(paste link or upload below)</span></label>
-              <input type="url" id="dCoLogo" placeholder="https://...">
-              <div style="font-size:11px;color:var(--muted);margin-top:3px">Pro only — shows on their login screen</div>
-            </div>
-            <div style="display:flex;align-items:flex-end;gap:8px">
-              <div style="flex:1"><label>Upload logo</label><input type="file" id="dCoLogoFile" accept="image/*" style="padding:6px 8px;font-size:12px" onchange="uploadLogo(this)"></div>
+            <div style="display:flex;gap:10px;align-items:flex-end">
+              <div style="flex:1"><label>Logo URL</label><input type="url" id="dCoLogo" placeholder="https://..."></div>
+              <div style="flex:1"><label>Upload logo</label><input type="file" id="dCoLogoFile" accept="image/*" style="padding:6px 8px;font-size:12px;width:100%" onchange="uploadLogo(this)"></div>
             </div>
           </div>
 
-          <div class="card-title">Contacts <span style="font-size:11px;font-weight:400;color:var(--muted);text-transform:none;letter-spacing:0">— Pro plan only · appears in training modules</span></div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.25rem">
-            <div><label>Privacy Officer <span style="font-weight:400;color:var(--muted)">(name + credentials)</span></label><input type="text" id="dPrivacyOfficer" placeholder="e.g. Jane Smith, DPT"></div>
-            <div><label>Privacy Officer email</label><input type="email" id="dPrivacyEmail" placeholder="e.g. privacy@company.com"></div>
-            <div><label>Backup contact <span style="font-weight:400;color:var(--muted)">(secondary supervisor)</span></label><input type="text" id="dBackupContact" placeholder="e.g. John Doe, PT"></div>
-            <div><label>General org email</label><input type="email" id="dOrgEmail" placeholder="e.g. info@company.com"></div>
+          <!-- MODULES -->
+          <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:1rem">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.75rem">📦 Modules enabled</div>
+            <div style="display:flex;gap:1.25rem;flex-wrap:wrap">
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px"><input type="checkbox" id="dHasCompliance" style="accent-color:var(--teal)" checked disabled> ✅ Selko Comply <span style="color:var(--muted);font-size:11px">(active)</span></label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;opacity:.4"><input type="checkbox" id="dHasCred" style="accent-color:var(--teal)" disabled> Selko Cred <span style="color:var(--muted);font-size:11px">(coming soon)</span></label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;opacity:.4"><input type="checkbox" id="dHasHep" style="accent-color:var(--teal)" disabled> Selko HEP <span style="color:var(--muted);font-size:11px">(coming soon)</span></label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px"><input type="checkbox" id="dBranding" style="accent-color:var(--gold)"> ⭐ Branding <span style="color:var(--muted);font-size:11px">(Pro)</span></label>
+            </div>
           </div>
 
-          <div class="card-title">Custom variables <span style="font-size:11px;font-weight:400;color:var(--muted);text-transform:none;letter-spacing:0">— Pro plan only · replaces generic terms in modules</span></div>
-          <div style="background:var(--gold-lt);border:0.5px solid var(--gold-md);border-radius:8px;padding:8px 12px;margin-bottom:.75rem;font-size:11px;color:#92710a">
-            These replace placeholder text in training modules. E.g. "your state" → "Oklahoma". Leave blank to keep generic language.
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.25rem">
-            <div><label>State</label><input type="text" id="dState" placeholder="Oklahoma"></div>
-            <div><label>APS hotline</label><input type="text" id="dApsHotline" placeholder="1-800-522-3511"></div>
-            <div><label>APS website</label><input type="text" id="dApsWebsite" placeholder="okdhs.org"></div>
-            <div><label>Scheduling tool</label><input type="text" id="dSchedulingTool" placeholder="ConnectTeam"></div>
-            <div><label>Device type</label><input type="text" id="dDevice" placeholder="Samsung Galaxy Tab"></div>
-            <div><label>MDM system</label><input type="text" id="dMdm" placeholder="Knox MDM"></div>
-            <div><label>OSHA region</label><input type="text" id="dOshaRegion" placeholder="Federal OSHA Region VI — Dallas"></div>
-            <div><label>Workers comp info</label><input type="text" id="dWorkersComp" placeholder="Oklahoma workers compensation"></div>
-          </div>
+          <!-- ADVANCED TOGGLE -->
+          <button onclick="toggleAdvanced()" class="btn sm ghost" id="advancedToggle" style="width:100%;justify-content:center;border:0.5px dashed var(--border);margin-bottom:1rem">
+            ▶ Show advanced settings — Pro client customization
+          </button>
 
-          <div class="card-title">Feature flags</div>
-          <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1.25rem">
-            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px"><input type="checkbox" id="dBranding" style="accent-color:var(--teal)"> Branding enabled</label>
-            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px"><input type="checkbox" id="dHasCompliance" style="accent-color:var(--teal)"> Selko Comply</label>
-            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px"><input type="checkbox" id="dHasCred" style="accent-color:var(--teal)"> Selko Cred</label>
-            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px"><input type="checkbox" id="dHasHep" style="accent-color:var(--teal)"> Selko HEP</label>
+          <div id="advancedSettings" style="display:none;margin-bottom:1rem">
+            <div style="background:var(--gold-lt);border:0.5px solid var(--gold-md);border-radius:10px;padding:1.25rem">
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--gold);margin-bottom:.5rem">⭐ Pro — custom variables</div>
+              <div style="font-size:12px;color:#92710a;margin-bottom:1rem;line-height:1.5">Replace generic terms in training modules. Leave blank to keep generic language.</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                <div><label>State <span style="font-weight:400;color:var(--muted)">"your state" →</span></label><input type="text" id="dState" placeholder="e.g. Oklahoma"></div>
+                <div><label>APS hotline</label><input type="text" id="dApsHotline" placeholder="e.g. 1-800-522-3511"></div>
+                <div><label>APS website</label><input type="text" id="dApsWebsite" placeholder="e.g. okdhs.org"></div>
+                <div><label>Scheduling tool <span style="font-weight:400;color:var(--muted)">"your approved scheduling platform" →</span></label><input type="text" id="dSchedulingTool" placeholder="e.g. ConnectTeam"></div>
+                <div><label>Device type <span style="font-weight:400;color:var(--muted)">"your company-issued device" →</span></label><input type="text" id="dDevice" placeholder="e.g. Samsung Galaxy Tab"></div>
+                <div><label>MDM system</label><input type="text" id="dMdm" placeholder="e.g. Knox MDM"></div>
+                <div><label>OSHA region</label><input type="text" id="dOshaRegion" placeholder="e.g. Federal OSHA Region VI"></div>
+                <div><label>Workers comp</label><input type="text" id="dWorkersComp" placeholder="e.g. Oklahoma workers compensation"></div>
+              </div>
+            </div>
           </div>
 
           <div style="display:flex;gap:8px">
