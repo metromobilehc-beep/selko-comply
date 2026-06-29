@@ -171,3 +171,78 @@ body{font-family:'Sora',system-ui,sans-serif;background:#f0f2f5;color:var(--text
 .speed-label{font-size:12px;font-weight:700;color:var(--teal);min-width:28px;text-align:center}
 .staff-table td:last-child{white-space:nowrap;min-width:420px}
 .staff-table td:last-child .btn{white-space:nowrap;font-size:11px;padding:4px 8px}
+/* ── MOBILE ── */
+@media(max-width:768px){
+  /* Page */
+  .page{padding:1rem .75rem}
+  
+  /* Topbar */
+  .topbar{padding:0 1rem;height:48px}
+  .logo-name{font-size:15px}
+  .top-user .top-company{display:none}
+  .top-signout{font-size:11px;padding:4px 8px}
+
+  /* Welcome bar */
+  .welcome-bar{padding:1rem;flex-direction:column;gap:.5rem}
+  .welcome-stats{gap:.75rem}
+  .welcome-stat-num{font-size:18px}
+
+  /* Tab bar */
+  .tab-bar{gap:2px;padding:3px}
+  .tab-btn{font-size:11px;padding:6px 4px}
+
+  /* Module grid */
+  .module-grid{grid-template-columns:1fr}
+  .module-card{padding:1rem}
+
+  /* Training viewer */
+  .section-card{padding:1rem}
+  .section-title{font-size:15px}
+  .section-body{font-size:13px}
+  .section-body li{font-size:13px}
+  .callout{padding:10px 12px;font-size:12px}
+  .listen-bar{gap:6px;padding:6px 10px}
+  .listen-btn{font-size:11px;padding:5px 10px}
+
+  /* Quiz */
+  .quiz-card{padding:1rem}
+  .quiz-opt{padding:9px 12px;font-size:13px}
+
+  /* Nav actions */
+  .nav-actions{flex-wrap:wrap;gap:6px}
+  .btn{font-size:12px;padding:7px 12px}
+
+  /* Login */
+  .login-card{padding:1.5rem 1.25rem;margin:.5rem}
+
+  /* Staff table */
+  .staff-table{min-width:500px;font-size:12px}
+  .staff-table th{font-size:9px;padding:6px 8px}
+  .staff-table td{padding:7px 8px}
+  .staff-table td:last-child{min-width:unset}
+  
+  /* Admin table */
+  .progress-pill{font-size:10px;padding:2px 6px}
+  .module-dots{gap:3px}
+  .mdot{width:8px;height:8px}
+
+  /* Card */
+  .card{padding:1rem}
+  .card-title{font-size:10px}
+
+  /* Super admin cards */
+  #companyCards{grid-template-columns:1fr}
+  
+  /* Drawer grids */
+  #companyDrawer .grid-2{grid-template-columns:1fr}
+  
+  /* Attest card */
+  .attest-card{padding:1rem}
+}
+
+@media(max-width:480px){
+  .tab-btn{font-size:10px;padding:5px 3px}
+  .welcome-bar h2{font-size:15px}
+  .top-user #topName{font-size:12px}
+  .top-avatar{width:26px;height:26px;font-size:10px}
+}

@@ -6,6 +6,20 @@
 <title>Selko Comply</title>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="selko-comply-styles.css">
+<style>
+@media(max-width:768px){
+  #companyDrawer [style*="grid-template-columns:1fr 1fr"],
+  #addCompanyForm [style*="grid-template-columns:1fr 1fr"],
+  #addCompanyForm [style*="flex-direction:column"] > [style*="display:flex"],
+  .super-admin-grid{
+    grid-template-columns:1fr !important;
+  }
+  [style*="display:flex;gap:10px"] > div{
+    min-width:0;
+  }
+  .staff-table-wrap{overflow-x:auto}
+}
+</style>
 </head>
 <body>
 
