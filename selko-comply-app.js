@@ -488,7 +488,7 @@ async function renderAdminTable(){
     compByStaff[c.staff_id][c.module_id] = { score: c.score, date: c.completed_at };
   });
 
-  const mods = (typeof MODULES !== 'undefined') ? MODULES : [];
+  const mods = (typeof MODULES !== 'undefined') ? MODULES.filter(m => !m.adminOnly) : [];
   const totalMods = mods.length;
   const totalStaff = staff.length;
   const completeStaff = staff.filter(s => Object.keys(compByStaff[s.id]||{}).length >= totalMods).length;
