@@ -392,68 +392,96 @@ function showTab(tab){
 
 // ── ADMIN TABLE ──
 async function renderAdminTable(){
-  console.log('renderAdminTable called, company_id:', currentProfile.company_id);
   const staffRes = await fetch(
-    SUPABASE_URL + '/rest/v1/compliance_staff?company_id=eq.' + currentProfile.company_id + '&order=full_name',
+    SUPABASE_URL + '/rest/v1/compliance_staff?company_id=eq.' + currentProfile.company_id + '&order=full_name&active=eq.true',
     { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON) }}
   );
   const staff = await staffRes.json();
-  console.log('Staff fetch status:', staffRes.status, '| Count:', Array.isArray(staff) ? staff.length : 'error', staff);
 
   const compRes = await fetch(
-    SUPABASE_URL + '/rest/v1/compliance_completions?company_id=eq.' + currentProfile.company_id,
+    SUPABASE_URL + '/rest/v1/compliance_completions?company_id=eq.' + currentProfile.company_id + '&select=staff_id,module_id,score,completed_at',
     { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON) }}
   );
   const completions = await compRes.json();
 
-  if(!staff || !staff.length){ document.getElementById('adminTable').innerHTML = '<p style="color:var(--muted);font-size:13px">No staff records found.</p>'; return; }
+  const el = document.getElementById('adminTable');
+  if(!Array.isArray(staff) || !staff.length){
+    el.innerHTML = '<p style="color:var(--muted);font-size:13px">No staff records found.</p>';
+    return;
+  }
 
   const compByStaff = {};
   (completions || []).forEach(c => {
-    // Key by staff_id (auth UUID) and also by employee_name for legacy records
-    const key = c.staff_id || c.employee_name;
-    if(key){
-      if(!compByStaff[key]) compByStaff[key] = new Set();
-      compByStaff[key].add(c.module_id);
-    }
+    if(!c.staff_id) return;
+    if(!compByStaff[c.staff_id]) compByStaff[c.staff_id] = {};
+    compByStaff[c.staff_id][c.module_id] = { score: c.score, date: c.completed_at };
   });
 
-  const trackMods = (typeof MODULES !== 'undefined') ? MODULES : [];
-  const rows = staff.map(s => {
-    const sid = s.id || s.full_name; // fallback to name if no id
-    const done = compByStaff[sid] ? compByStaff[sid].size : 0;
-    const total = trackMods.length;
-    const pillClass = done === total ? 'all' : done > 0 ? 'some' : 'none';
-    const pillText = done === total ? '✓ Complete' : `${done}/${total}`;
-    const dots = trackMods.map(m => `<div class="mdot ${compByStaff[sid]?.has(m.id)?'done':'todo'}" title="${m.title||m.name||''}"></div>`).join('');
-    return `<tr>
-      <td style="font-weight:500">${s.full_name || s.name || '—'}</td>
-      <td>${s.role || '—'}</td>
-      <td><span class="progress-pill ${pillClass}">${pillText}</span></td>
-      <td><div class="module-dots">${dots}</div></td>
-    </tr>`;
+  const mods = (typeof MODULES !== 'undefined') ? MODULES : [];
+  const totalMods = mods.length;
+  const totalStaff = staff.length;
+  const completeStaff = staff.filter(s => Object.keys(compByStaff[s.id]||{}).length >= totalMods).length;
+
+  const rows = staff.map((s,si) => {
+    const comp = compByStaff[s.id] || {};
+    const done = Object.keys(comp).length;
+    const pct = totalMods ? Math.round((done/totalMods)*100) : 0;
+    const pillClass = done >= totalMods ? 'all' : done > 0 ? 'some' : 'none';
+    const pillText = done >= totalMods ? '✓ Complete' : done + '/' + totalMods;
+    const dots = mods.map(m => {
+      const c = comp[m.id];
+      return '<div class="mdot ' + (c?'done':'todo') + '" title="' + (m.title||'') + (c?' — '+c.score+'%':'') + '"></div>';
+    }).join('');
+    const lastDate = Object.values(comp).sort((a,b)=>new Date(b.date)-new Date(a.date))[0]?.date;
+    const dateStr = lastDate ? new Date(lastDate).toLocaleDateString() : '—';
+
+    // Detail rows — one per module
+    const detailRows = mods.map(m => {
+      const c = comp[m.id];
+      return '<tr class="detail-row" id="detail_' + si + '" style="display:none;background:var(--surface)">' +
+        '<td style="padding:6px 12px 6px 32px;font-size:12px;color:var(--muted)">' + (m.icon||'📋') + ' ' + (m.title||m.id) + '</td>' +
+        '<td></td>' +
+        '<td>' + (c ? '<span style="font-size:11px;font-weight:600;color:var(--green)">✓ Done</span>' : '<span style="font-size:11px;color:var(--muted)">○ Pending</span>') + '</td>' +
+        '<td style="font-size:12px;color:var(--muted)">' + (c ? '<span style="color:var(--teal);font-weight:500">' + c.score + '%</span>' : '—') + '</td>' +
+        '<td style="font-size:12px;color:var(--muted)">' + (c ? new Date(c.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) + ' at ' + new Date(c.date).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}) : '—') + '</td>' +
+      '</tr>';
+    }).join('');
+
+    const mainRow = '<tr style="cursor:pointer" onclick="toggleDetail(' + si + ')">' +
+      '<td style="font-weight:500">' +
+        '<span id="chevron_' + si + '" style="display:inline-block;margin-right:6px;font-size:10px;color:var(--muted);transition:transform .15s">▶</span>' +
+        (s.full_name||'—') +
+      '</td>' +
+      '<td><span style="font-size:11px;color:var(--muted)">' + (s.role||'clinician') + '</span></td>' +
+      '<td><span class="progress-pill ' + pillClass + '">' + pillText + '</span></td>' +
+      '<td><div style="display:flex;align-items:center;gap:8px"><div class="module-dots">' + dots + '</div><span style="font-size:11px;color:var(--muted)">' + pct + '%</span></div></td>' +
+      '<td style="font-size:12px;color:var(--muted)">' + dateStr + '</td>' +
+    '</tr>';
+
+    return mainRow + detailRows;
   }).join('');
 
-  document.getElementById('adminTable').innerHTML = `
-    <table class="staff-table">
-      <thead><tr><th>Name</th><th>Role</th><th>Status</th><th>Modules</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>`;
+  el.innerHTML =
+    '<div style="display:flex;gap:1rem;margin-bottom:1rem;flex-wrap:wrap">' +
+      '<div style="padding:10px 16px;background:var(--teal-lt);border:0.5px solid var(--teal-md);border-radius:8px;font-size:13px"><strong style="color:var(--teal);font-size:18px">' + completeStaff + '/' + totalStaff + '</strong> <span style="color:var(--muted)">staff complete</span></div>' +
+      '<div style="padding:10px 16px;background:var(--surface);border:0.5px solid var(--border);border-radius:8px;font-size:13px"><strong style="color:var(--navy);font-size:18px">' + (completions||[]).length + '</strong> <span style="color:var(--muted)">total completions</span></div>' +
+      '<div style="padding:10px 16px;background:var(--gold-lt);border:0.5px solid var(--gold-md);border-radius:8px;font-size:13px"><strong style="color:var(--gold);font-size:18px">' + totalMods + '</strong> <span style="color:var(--muted)">required modules</span></div>' +
+      '<div style="padding:10px 16px;background:var(--surface);border:0.5px solid var(--border);border-radius:8px;font-size:12px;color:var(--muted);display:flex;align-items:center">▶ Click any row to see individual module dates</div>' +
+    '</div>' +
+    '<div style="overflow-x:auto"><table class="staff-table" style="min-width:700px">' +
+      '<thead><tr><th>Name</th><th>Role</th><th>Status</th><th>Modules</th><th>Last activity</th></tr></thead>' +
+      '<tbody>' + rows + '</tbody>' +
+    '</table></div>';
 }
 
-// ── INIT ── (handled in DOMContentLoaded)
-
-
-// ── STAFF MANAGEMENT ──
-function showAddStaffForm(){
-  document.getElementById('addStaffForm').style.display = 'block';
-  document.getElementById('newName').focus();
+function toggleDetail(idx){
+  const rows = document.querySelectorAll('#detail_' + idx);
+  const chevron = document.getElementById('chevron_' + idx);
+  const open = rows[0] && rows[0].style.display !== 'none';
+  rows.forEach(r => r.style.display = open ? 'none' : 'table-row');
+  if(chevron) chevron.style.transform = open ? '' : 'rotate(90deg)';
 }
-function hideAddStaffForm(){
-  document.getElementById('addStaffForm').style.display = 'none';
-  ['newName','newEmail'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('addStaffError').style.display = 'none';
-}
+
 
 async function loadStaffTable(){
   const res = await fetch(
