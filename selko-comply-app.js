@@ -589,7 +589,8 @@ async function loadStaffTable(){
   tbody.innerHTML = staff.map(s => {
     const compKey = s.id;
     const allMods = (typeof MODULES !== 'undefined') ? MODULES : [];
-    const compDots = allMods.map(m => {
+    const staffModList = s.role === 'admin' ? allMods : allMods.filter(m => !m.adminOnly);
+    const compDots = staffModList.map(m => {
       const done = compMap[compKey] && compMap[compKey].has(m.id);
       return '<div class="mdot ' + (done?'done':'todo') + '" title="' + (m.title||'') + '"></div>';
     }).join('');
