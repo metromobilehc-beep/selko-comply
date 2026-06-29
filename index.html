@@ -140,30 +140,33 @@
         <!-- Add company form -->
         <div id="addCompanyForm" style="display:none" class="card">
           <div class="card-title">New company</div>
-          <div style="background:var(--teal-lt);border:0.5px solid var(--teal-md);border-radius:8px;padding:10px 14px;margin-bottom:1rem;font-size:12px;color:#0a6b58;line-height:1.6">
-            <strong>How to fill this out:</strong> Enter the agency name exactly as they use it. The URL ID is generated automatically. Enter the billing/admin contact email. Choose Standard for new clients — upgrade to Pro when they pay for branding.
+          <div style="font-size:12px;color:#0a6b58;background:var(--teal-lt);border:0.5px solid var(--teal-md);border-radius:8px;padding:9px 12px;margin-bottom:1rem;line-height:1.5">
+            💡 Enter the agency name — URL ID fills automatically. Add the admin email and choose a plan. Start all new clients on Standard.
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem">
-            <div>
-              <label>Company name <span style="font-weight:400;color:var(--muted)">(full legal or trade name)</span></label>
-              <input type="text" id="newCoName" placeholder="e.g. Acme Home Health, LLC" oninput="autoSlug(this.value)">
+          <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:1rem">
+            <div style="display:flex;gap:10px">
+              <div style="flex:2">
+                <label>Company name</label>
+                <input type="text" id="newCoName" placeholder="e.g. Acme Home Health" oninput="autoSlug(this.value)">
+              </div>
+              <div style="flex:1">
+                <label>URL ID (slug)</label>
+                <input type="text" id="newCoSlug" placeholder="e.g. acme">
+                <div style="font-size:11px;color:var(--muted);margin-top:3px">comply.selko360.com?org=<strong id="slugPreview">...</strong></div>
+              </div>
             </div>
-            <div>
-              <label>URL ID — slug <span style="font-weight:400;color:var(--muted)">(auto-filled, lowercase no spaces)</span></label>
-              <input type="text" id="newCoSlug" placeholder="e.g. acme-home-health">
-              <div style="font-size:11px;color:var(--muted);margin-top:3px">This becomes their portal URL: comply.selko360.com?org=<strong id="slugPreview">slug</strong></div>
-            </div>
-            <div>
-              <label>Admin email <span style="font-weight:400;color:var(--muted)">(who logs in first)</span></label>
-              <input type="email" id="newCoEmail" placeholder="e.g. director@acmehomehealth.com">
-            </div>
-            <div>
-              <label>Plan</label>
-              <select id="newCoPlan">
-                <option value="standard">Standard — $39/mo (generic content)</option>
-                <option value="pro">Pro — $79/mo (branded + customized)</option>
-              </select>
-              <div style="font-size:11px;color:var(--muted);margin-top:3px">Start new clients on Standard. Upgrade in Settings when they pay for Pro.</div>
+            <div style="display:flex;gap:10px">
+              <div style="flex:2">
+                <label>Admin email</label>
+                <input type="email" id="newCoEmail" placeholder="e.g. director@acmehomehealth.com">
+              </div>
+              <div style="flex:1">
+                <label>Plan</label>
+                <select id="newCoPlan">
+                  <option value="standard">Standard — $39/mo</option>
+                  <option value="pro">Pro — $79/mo</option>
+                </select>
+              </div>
             </div>
           </div>
           <div style="display:flex;gap:8px">
