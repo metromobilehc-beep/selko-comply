@@ -267,8 +267,7 @@ function applyCompanyVars(html){
     }
     if(vars.device){
       out = out.replace(/your company-issued device/g, vars.device);
-      out = out.replace(/your organization's mobile device management system/g, vars.device + ' MDM');
-      out = out.replace(/your organization's mobile device management \(MDM\) system/g, vars.device + ' MDM');
+      out = out.replace(/your MDM system/g, vars.mdm || (vars.device + ' MDM'));
     }
 
     // State-specific
