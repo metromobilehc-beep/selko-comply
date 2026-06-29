@@ -483,28 +483,35 @@ async function loadStaffTable(){
 
   tbody.innerHTML = staff.map(s => {
     const compKey = s.id;
-    const done = compMap[compKey] ? compMap[compKey].size : 0;
     const allMods = (typeof MODULES !== 'undefined') ? MODULES : [];
-    const dots = allMods.map(m => `<div class="mdot ${compMap[compKey]?.has(m.id)?'done':'todo'}" title="${m.title||''}"></div>`).join('');
-    return `<tr id="srow_${s.id}">
-      <td style="font-weight:500">${s.full_name || '—'}</td>
-      <td>
-        <span style="font-size:12px;color:var(--muted)">${s.email || '<em style="opacity:.5">not set</em>'}</span>
-        <button onclick="editStaffEmail('${s.id}','${(s.full_name||'').replace(/'/g,"\'")}','${s.email||''}')" style="margin-left:5px;padding:2px 6px;font-size:10px;border:0.5px solid var(--border);border-radius:5px;background:transparent;cursor:pointer;color:var(--muted)">✏</button>
-      </td>
-      <td><span style="font-weight:500;color:${s.role==='admin'?'var(--gold)':'var(--teal)'}">${s.role||'clinician'}</span></td>
-      <td><span style="font-size:12px;font-weight:600;color:${s.active!==false?'var(--green)':'var(--red)'}">${s.active!==false?'● Active':'○ Inactive'}</span></td>
-      <td><div class="module-dots">${dots}</div></td>
-      <td>
-        <div style="display:flex;gap:4px;flex-wrap:nowrap;align-items:center">
-          <button class="btn sm" onclick="resetStaffPin('${s.id}','${(s.full_name||'').replace(/'/g,\"\\'\")}')">Reset PIN</button>
-          <button class="btn sm" style="border-color:${s.active!==false?'var(--red)':'var(--green)'};color:${s.active!==false?'var(--red)':'var(--green)'}" onclick="toggleStaffActive('${s.id}',${s.active!==false})">${s.active!==false?'Deactivate':'Reactivate'}</button>
-          <button class="btn sm" style="border-color:var(--gold);color:var(--gold)" onclick="toggleStaffRole('${s.id}','${s.role||'clinician'}')">${s.role==='admin'?'→ Clinician':'→ Admin'}</button>
-          ${s.email ? `<button class="btn sm" style="border-color:var(--teal);color:var(--teal)" onclick="sendReminder('${(s.full_name||'').replace(/'/g,\"\\'\")}','${s.email}')">📧 Remind</button>` : ''}
-          <button class="btn sm" style="border-color:var(--red);color:var(--red)" onclick="deleteStaffMember('${s.id}','${(s.full_name||'').replace(/'/g,\"\\'\")}')">Delete</button>
-        </div>
-      </td>
-    </tr>`;
+    const compDots = allMods.map(m => {
+      const done = compMap[compKey] && compMap[compKey].has(m.id);
+      return '<div class="mdot ' + (done?'done':'todo') + '" title="' + (m.title||'') + '"></div>';
+    }).join('');
+    const name = (s.full_name || '—').replace(/'/g, '&#39;');
+    const email = s.email || '';
+    const role = s.role || 'clinician';
+    const active = s.active !== false;
+    const sid = s.id;
+    return '<tr>' +
+      '<td style="font-weight:500">' + (s.full_name||'—') + '</td>' +
+      '<td>' +
+        '<span style="font-size:12px;color:var(--muted)">' + (email || '<em style="opacity:.5">not set</em>') + '</span>' +
+        ' <button onclick="editStaffEmail(' + "'" + sid + "','" + name + "','" + email + "'" + ')" style="padding:2px 6px;font-size:10px;border:0.5px solid var(--border);border-radius:5px;background:transparent;cursor:pointer;color:var(--muted)">✏</button>' +
+      '</td>' +
+      '<td><span style="font-weight:500;color:' + (role==='admin'?'var(--gold)':'var(--teal)') + '">' + role + '</span></td>' +
+      '<td><span style="font-size:12px;font-weight:600;color:' + (active?'var(--green)':'var(--red)') + '">' + (active?'● Active':'○ Inactive') + '</span></td>' +
+      '<td><div class="module-dots">' + compDots + '</div></td>' +
+      '<td>' +
+        '<div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">' +
+          '<button class="btn sm" onclick="resetStaffPin(' + "'" + sid + "','" + name + "'" + ')">Reset PIN</button>' +
+          '<button class="btn sm" style="border-color:' + (active?'var(--red)':'var(--green)') + ';color:' + (active?'var(--red)':'var(--green)') + '" onclick="toggleStaffActive(' + "'" + sid + "'," + active + ')">' + (active?'Deactivate':'Reactivate') + '</button>' +
+          '<button class="btn sm" style="border-color:var(--gold);color:var(--gold)" onclick="toggleStaffRole(' + "'" + sid + "','" + role + "'" + ')">' + (role==='admin'?'→ Clinician':'→ Admin') + '</button>' +
+          (email ? '<button class="btn sm" style="border-color:var(--teal);color:var(--teal)" onclick="sendReminder(' + "'" + name + "','" + email + "'" + ')">📧 Remind</button>' : '') +
+          '<button class="btn sm" style="border-color:var(--red);color:var(--red)" onclick="deleteStaffMember(' + "'" + sid + "','" + name + "'" + ')">Delete</button>' +
+        '</div>' +
+      '</td>' +
+    '</tr>';
   }).join('');
 }
 
