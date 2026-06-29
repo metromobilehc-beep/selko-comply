@@ -488,18 +488,24 @@ async function renderAdminTable(){
     compByStaff[c.staff_id][c.module_id] = { score: c.score, date: c.completed_at };
   });
 
-  const mods = (typeof MODULES !== 'undefined') ? MODULES.filter(m => !m.adminOnly) : [];
-  const totalMods = mods.length;
+  const allMods = (typeof MODULES !== 'undefined') ? MODULES : [];
+  const clinicianMods = allMods.filter(m => !m.adminOnly);
+  const adminMods = allMods;
   const totalStaff = staff.length;
-  const completeStaff = staff.filter(s => Object.keys(compByStaff[s.id]||{}).length >= totalMods).length;
+  const completeStaff = staff.filter(s => {
+    const required = s.role === 'admin' ? adminMods.length : clinicianMods.length;
+    return Object.keys(compByStaff[s.id]||{}).length >= required;
+  }).length;
 
   const rows = staff.map((s,si) => {
     const comp = compByStaff[s.id] || {};
+    const staffMods = s.role === 'admin' ? adminMods : clinicianMods;
     const done = Object.keys(comp).length;
-    const pct = totalMods ? Math.round((done/totalMods)*100) : 0;
-    const pillClass = done >= totalMods ? 'all' : done > 0 ? 'some' : 'none';
-    const pillText = done >= totalMods ? '✓ Complete' : done + '/' + totalMods;
-    const dots = mods.map(m => {
+    const total = staffMods.length;
+    const pct = total ? Math.round((done/total)*100) : 0;
+    const pillClass = done >= total ? 'all' : done > 0 ? 'some' : 'none';
+    const pillText = done >= total ? '✓ Complete' : done + '/' + total;
+    const dots = staffMods.map(m => {
       const c = comp[m.id];
       return '<div class="mdot ' + (c?'done':'todo') + '" title="' + (m.title||'') + (c?' — '+c.score+'%':'') + '"></div>';
     }).join('');
@@ -507,7 +513,7 @@ async function renderAdminTable(){
     const dateStr = lastDate ? new Date(lastDate).toLocaleDateString() : '—';
 
     // Detail rows — one per module
-    const detailRows = mods.map(m => {
+    const detailRows = staffMods.map(m => {
       const c = comp[m.id];
       return '<tr class="detail-row" id="detail_' + si + '" style="display:none;background:var(--surface)">' +
         '<td style="padding:6px 12px 6px 32px;font-size:12px;color:var(--muted)">' + (m.icon||'📋') + ' ' + (m.title||m.id) + '</td>' +
