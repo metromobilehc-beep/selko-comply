@@ -177,7 +177,8 @@ function renderModuleGrid(){
     grid.innerHTML = '<p style="color:var(--muted);font-size:13px;padding:1rem">Training modules loading...</p>';
     return;
   }
-  const mods = MODULES.filter(m => m && m.track && m.track.includes(currentTrack));
+  const isAdmin = currentProfile && currentProfile.role === 'admin';
+  const mods = MODULES.filter(m => m && m.track && m.track.includes(currentTrack) && (!m.adminOnly || isAdmin));
   grid.innerHTML = mods.map(m => {
     const done = completedModules.has(m.id);
     return `<div class="module-card${done?' completed':''}" onclick="openModule('${m.id}')">
@@ -196,7 +197,8 @@ function renderModuleGrid(){
 
 function renderWelcomeStats(){
   if(typeof MODULES === 'undefined' || !MODULES) return;
-  const mods = MODULES.filter(m => m && m.track && m.track.includes(currentTrack));
+  const isAdmin = currentProfile && currentProfile.role === 'admin';
+  const mods = MODULES.filter(m => m && m.track && m.track.includes(currentTrack) && (!m.adminOnly || isAdmin));
   const total = mods.length;
   const done = mods.filter(m => completedModules.has(m.id)).length;
   const pct = total ? Math.round((done/total)*100) : 0;
