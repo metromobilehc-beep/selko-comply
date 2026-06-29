@@ -122,11 +122,18 @@ async function loadApp(user){
     document.getElementById('welcomeName').textContent = 'Welcome, ' + (data.full_name.split(' ')[0]);
     document.getElementById('welcomeSub').textContent = (data.companies?.name || '') + ' · Compliance training';
 
-    console.log('Role check:', data.role, '| Is admin:', data.role === 'admin');
+    console.log('Role check:', data.role, '| Is admin:', data.role === 'admin', '| Super admin:', data.is_super_admin);
+    if(data.is_super_admin){
+      // Load all companies for super admin
+      loadSuperAdminData();
+    }
     if(data.role === 'admin'){
       document.getElementById('adminTab').style.display = 'block';
       document.getElementById('manageTab').style.display = 'block';
       console.log('Admin tab shown');
+    }
+    if(data.is_super_admin){
+      document.getElementById('superAdminTab').style.display = 'block';
     }
 
     await loadCompletions();
@@ -447,9 +454,11 @@ function showTab(tab){
   document.getElementById('adminTab2').style.display = tab==='admin'?'block':'none';
   const mt2 = document.getElementById('manageTab2');
   if(mt2) mt2.style.display = tab==='manage'?'block':'none';
-  else if(tab==='manage') console.error('manageTab2 div not found in HTML');
+  const sa2 = document.getElementById('superAdminTab2');
+  if(sa2) sa2.style.display = tab==='superadmin'?'block':'none';
   if(tab==='manage') loadStaffTable();
   if(tab==='admin') renderAdminTable();
+  if(tab==='superadmin') loadSuperAdminData();
 }
 
 // ── ADMIN TABLE ──
@@ -724,6 +733,234 @@ function showToast(msg){
   el.style.opacity = '1'; el.style.transform = 'translateY(0)';
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => { el.style.opacity='0'; el.style.transform='translateY(8px)'; }, 3000);
+}
+
+
+// ── SUPER ADMIN ──
+let allCompanies = [];
+let viewingAsCompany = null;
+
+async function loadSuperAdminData(){
+  // Load all companies
+  const res = await fetch(
+    SUPABASE_URL + '/rest/v1/companies?select=*&order=name',
+    { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON) }}
+  );
+  allCompanies = await res.json();
+
+  // Load staff counts per company
+  const staffRes = await fetch(
+    SUPABASE_URL + '/rest/v1/compliance_staff?select=company_id',
+    { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON) }}
+  );
+  const allStaff = await staffRes.json();
+  const staffCounts = {};
+  (allStaff||[]).forEach(s => { staffCounts[s.company_id] = (staffCounts[s.company_id]||0) + 1; });
+
+  // Load completion counts per company
+  const compRes = await fetch(
+    SUPABASE_URL + '/rest/v1/compliance_completions?select=company_id',
+    { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON) }}
+  );
+  const allComps = await compRes.json();
+  const compCounts = {};
+  (allComps||[]).forEach(c => { compCounts[c.company_id] = (compCounts[c.company_id]||0) + 1; });
+
+  // Platform stats
+  const totalStaff = Object.values(staffCounts).reduce((a,b)=>a+b,0);
+  const totalComps = Object.values(compCounts).reduce((a,b)=>a+b,0);
+  document.getElementById('platformStats').innerHTML = `
+    <div style="text-align:center"><div style="font-size:22px;font-weight:700;color:var(--teal)">${allCompanies.length}</div><div style="font-size:11px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.06em">Companies</div></div>
+    <div style="text-align:center"><div style="font-size:22px;font-weight:700;color:var(--teal)">${totalStaff}</div><div style="font-size:11px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.06em">Total staff</div></div>
+    <div style="text-align:center"><div style="font-size:22px;font-weight:700;color:var(--teal)">${totalComps}</div><div style="font-size:11px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.06em">Completions</div></div>
+  `;
+
+  // Company cards
+  const cards = document.getElementById('companyCards');
+  cards.innerHTML = allCompanies.map(co => {
+    const staff = staffCounts[co.id] || 0;
+    const comps = compCounts[co.id] || 0;
+    const planColor = co.plan==='pro'?'var(--gold)':co.plan==='enterprise'?'#7c3aed':'var(--teal)';
+    const planLabel = (co.plan||'standard').toUpperCase();
+    return `<div style="background:var(--white);border:0.5px solid var(--border);border-radius:12px;padding:1.25rem;position:relative">
+      <div style="position:absolute;top:12px;right:12px;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;background:${planColor}20;color:${planColor};border:0.5px solid ${planColor}">${planLabel}</div>
+      <div style="font-size:15px;font-weight:600;color:var(--navy);margin-bottom:4px;padding-right:60px">${co.name}</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:.75rem">${staff} staff · ${comps} completions</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn sm primary" onclick="openCompanyDrawer('${co.id}')">⚙ Settings</button>
+        <button class="btn sm" style="border-color:var(--gold);color:var(--gold)" onclick="viewAsAdmin('${co.id}')">👁 View as admin</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openCompanyDrawer(companyId){
+  const co = allCompanies.find(c => c.id === companyId);
+  if(!co) return;
+
+  document.getElementById('drawerCompanyId').value = co.id;
+  document.getElementById('drawerTitle').textContent = co.name + ' — Settings';
+  document.getElementById('dCoName').value = co.name || '';
+  document.getElementById('dCoPlan').value = co.plan || 'standard';
+  document.getElementById('dCoLogo').value = co.logo_url || '';
+
+  const contacts = co.custom_contacts || {};
+  document.getElementById('dPrivacyOfficer').value = contacts.privacy_officer || '';
+  document.getElementById('dPrivacyEmail').value = contacts.privacy_email || '';
+  document.getElementById('dBackupContact').value = contacts.backup_contact || '';
+  document.getElementById('dOrgEmail').value = contacts.org_email || '';
+
+  const vars = co.custom_vars || {};
+  document.getElementById('dState').value = vars.state || '';
+  document.getElementById('dApsHotline').value = vars.aps_hotline || '';
+  document.getElementById('dApsWebsite').value = vars.aps_website || '';
+  document.getElementById('dSchedulingTool').value = vars.scheduling_tool || '';
+  document.getElementById('dDevice').value = vars.device || '';
+  document.getElementById('dMdm').value = vars.mdm || '';
+  document.getElementById('dOshaRegion').value = vars.osha_region || '';
+  document.getElementById('dWorkersComp').value = vars.workers_comp || '';
+
+  document.getElementById('dBranding').checked = co.branding_enabled || false;
+  document.getElementById('dHasCompliance').checked = co.has_compliance !== false;
+  document.getElementById('dHasCred').checked = co.has_credtrack !== false;
+  document.getElementById('dHasHep').checked = co.has_hep !== false;
+
+  document.getElementById('drawerStatus').style.display = 'none';
+  document.getElementById('companyDrawer').style.display = 'block';
+  document.getElementById('companyDrawer').scrollIntoView({ behavior: 'smooth' });
+}
+
+function closeDrawer(){
+  document.getElementById('companyDrawer').style.display = 'none';
+}
+
+async function saveCompanySettings(){
+  const id = document.getElementById('drawerCompanyId').value;
+  const statusEl = document.getElementById('drawerStatus');
+  statusEl.style.display = 'none';
+
+  const payload = {
+    name: document.getElementById('dCoName').value.trim(),
+    plan: document.getElementById('dCoPlan').value,
+    logo_url: document.getElementById('dCoLogo').value.trim() || null,
+    branding_enabled: document.getElementById('dBranding').checked,
+    has_compliance: document.getElementById('dHasCompliance').checked,
+    has_credtrack: document.getElementById('dHasCred').checked,
+    has_hep: document.getElementById('dHasHep').checked,
+    custom_contacts: {
+      privacy_officer: document.getElementById('dPrivacyOfficer').value.trim(),
+      privacy_email: document.getElementById('dPrivacyEmail').value.trim(),
+      backup_contact: document.getElementById('dBackupContact').value.trim(),
+      org_email: document.getElementById('dOrgEmail').value.trim()
+    },
+    custom_vars: {
+      state: document.getElementById('dState').value.trim(),
+      aps_hotline: document.getElementById('dApsHotline').value.trim(),
+      aps_website: document.getElementById('dApsWebsite').value.trim(),
+      scheduling_tool: document.getElementById('dSchedulingTool').value.trim(),
+      device: document.getElementById('dDevice').value.trim(),
+      mdm: document.getElementById('dMdm').value.trim(),
+      osha_region: document.getElementById('dOshaRegion').value.trim(),
+      workers_comp: document.getElementById('dWorkersComp').value.trim()
+    }
+  };
+
+  const res = await fetch(
+    SUPABASE_URL + '/rest/v1/companies?id=eq.' + id,
+    { method: 'PATCH',
+      headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON), 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }
+  );
+
+  if(res.ok){
+    statusEl.style.cssText = 'display:block;color:var(--green);font-size:12px;margin-top:8px';
+    statusEl.textContent = '✓ Saved successfully';
+    showToast('✓ ' + payload.name + ' settings saved');
+    // Update local cache
+    const idx = allCompanies.findIndex(c => c.id === id);
+    if(idx >= 0) allCompanies[idx] = { ...allCompanies[idx], ...payload };
+    loadSuperAdminData();
+  } else {
+    statusEl.style.cssText = 'display:block;color:var(--red);font-size:12px;margin-top:8px';
+    statusEl.textContent = '✗ Save failed — try again';
+  }
+}
+
+async function uploadLogo(input){
+  const file = input.files[0];
+  if(!file) return;
+  const companyId = document.getElementById('drawerCompanyId').value;
+  const ext = file.name.split('.').pop();
+  const path = 'logos/' + companyId + '.' + ext;
+
+  showToast('Uploading logo...');
+
+  // Upload to Supabase Storage
+  const res = await fetch(
+    SUPABASE_URL + '/storage/v1/object/company-assets/' + path,
+    { method: 'POST',
+      headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON), 'Content-Type': file.type, 'x-upsert': 'true' },
+      body: file
+    }
+  );
+
+  if(res.ok){
+    const publicUrl = SUPABASE_URL + '/storage/v1/object/public/company-assets/' + path;
+    document.getElementById('dCoLogo').value = publicUrl;
+    showToast('✓ Logo uploaded — click Save changes to apply');
+  } else {
+    showToast('Logo upload failed — paste a URL instead');
+  }
+}
+
+async function viewAsAdmin(companyId){
+  const id = companyId || document.getElementById('drawerCompanyId').value;
+  const co = allCompanies.find(c => c.id === id);
+  if(!co) return;
+  // Switch view to this company without logging out
+  viewingAsCompany = co;
+  currentProfile = { ...currentProfile, company_id: co.id, companies: co };
+  showToast('Now viewing as ' + co.name + ' admin');
+  showTab('admin'); // jump to their staff overview
+  renderAdminTable();
+}
+
+function showAddCompany(){
+  document.getElementById('addCompanyForm').style.display = 'block';
+  document.getElementById('newCoName').focus();
+}
+
+async function saveNewCompany(){
+  const name = document.getElementById('newCoName').value.trim();
+  const slug = document.getElementById('newCoSlug').value.trim();
+  const email = document.getElementById('newCoEmail').value.trim();
+  const plan = document.getElementById('newCoPlan').value;
+  const errEl = document.getElementById('newCoError');
+  errEl.style.display = 'none';
+
+  if(!name || !slug){ errEl.textContent = 'Name and slug are required.'; errEl.style.display = 'block'; return; }
+
+  const res = await fetch(
+    SUPABASE_URL + '/rest/v1/companies',
+    { method: 'POST',
+      headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON), 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+      body: JSON.stringify({ name, slug, plan, admin_emails: email ? [email] : [], has_compliance: true, has_credtrack: false, has_hep: false, active: true })
+    }
+  );
+
+  if(res.ok){
+    document.getElementById('addCompanyForm').style.display = 'none';
+    document.getElementById('newCoName').value = '';
+    document.getElementById('newCoSlug').value = '';
+    document.getElementById('newCoEmail').value = '';
+    showToast('✓ ' + name + ' created');
+    loadSuperAdminData();
+  } else {
+    const e = await res.json();
+    errEl.textContent = e.message || 'Error creating company';
+    errEl.style.display = 'block';
+  }
 }
 
 // ── TEXT TO SPEECH ──
