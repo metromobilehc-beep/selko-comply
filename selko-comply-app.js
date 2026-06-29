@@ -609,7 +609,7 @@ async function loadStaffTable(){
       '<td><div class="module-dots">' + compDots + '</div></td>' +
       '<td>' +
         '<div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">' +
-          '<button class="btn sm" onclick="resetStaffPin(' + "'" + sid + "','" + name + "'" + ')">Reset PIN</button>' +
+          '<button class="btn sm" onclick="resetStaffPassword(' + "'" + sid + "','" + name + "','" + email + "'" + ')">Reset password</button>' +
           '<button class="btn sm" style="border-color:' + (active?'var(--red)':'var(--green)') + ';color:' + (active?'var(--red)':'var(--green)') + '" onclick="toggleStaffActive(' + "'" + sid + "'," + active + ')">' + (active?'Deactivate':'Reactivate') + '</button>' +
           '<button class="btn sm" style="border-color:var(--gold);color:var(--gold)" onclick="toggleStaffRole(' + "'" + sid + "','" + role + "'" + ')">' + (role==='admin'?'→ Clinician':'→ Admin') + '</button>' +
           (email ? '<button class="btn sm" style="border-color:var(--teal);color:var(--teal)" onclick="sendReminder(' + "'" + name + "','" + email + "'" + ')">📧 Remind</button>' : '') +
@@ -665,20 +665,22 @@ async function toggleStaffRole(id, currentRole){
   showToast('✓ Role updated to ' + newRole);
 }
 
-async function resetStaffPin(id, name){
-  const newPin = prompt('Set new PIN for ' + name + ':');
-  if(!newPin) return;
-  if(newPin.length < 4){ showToast('PIN must be at least 4 characters'); return; }
-  await fetch(
-    SUPABASE_URL + '/rest/v1/compliance_staff?id=eq.' + id,
-    { method: 'PATCH',
-      headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON), 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pin: newPin })
+async function resetStaffPassword(id, name, email){
+  if(!email){ showToast('No email on file for ' + name + ' — add an email first'); return; }
+  if(!confirm('Send password reset email to ' + name + ' at ' + email + '?')) return;
+  const res = await fetch(
+    SUPABASE_URL + '/auth/v1/recover',
+    { method: 'POST',
+      headers:{ 'apikey': SUPABASE_ANON, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email })
     }
   );
-  showToast('✓ PIN updated for ' + name);
+  if(res.ok){
+    showToast('\u2713 Password reset email sent to ' + name);
+  } else {
+    showToast('Could not send reset — staff member may not have a login account yet');
+  }
 }
-
 async function editStaffEmail(id, name, currentEmail){
   const newEmail = prompt('Email address for ' + name + ':', currentEmail || '');
   if(newEmail === null) return;
