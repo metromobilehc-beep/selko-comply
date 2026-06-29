@@ -1,3 +1,6 @@
+
+
+Selko comply · HTML
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,7 +18,7 @@
   --radius:8px;
 }
 body{font-family:'Sora',system-ui,sans-serif;background:#f0f2f5;color:var(--text);min-height:100vh}
-
+ 
 /* ── TOPBAR ── */
 .topbar{background:var(--navy);height:52px;display:flex;align-items:center;padding:0 1.5rem;gap:12px;position:sticky;top:0;z-index:50}
 .logo{display:flex;align-items:center;gap:8px;text-decoration:none}
@@ -30,7 +33,7 @@ body{font-family:'Sora',system-ui,sans-serif;background:#f0f2f5;color:var(--text
 .top-company{font-size:11px;color:rgba(255,255,255,.4)}
 .top-signout{background:rgba(255,255,255,.1);border:none;color:rgba(255,255,255,.6);font-size:12px;padding:5px 10px;border-radius:6px;cursor:pointer;font-family:'Sora',system-ui,sans-serif}
 .top-signout:hover{background:rgba(255,255,255,.18);color:#fff}
-
+ 
 /* ── LOGIN ── */
 .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;background:#f0f2f5}
 .login-card{background:var(--white);border-radius:16px;border:0.5px solid var(--border);padding:2.5rem;width:100%;max-width:380px}
@@ -51,15 +54,15 @@ body{font-family:'Sora',system-ui,sans-serif;background:#f0f2f5;color:var(--text
 .login-err{font-size:13px;color:var(--red);background:var(--red-lt);border:0.5px solid #fca5a5;border-radius:var(--radius);padding:9px 12px;margin-bottom:1rem;display:none}
 .login-footer{text-align:center;font-size:11px;color:var(--muted);margin-top:1.5rem}
 .login-footer span{color:var(--teal);font-weight:600}
-
+ 
 /* ── LAYOUT ── */
 .app{display:none}
 .page{max-width:900px;margin:0 auto;padding:1.5rem}
-
+ 
 /* ── CARDS ── */
 .card{background:var(--white);border:0.5px solid var(--border);border-radius:12px;padding:1.25rem;margin-bottom:1rem}
 .card-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:1rem}
-
+ 
 /* ── WELCOME BAR ── */
 .welcome-bar{background:var(--navy);border-radius:12px;padding:1.25rem 1.5rem;display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:1rem}
 .welcome-left h2{font-size:18px;font-weight:600;color:#fff;margin-bottom:3px}
@@ -68,12 +71,12 @@ body{font-family:'Sora',system-ui,sans-serif;background:#f0f2f5;color:var(--text
 .welcome-stat{text-align:center}
 .welcome-stat-num{font-size:22px;font-weight:700;color:var(--teal)}
 .welcome-stat-label{font-size:11px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.06em}
-
+ 
 /* ── TABS ── */
 .tab-bar{display:flex;gap:4px;background:var(--surface);border-radius:10px;padding:4px;margin-bottom:1.25rem}
 .tab-btn{flex:1;padding:8px;border:none;background:transparent;border-radius:7px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;font-family:'Sora',system-ui,sans-serif;transition:all .12s}
 .tab-btn.active{background:var(--white);color:var(--navy);box-shadow:0 1px 3px rgba(0,0,0,.08)}
-
+ 
 /* ── TRAINING MODULES ── */
 .module-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 @media(max-width:600px){.module-grid{grid-template-columns:1fr}}
@@ -94,7 +97,7 @@ body{font-family:'Sora',system-ui,sans-serif;background:#f0f2f5;color:var(--text
 .module-tag.hipaa{background:#f0e4ff;color:#7c3aed;border:0.5px solid #d8b4fe}
 .module-tag.clinical{background:var(--teal-lt);color:#0a6b58;border:0.5px solid var(--teal-md)}
 .module-tag.mins{background:var(--surface);color:var(--muted);border:0.5px solid var(--border)}
-
+ 
 /* ── TRAINING VIEWER ── */
 .training-viewer{display:none}
 .training-header{display:flex;align-items:center;gap:12px;margin-bottom:1.25rem}
@@ -112,7 +115,7 @@ body{font-family:'Sora',system-ui,sans-serif;background:#f0f2f5;color:var(--text
 .key-points{background:var(--teal-lt);border:0.5px solid var(--teal-md);border-radius:var(--radius);padding:1rem 1.25rem;margin-top:1rem}
 .key-points-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--teal);margin-bottom:.5rem}
 .key-points ul{padding-left:1rem;font-size:13px;color:#0a6b58;line-height:1.7}
-
+ 
 /* ── QUIZ ── */
 .quiz-card{background:var(--white);border:0.5px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1rem}
 .quiz-q{font-size:15px;font-weight:500;color:var(--navy);margin-bottom:1rem;line-height:1.5}
@@ -124,7 +127,7 @@ body{font-family:'Sora',system-ui,sans-serif;background:#f0f2f5;color:var(--text
 .quiz-feedback{font-size:13px;padding:10px 12px;border-radius:var(--radius);margin-top:.75rem;display:none;line-height:1.5}
 .quiz-feedback.correct{background:var(--green-lt);color:var(--green)}
 .quiz-feedback.wrong{background:var(--red-lt);color:var(--red)}
-
+ 
 /* ── ATTESTATION ── */
 .attest-card{background:var(--navy);border-radius:12px;padding:1.5rem;color:#fff;margin-bottom:1rem}
 .attest-title{font-size:15px;font-weight:600;margin-bottom:.75rem}
@@ -135,14 +138,14 @@ body{font-family:'Sora',system-ui,sans-serif;background:#f0f2f5;color:var(--text
 .complete-btn{width:100%;padding:12px;background:var(--teal);border:none;border-radius:var(--radius);font-size:14px;font-weight:600;color:#fff;cursor:pointer;font-family:'Sora',system-ui,sans-serif;transition:background .12s}
 .complete-btn:hover:not(:disabled){background:#089478}
 .complete-btn:disabled{background:rgba(255,255,255,.15);color:rgba(255,255,255,.4);cursor:not-allowed}
-
+ 
 /* ── NAV ACTIONS ── */
 .nav-actions{display:flex;gap:8px;justify-content:space-between;margin-top:1rem}
 .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:var(--radius);border:0.5px solid var(--border);background:var(--white);color:var(--text);font-size:13px;cursor:pointer;font-family:'Sora',system-ui,sans-serif;font-weight:500;transition:all .12s}
 .btn:hover{background:var(--surface)}
 .btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}
 .btn.primary:hover{background:#089478}
-
+ 
 /* ── ADMIN VIEW ── */
 .staff-table{width:100%;border-collapse:collapse;font-size:13px}
 .staff-table th{padding:8px 12px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);background:var(--surface);border-bottom:0.5px solid var(--border)}
@@ -156,7 +159,7 @@ body{font-family:'Sora',system-ui,sans-serif;background:#f0f2f5;color:var(--text
 .mdot{width:10px;height:10px;border-radius:50%}
 .mdot.done{background:var(--teal)}
 .mdot.todo{background:var(--border)}
-
+ 
 /* ── STATUS BAR ── */
 .status-bar{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:1rem;font-weight:500}
 .status-bar.loading{background:#fef9ec;color:#92710a;border:0.5px solid #f6e298}
@@ -164,7 +167,7 @@ body{font-family:'Sora',system-ui,sans-serif;background:#f0f2f5;color:var(--text
 .status-bar.err{background:var(--red-lt);color:var(--red);border:0.5px solid #fca5a5}
 .spinner{width:14px;height:14px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
 @keyframes spin{to{transform:rotate(360deg)}}
-
+ 
 .callout{border-left:4px solid var(--teal);background:var(--teal-lt);padding:12px 16px;border-radius:0 8px 8px 0;margin:12px 0;font-size:13px;color:#0a6b58;line-height:1.65}
 .callout.warn{border-color:var(--gold);background:var(--gold-lt);color:#92710a}
 .callout.danger{border-color:var(--red);background:var(--red-lt);color:var(--red)}
@@ -180,7 +183,7 @@ body{font-family:'Sora',system-ui,sans-serif;background:#f0f2f5;color:var(--text
 </style>
 </head>
 <body>
-
+ 
 <!-- LOGIN -->
 <div class="login-wrap" id="loginWrap">
   <div class="login-card">
@@ -197,7 +200,7 @@ body{font-family:'Sora',system-ui,sans-serif;background:#f0f2f5;color:var(--text
     <div class="login-footer">Powered by <span>Selko</span> · selko360.com</div>
   </div>
 </div>
-
+ 
 <!-- APP -->
 <div class="app" id="app">
   <div class="topbar">
@@ -215,10 +218,10 @@ body{font-family:'Sora',system-ui,sans-serif;background:#f0f2f5;color:var(--text
       <button class="top-signout" id="signOutBtn">Sign out</button>
     </div>
   </div>
-
+ 
   <div class="page">
     <div id="statusBar"></div>
-
+ 
     <!-- WELCOME -->
     <div class="welcome-bar" id="welcomeBar">
       <div class="welcome-left">
@@ -227,18 +230,19 @@ body{font-family:'Sora',system-ui,sans-serif;background:#f0f2f5;color:var(--text
       </div>
       <div class="welcome-stats" id="welcomeStats"></div>
     </div>
-
+ 
     <!-- TABS -->
     <div class="tab-bar" id="tabBar">
       <button class="tab-btn active" onclick="showTab('training')">My training</button>
       <button class="tab-btn" id="adminTab" onclick="showTab('admin')" style="display:none">Staff overview</button>
+      <button class="tab-btn" id="manageTab" onclick="showTab('manage')" style="display:none">Manage staff</button>
     </div>
-
+ 
     <!-- TRAINING TAB -->
     <div id="trainingTab">
       <div id="moduleGrid" class="module-grid"></div>
     </div>
-
+ 
     <!-- ADMIN TAB -->
     <div id="adminTab2" style="display:none">
       <div class="card">
@@ -246,7 +250,7 @@ body{font-family:'Sora',system-ui,sans-serif;background:#f0f2f5;color:var(--text
         <div id="adminTable"></div>
       </div>
     </div>
-
+ 
     <!-- TRAINING VIEWER -->
     <div class="training-viewer" id="trainingViewer">
       <div class="training-header">
@@ -257,11 +261,12 @@ body{font-family:'Sora',system-ui,sans-serif;background:#f0f2f5;color:var(--text
       <div id="trainingContent"></div>
       <div class="nav-actions" id="navActions"></div>
     </div>
-
+ 
   </div>
 </div>
-
+ 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script src="selko-comply-modules.js"></script>
 <script>
 window.addEventListener("load", function(){
@@ -285,7 +290,7 @@ document.addEventListener('DOMContentLoaded', function(){
     if(session?.user && !currentUser) await loadApp(session.user);
   });
 });
-
+ 
 let currentUser = null;
 let currentProfile = null;
 let currentTrack = 'newhire';
@@ -297,9 +302,15 @@ let currentModule = null;
 let currentSection = 0;
 let quizAnswered = false;
 let authToken = ''; // stores JWT after login
-
+ 
+// ── EMAILJS CONFIG ──
+const EMAILJS_SERVICE_ID = 'service_wnhqs7e';
+const EMAILJS_TEMPLATE_ID = 'template_gq1z2x6';
+const EMAILJS_PUBLIC_KEY = 'kc6pC-rqwD0xph-A0';
+const TOOL_URL = 'https://metromobilehc-beep.github.io/selko-comply';
+ 
 // Modules loaded from selko-comply-modules.js
-
+ 
 // ── AUTH ──
 function showStatus(msg){ 
   const e = document.getElementById('loginErr'); 
@@ -325,9 +336,9 @@ async function doLogin(){
   console.log('Auth token stored:', authToken ? 'YES' : 'NO');
   await loadApp(data.user);
 }
-
+ 
 function showErr(msg){ const e = document.getElementById('loginErr'); e.textContent = msg; e.style.display = 'block'; }
-
+ 
 async function doSignOut(){
   await sb.auth.signOut();
   document.getElementById('app').style.display = 'none';
@@ -335,13 +346,13 @@ async function doSignOut(){
   document.getElementById('loginPass').value = '';
   currentUser = null; currentProfile = null;
 }
-
+ 
 // ── LOAD APP ──
 async function loadApp(user){
   currentUser = user;
   showStatus('Loading your profile...');
   console.log('loadApp called for:', user.email, 'id:', user.id);
-
+ 
   try {
     // Use anon key directly — RLS is off on profiles, so this works
     console.log('Fetching profile via REST...');
@@ -355,12 +366,12 @@ async function loadApp(user){
     const profArr = await profRes.json();
     console.log('Profile REST response:', profRes.status, profArr);
     const data = profArr?.[0];
-
+ 
     if(!data){
       showErr('No profile found. Status: ' + profRes.status);
       return;
     }
-
+ 
     // Get company separately
     const coRes = await fetch(
       SUPABASE_URL + '/rest/v1/companies?id=eq.' + data.company_id + '&select=name,slug',
@@ -369,9 +380,9 @@ async function loadApp(user){
     const coArr = await coRes.json();
     data.companies = (Array.isArray(coArr) && coArr.length) ? coArr[0] : { name: 'Metro Mobile Health Care', slug: 'metro' };
     console.log('Company:', data.companies);
-
+ 
     currentProfile = data;
-
+ 
     // Update UI
     document.getElementById('loginWrap').style.display = 'none';
     document.getElementById('app').style.display = 'block';
@@ -381,13 +392,14 @@ async function loadApp(user){
     document.getElementById('topCompany').textContent = data.companies?.name || '';
     document.getElementById('welcomeName').textContent = 'Welcome, ' + (data.full_name.split(' ')[0]);
     document.getElementById('welcomeSub').textContent = (data.companies?.name || '') + ' · Compliance training';
-
+ 
     console.log('Role check:', data.role, '| Is admin:', data.role === 'admin');
     if(data.role === 'admin'){
       document.getElementById('adminTab').style.display = 'block';
+      document.getElementById('manageTab').style.display = 'block';
       console.log('Admin tab shown');
     }
-
+ 
     await loadCompletions();
     renderModuleGrid();
     renderWelcomeStats();
@@ -395,14 +407,14 @@ async function loadApp(user){
       console.log('Calling renderAdminTable...');
       renderAdminTable();
     }
-
+ 
   } catch(e) {
     showErr('Unexpected error: ' + e.message);
     console.error(e);
   }
 }
-
-
+ 
+ 
 // ── LOAD COMPLETIONS ──
 async function loadCompletions(){
   try {
@@ -418,7 +430,7 @@ async function loadCompletions(){
     completedModules = new Set();
   }
 }
-
+ 
 // ── TRACK ──
 function setTrack(track, btn){
   currentTrack = track;
@@ -427,7 +439,7 @@ function setTrack(track, btn){
   renderModuleGrid();
   renderWelcomeStats();
 }
-
+ 
 // ── RENDER MODULES ──
 function renderModuleGrid(){
   const grid = document.getElementById('moduleGrid');
@@ -452,7 +464,7 @@ function renderModuleGrid(){
     </div>`;
   }).join('');
 }
-
+ 
 function renderWelcomeStats(){
   if(typeof MODULES === 'undefined' || !MODULES) return;
   const mods = MODULES.filter(m => m && m.track && m.track.includes(currentTrack));
@@ -464,7 +476,7 @@ function renderWelcomeStats(){
     <div class="welcome-stat"><div class="welcome-stat-num">${pct}%</div><div class="welcome-stat-label">Progress</div></div>
   `;
 }
-
+ 
 // ── TRAINING VIEWER ──
 function openModule(id){
   currentModule = MODULES.find(m => m.id === id);
@@ -478,17 +490,17 @@ function openModule(id){
   document.getElementById('viewerTitle').textContent = currentModule.title;
   renderSection();
 }
-
+ 
 function closeTraining(){
   document.getElementById('trainingViewer').style.display = 'none';
   document.getElementById('moduleGrid').style.display = 'grid';
 }
-
+ 
 function renderSection(){
   const total = currentModule.slides.length + 1; // +1 for quiz slide
   const pct = Math.round((currentSection / (total)) * 100);
   document.getElementById('progressBar').style.width = pct + '%';
-
+ 
   if(currentSection < currentModule.slides.length){
     const s = currentModule.slides[currentSection];
     document.getElementById('trainingContent').innerHTML = `
@@ -511,7 +523,7 @@ function renderSection(){
     renderQuizSlide();
   }
 }
-
+ 
 function renderQuizSlide(){
   if(completedModules.has(currentModule.id)){
     document.getElementById('trainingContent').innerHTML = `<div class="section-card" style="text-align:center;padding:2rem"><div style="font-size:48px;margin-bottom:1rem">✅</div><div style="font-size:17px;font-weight:600;color:var(--navy);margin-bottom:.5rem">Module already complete</div><p style="color:var(--muted);font-size:13px">You have already completed this module. Click back to return to your dashboard.</p></div>`;
@@ -534,9 +546,9 @@ function renderQuizSlide(){
     <button class="btn" onclick="prevSection()">← Review slides</button>
     <button class="btn primary" id="submitBtn" onclick="submitQuiz()" disabled>Submit quiz →</button>`;
 }
-
+ 
 let quizSelections = {};
-
+ 
 function selectOpt(qi, oi){
   quizSelections[qi] = oi;
   // Update button styles for this question
@@ -551,7 +563,7 @@ function selectOpt(qi, oi){
   const btn = document.getElementById('submitBtn');
   if(btn) btn.disabled = !allDone;
 }
-
+ 
 function submitQuiz(){
   let correct = 0;
   const qs = currentModule.quiz;
@@ -591,12 +603,12 @@ function submitQuiz(){
         <div style="margin-top:1rem"><button class="btn" onclick="openModule('${currentModule.id}')">↺ Retake module</button></div>`}
     </div>`;
 }
-
+ 
 function toggleComplete(){
   const btn = document.getElementById('completeBtn');
   if(btn) btn.disabled = !document.getElementById('attestCheck').checked;
 }
-
+ 
 async function completeModule(score){
   const btn = document.getElementById('completeBtn');
   btn.disabled = true; btn.textContent = 'Saving…';
@@ -626,7 +638,7 @@ async function completeModule(score){
   btn.style.background = 'var(--green)';
   setTimeout(() => { closeTraining(); renderModuleGrid(); renderWelcomeStats(); }, 1200);
 }
-
+ 
 function prevSection(){ 
   if(window.speechSynthesis) window.speechSynthesis.cancel(); speechPlaying = false;
   if(currentSection > 0){ currentSection--; quizSelections={}; renderSection(); } 
@@ -635,15 +647,18 @@ function nextSection(){
   if(window.speechSynthesis) window.speechSynthesis.cancel(); speechPlaying = false;
   currentSection++; quizSelections={}; renderSection(); 
 }
-
+ 
 // ── TABS ──
 function showTab(tab){
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   event.currentTarget.classList.add('active');
   document.getElementById('trainingTab').style.display = tab==='training'?'block':'none';
   document.getElementById('adminTab2').style.display = tab==='admin'?'block':'none';
+  document.getElementById('manageTab2').style.display = tab==='manage'?'block':'none';
+  if(tab==='manage') loadStaffTable();
+  if(tab==='admin') renderAdminTable();
 }
-
+ 
 // ── ADMIN TABLE ──
 async function renderAdminTable(){
   console.log('renderAdminTable called, company_id:', currentProfile.company_id);
@@ -653,15 +668,15 @@ async function renderAdminTable(){
   );
   const staff = await staffRes.json();
   console.log('Staff fetch status:', staffRes.status, '| Count:', Array.isArray(staff) ? staff.length : 'error', staff);
-
+ 
   const compRes = await fetch(
     SUPABASE_URL + '/rest/v1/compliance_completions?company_id=eq.' + currentProfile.company_id,
     { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON) }}
   );
   const completions = await compRes.json();
-
+ 
   if(!staff || !staff.length){ document.getElementById('adminTable').innerHTML = '<p style="color:var(--muted);font-size:13px">No staff records found.</p>'; return; }
-
+ 
   const compByStaff = {};
   (completions || []).forEach(c => {
     // Key by staff_id (auth UUID) and also by employee_name for legacy records
@@ -671,7 +686,7 @@ async function renderAdminTable(){
       compByStaff[key].add(c.module_id);
     }
   });
-
+ 
   const trackMods = (typeof MODULES !== 'undefined') ? MODULES : [];
   const rows = staff.map(s => {
     const sid = s.id || s.full_name; // fallback to name if no id
@@ -687,16 +702,201 @@ async function renderAdminTable(){
       <td><div class="module-dots">${dots}</div></td>
     </tr>`;
   }).join('');
-
+ 
   document.getElementById('adminTable').innerHTML = `
     <table class="staff-table">
       <thead><tr><th>Name</th><th>Role</th><th>Status</th><th>Modules</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>`;
 }
-
+ 
 // ── INIT ── (handled in DOMContentLoaded)
-
+ 
+ 
+// ── STAFF MANAGEMENT ──
+function showAddStaffForm(){
+  document.getElementById('addStaffForm').style.display = 'block';
+  document.getElementById('newName').focus();
+}
+function hideAddStaffForm(){
+  document.getElementById('addStaffForm').style.display = 'none';
+  ['newName','newEmail'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('addStaffError').style.display = 'none';
+}
+ 
+async function loadStaffTable(){
+  const res = await fetch(
+    SUPABASE_URL + '/rest/v1/compliance_staff?company_id=eq.' + currentProfile.company_id + '&order=full_name',
+    { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON) }}
+  );
+  const staff = await res.json();
+  
+  // Get completions for module dots
+  const cRes = await fetch(
+    SUPABASE_URL + '/rest/v1/compliance_completions?company_id=eq.' + currentProfile.company_id + '&select=staff_id,module_id,employee_name',
+    { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON) }}
+  );
+  const comps = await cRes.json();
+  const compMap = {};
+  (comps || []).forEach(c => {
+    const k = c.staff_id || c.employee_name;
+    if(k){ if(!compMap[k]) compMap[k] = new Set(); compMap[k].add(c.module_id); }
+  });
+ 
+  const mods = (typeof MODULES !== 'undefined') ? MODULES : [];
+  const tbody = document.getElementById('staffTbody');
+  if(!Array.isArray(staff) || !staff.length){
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:1.5rem">No staff records found.</td></tr>';
+    return;
+  }
+ 
+  tbody.innerHTML = staff.map(s => {
+    const compKey = s.id;
+    const done = compMap[compKey] ? compMap[compKey].size : 0;
+    const dots = mods.map(m => `<div class="mdot ${compMap[compKey]?.has(m.id)?'done':'todo'}" title="${m.title||''}"></div>`).join('');
+    return `<tr id="srow_${s.id}">
+      <td style="font-weight:500">${s.full_name || '—'}</td>
+      <td>
+        <span style="font-size:12px;color:var(--muted)">${s.email || '<em style="opacity:.5">not set</em>'}</span>
+        <button onclick="editStaffEmail('${s.id}','${(s.full_name||'').replace(/'/g,"\'")}','${s.email||''}')" style="margin-left:5px;padding:2px 6px;font-size:10px;border:0.5px solid var(--border);border-radius:5px;background:transparent;cursor:pointer;color:var(--muted)">✏</button>
+      </td>
+      <td><span style="font-weight:500;color:${s.role==='admin'?'var(--gold)':'var(--teal)'}">${s.role||'clinician'}</span></td>
+      <td><span style="font-size:12px;font-weight:600;color:${s.active!==false?'var(--green)':'var(--red)'}">${s.active!==false?'● Active':'○ Inactive'}</span></td>
+      <td><div class="module-dots">${dots}</div></td>
+      <td>
+        <div style="display:flex;gap:5px;flex-wrap:wrap">
+          <button class="btn sm" onclick="resetStaffPin('${s.id}','${(s.full_name||'').replace(/'/g,"\'")}')">Reset PIN</button>
+          <button class="btn sm" style="border-color:${s.active!==false?'var(--red)':'var(--green)'};color:${s.active!==false?'var(--red)':'var(--green)'}" onclick="toggleStaffActive('${s.id}',${s.active!==false})">${s.active!==false?'Deactivate':'Reactivate'}</button>
+          <button class="btn sm" style="border-color:var(--gold);color:var(--gold)" onclick="toggleStaffRole('${s.id}','${s.role||'clinician'}')">${s.role==='admin'?'→ Clinician':'→ Admin'}</button>
+          ${s.email ? `<button class="btn sm" style="border-color:var(--teal);color:var(--teal)" onclick="sendReminder('${(s.full_name||'').replace(/'/g,"\'")}','${s.email}')">📧 Remind</button>` : ''}
+          <button class="btn sm" style="border-color:var(--red);color:var(--red)" onclick="deleteStaffMember('${s.id}','${(s.full_name||'').replace(/'/g,"\'")}')">Delete</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+ 
+async function saveNewStaff(){
+  const name = document.getElementById('newName').value.trim();
+  const email = document.getElementById('newEmail').value.trim();
+  const role = document.getElementById('newRole').value;
+  const errEl = document.getElementById('addStaffError');
+  errEl.style.display = 'none';
+  if(!name){ errEl.textContent = 'Name is required.'; errEl.style.display = 'block'; return; }
+  const res = await fetch(
+    SUPABASE_URL + '/rest/v1/compliance_staff',
+    { method: 'POST',
+      headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON), 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+      body: JSON.stringify({ full_name: name, email: email || null, role, active: true, company_id: currentProfile.company_id })
+    }
+  );
+  if(!res.ok){ const e = await res.json(); errEl.textContent = e.message || 'Error saving staff member.'; errEl.style.display = 'block'; return; }
+  hideAddStaffForm();
+  loadStaffTable();
+  showToast('✓ ' + name + ' added successfully');
+}
+ 
+async function toggleStaffActive(id, currentlyActive){
+  await fetch(
+    SUPABASE_URL + '/rest/v1/compliance_staff?id=eq.' + id,
+    { method: 'PATCH',
+      headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ active: !currentlyActive })
+    }
+  );
+  loadStaffTable();
+  showToast(currentlyActive ? '✓ Staff member deactivated' : '✓ Staff member reactivated');
+}
+ 
+async function toggleStaffRole(id, currentRole){
+  const newRole = currentRole === 'admin' ? 'clinician' : 'admin';
+  await fetch(
+    SUPABASE_URL + '/rest/v1/compliance_staff?id=eq.' + id,
+    { method: 'PATCH',
+      headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role: newRole })
+    }
+  );
+  loadStaffTable();
+  showToast('✓ Role updated to ' + newRole);
+}
+ 
+async function resetStaffPin(id, name){
+  const newPin = prompt('Set new PIN for ' + name + ':');
+  if(!newPin) return;
+  if(newPin.length < 4){ showToast('PIN must be at least 4 characters'); return; }
+  await fetch(
+    SUPABASE_URL + '/rest/v1/compliance_staff?id=eq.' + id,
+    { method: 'PATCH',
+      headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pin: newPin })
+    }
+  );
+  showToast('✓ PIN updated for ' + name);
+}
+ 
+async function editStaffEmail(id, name, currentEmail){
+  const newEmail = prompt('Email address for ' + name + ':', currentEmail || '');
+  if(newEmail === null) return;
+  await fetch(
+    SUPABASE_URL + '/rest/v1/compliance_staff?id=eq.' + id,
+    { method: 'PATCH',
+      headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: newEmail || null })
+    }
+  );
+  loadStaffTable();
+  showToast('✓ Email updated for ' + name);
+}
+ 
+async function deleteStaffMember(id, name){
+  if(!confirm('Delete ' + name + '? Training completion records will be kept.')) return;
+  await fetch(
+    SUPABASE_URL + '/rest/v1/compliance_staff?id=eq.' + id,
+    { method: 'DELETE',
+      headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON) }
+    }
+  );
+  loadStaffTable();
+  showToast('✓ ' + name + ' deleted');
+}
+ 
+async function sendReminder(name, email){
+  if(!email){ showToast('No email address on file for ' + name); return; }
+  if(!confirm('Send training reminder to ' + name + ' at ' + email + '?')) return;
+  try {
+    emailjs.init(EMAILJS_PUBLIC_KEY);
+    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+      to_email: email,
+      to_name: name,
+      subject_line: 'Reminder — Complete Your Compliance Training',
+      message_body: 'This is a reminder to complete your required compliance training modules.',
+      tool_url: TOOL_URL,
+      company_name: currentProfile.companies?.name || 'Metro Mobile Health Care'
+    });
+    showToast('✓ Reminder sent to ' + name);
+  } catch(e) {
+    showToast('Failed to send reminder — check EmailJS settings');
+    console.error('EmailJS error:', e);
+  }
+}
+ 
+// ── TOAST ──
+let toastTimer;
+function showToast(msg){
+  let el = document.getElementById('selko-toast');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'selko-toast';
+    el.style.cssText = 'position:fixed;bottom:24px;right:24px;background:var(--navy);color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;font-family:Sora,sans-serif;z-index:9999;opacity:0;transform:translateY(8px);transition:all .25s;pointer-events:none';
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  el.style.opacity = '1'; el.style.transform = 'translateY(0)';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.style.opacity='0'; el.style.transform='translateY(8px)'; }, 3000);
+}
+ 
 // ── TEXT TO SPEECH ──
 function getSlideText(){
   if(!currentModule || currentSection >= currentModule.slides.length) return '';
@@ -705,12 +905,12 @@ function getSlideText(){
   tmp.innerHTML = s.title + '. ' + s.content;
   return tmp.textContent.replace(/[ \t\n]+/g,' ').trim();
 }
-
+ 
 function toggleListen(){
   if(speechPlaying){ window.speechSynthesis.cancel(); speechPlaying=false; updateListenBtn(false); }
   else { startListen(); }
 }
-
+ 
 function startListen(){
   if(!window.speechSynthesis) return;
   const text = getSlideText();
@@ -723,23 +923,31 @@ function startListen(){
   speechUtterance.onend = speechUtterance.onerror = ()=>{ speechPlaying=false; updateListenBtn(false); };
   window.speechSynthesis.speak(speechUtterance);
 }
-
+ 
 function updateListenBtn(playing){
   const btn = document.getElementById('listenBtn');
   const lbl = document.getElementById('listenLabel');
   if(btn){ btn.textContent = playing ? '⏹ Stop' : '🔊 Listen'; btn.className='listen-btn'+(playing?' playing':''); }
   if(lbl) lbl.textContent = playing ? 'Reading aloud…' : 'Tap to replay';
 }
-
+ 
 function adjustSpeed(delta){
   speechRate = Math.min(1.5, Math.max(0.5, Math.round((speechRate+delta)*10)/10));
   const lbl = document.getElementById('speedLabel');
   if(lbl) lbl.textContent = speechRate.toFixed(1).replace('.0','') + 'x';
   if(speechPlaying){ window.speechSynthesis.cancel(); setTimeout(startListen, 100); }
 }
-
+ 
 if(window.speechSynthesis){ window.speechSynthesis.getVoices(); window.speechSynthesis.onvoiceschanged=()=>window.speechSynthesis.getVoices(); }
-
+ 
 </script>
 </body>
 </html>
+ 
+
+
+
+
+
+
+
