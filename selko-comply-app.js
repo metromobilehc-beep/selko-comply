@@ -484,7 +484,8 @@ async function loadStaffTable(){
   tbody.innerHTML = staff.map(s => {
     const compKey = s.id;
     const done = compMap[compKey] ? compMap[compKey].size : 0;
-    const dots = mods.map(m => `<div class="mdot ${compMap[compKey]?.has(m.id)?'done':'todo'}" title="${m.title||''}"></div>`).join('');
+    const allMods = (typeof MODULES !== 'undefined') ? MODULES : [];
+    const dots = allMods.map(m => `<div class="mdot ${compMap[compKey]?.has(m.id)?'done':'todo'}" title="${m.title||''}"></div>`).join('');
     return `<tr id="srow_${s.id}">
       <td style="font-weight:500">${s.full_name || '—'}</td>
       <td>
@@ -495,12 +496,12 @@ async function loadStaffTable(){
       <td><span style="font-size:12px;font-weight:600;color:${s.active!==false?'var(--green)':'var(--red)'}">${s.active!==false?'● Active':'○ Inactive'}</span></td>
       <td><div class="module-dots">${dots}</div></td>
       <td>
-        <div style="display:flex;gap:5px;flex-wrap:wrap">
-          <button class="btn sm" onclick="resetStaffPin('${s.id}','${(s.full_name||'').replace(/'/g,"\'")}')">Reset PIN</button>
+        <div style="display:flex;gap:4px;flex-wrap:nowrap;align-items:center">
+          <button class="btn sm" onclick="resetStaffPin('${s.id}','${(s.full_name||'').replace(/'/g,\"\\'\")}')">Reset PIN</button>
           <button class="btn sm" style="border-color:${s.active!==false?'var(--red)':'var(--green)'};color:${s.active!==false?'var(--red)':'var(--green)'}" onclick="toggleStaffActive('${s.id}',${s.active!==false})">${s.active!==false?'Deactivate':'Reactivate'}</button>
           <button class="btn sm" style="border-color:var(--gold);color:var(--gold)" onclick="toggleStaffRole('${s.id}','${s.role||'clinician'}')">${s.role==='admin'?'→ Clinician':'→ Admin'}</button>
-          ${s.email ? `<button class="btn sm" style="border-color:var(--teal);color:var(--teal)" onclick="sendReminder('${(s.full_name||'').replace(/'/g,"\'")}','${s.email}')">📧 Remind</button>` : ''}
-          <button class="btn sm" style="border-color:var(--red);color:var(--red)" onclick="deleteStaffMember('${s.id}','${(s.full_name||'').replace(/'/g,"\'")}')">Delete</button>
+          ${s.email ? `<button class="btn sm" style="border-color:var(--teal);color:var(--teal)" onclick="sendReminder('${(s.full_name||'').replace(/'/g,\"\\'\")}','${s.email}')">📧 Remind</button>` : ''}
+          <button class="btn sm" style="border-color:var(--red);color:var(--red)" onclick="deleteStaffMember('${s.id}','${(s.full_name||'').replace(/'/g,\"\\'\")}')">Delete</button>
         </div>
       </td>
     </tr>`;
