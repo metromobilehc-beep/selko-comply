@@ -542,7 +542,7 @@ async function renderAdminTable(){
     '<div style="display:flex;gap:1rem;margin-bottom:1rem;flex-wrap:wrap">' +
       '<div style="padding:10px 16px;background:var(--teal-lt);border:0.5px solid var(--teal-md);border-radius:8px;font-size:13px"><strong style="color:var(--teal);font-size:18px">' + completeStaff + '/' + totalStaff + '</strong> <span style="color:var(--muted)">staff complete</span></div>' +
       '<div style="padding:10px 16px;background:var(--surface);border:0.5px solid var(--border);border-radius:8px;font-size:13px"><strong style="color:var(--navy);font-size:18px">' + (completions||[]).length + '</strong> <span style="color:var(--muted)">total completions</span></div>' +
-      '<div style="padding:10px 16px;background:var(--gold-lt);border:0.5px solid var(--gold-md);border-radius:8px;font-size:13px"><strong style="color:var(--gold);font-size:18px">' + totalMods + '</strong> <span style="color:var(--muted)">required modules</span></div>' +
+      '<div style="padding:10px 16px;background:var(--gold-lt);border:0.5px solid var(--gold-md);border-radius:8px;font-size:13px"><strong style="color:var(--gold);font-size:18px">' + clinicianMods.length + '</strong> <span style="color:var(--muted)">required modules</span></div>' +
       '<div style="padding:10px 16px;background:var(--surface);border:0.5px solid var(--border);border-radius:8px;font-size:12px;color:var(--muted);display:flex;align-items:center">▶ Click any row to see individual module dates</div>' +
     '</div>' +
     '<div style="overflow-x:auto"><table class="staff-table" style="min-width:700px">' +
