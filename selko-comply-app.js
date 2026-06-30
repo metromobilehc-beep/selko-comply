@@ -453,11 +453,29 @@ function toggleComplete(){
 async function completeModule(score){
   const btn = document.getElementById('completeBtn');
   btn.disabled = true; btn.textContent = 'Saving…';
+  // Look up the compliance_staff record for this user
+  let staffId = currentUser.id;
+  let employeeName = currentProfile.full_name || currentProfile.email || '';
+  try {
+    const staffRes = await fetch(
+      SUPABASE_URL + '/rest/v1/compliance_staff?company_id=eq.' + currentProfile.company_id + '&email=eq.' + encodeURIComponent(currentProfile.email) + '&select=id,full_name&limit=1',
+      { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON) }}
+    );
+    const staffData = await staffRes.json();
+    if(Array.isArray(staffData) && staffData.length){
+      staffId = staffData[0].id;
+      employeeName = staffData[0].full_name || employeeName;
+    }
+  } catch(e){ console.warn('Could not look up staff record:', e); }
+
   const payload = {
-    staff_id: currentUser.id,
+    staff_id: staffId,
+    employee_name: employeeName,
     company_id: currentProfile.company_id,
     module_id: currentModule.id,
-    module_name: currentModule.name,
+    module_name: currentModule.title || currentModule.id,
+    score: score,
+    track: currentTrack || 'newhire',
     completed_at: new Date().toISOString(),
     year: new Date().getFullYear()
   };
@@ -473,7 +491,14 @@ async function completeModule(score){
       body: JSON.stringify(payload)
     }
   );
-  if(!res.ok){ btn.disabled = false; btn.textContent = 'Error — try again'; return; }
+  if(!res.ok){ 
+    const errData = await res.json().catch(()=>({}));
+    console.error('Completion save failed:', res.status, errData);
+    btn.disabled = false; 
+    btn.textContent = 'Error — try again'; 
+    showToast('Save failed: ' + (errData.message || errData.hint || res.status));
+    return; 
+  }
   completedModules.add(currentModule.id);
   btn.textContent = '✓ Completed!';
   btn.style.background = 'var(--green)';
