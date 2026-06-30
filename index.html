@@ -282,5 +282,22 @@
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script src="selko-comply-modules.js"></script>
 <script src="selko-comply-app.js"></script>
+<!-- STAFF TYPE MODAL -->
+<div id="staffTypeModal" style="display:none;position:fixed;inset:0;background:rgba(13,27,61,.6);z-index:200;align-items:center;justify-content:center;padding:1rem">
+  <div style="background:#fff;border-radius:14px;width:100%;max-width:420px;overflow:hidden">
+    <div style="background:var(--navy);padding:1.25rem 1.5rem">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.5);margin-bottom:3px">Update staff type</div>
+      <div style="font-size:16px;font-weight:600;color:#fff" id="stModalName">Staff name</div>
+    </div>
+    <div style="padding:1.5rem">
+      <div id="stModalOptions" style="display:flex;flex-direction:column;gap:8px;margin-bottom:1.25rem"></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn primary" onclick="confirmStaffType()" style="flex:1;justify-content:center">Save</button>
+        <button class="btn ghost" onclick="closeStaffTypeModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

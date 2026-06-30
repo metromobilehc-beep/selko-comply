@@ -736,31 +736,58 @@ async function resetStaffPassword(id, name, email){
     showToast('Could not send reset — staff member may not have a login account yet');
   }
 }
-async function changeStaffType(id, name, currentType){
-  const types = ['clinician', 'office', 'owner'];
-  const labels = ['Clinician (all 6 modules)', 'Office/Admin (HIPAA, Abuse, Device)', 'Owner/Director (all 7 modules)'];
-  const current = types.indexOf(currentType);
-  const choice = prompt(
-    'Staff type for ' + name + ':\n' +
-    '1 = Clinician (all 6 modules)\n' +
-    '2 = Office/Admin (HIPAA, Abuse, Device)\n' +
-    '3 = Owner/Director (all 7 modules)\n\n' +
-    'Enter 1, 2, or 3:',
-    (current + 1).toString()
-  );
-  if(!choice) return;
-  const idx = parseInt(choice) - 1;
-  if(idx < 0 || idx > 2){ showToast('Enter 1, 2, or 3'); return; }
-  const newType = types[idx];
-  if(newType === currentType) return;
+let stModalStaffId = null;
+let stModalStaffName = null;
+
+function changeStaffType(id, name, currentType){
+  stModalStaffId = id;
+  stModalStaffName = name;
+  document.getElementById('stModalName').textContent = name;
+
+  const options = [
+    { value: 'clinician', label: 'Clinician', desc: 'All 6 clinical modules' },
+    { value: 'office', label: 'Office / Admin staff', desc: 'HIPAA, Abuse & Neglect, Device Compliance' },
+    { value: 'owner', label: 'Owner / Director', desc: 'All 7 modules including organizational compliance' }
+  ];
+
+  document.getElementById('stModalOptions').innerHTML = options.map(o => `
+    <label style="display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border:1.5px solid ${o.value===currentType?'var(--teal)':'var(--border)'};background:${o.value===currentType?'var(--teal-lt)':'var(--white)'};border-radius:10px;cursor:pointer">
+      <input type="radio" name="stOption" value="${o.value}" ${o.value===currentType?'checked':''} style="margin-top:2px;accent-color:var(--teal)">
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--navy)">${o.label}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:1px">${o.desc}</div>
+      </div>
+    </label>
+  `).join('');
+
+  document.getElementById('staffTypeModal').style.display = 'flex';
+}
+
+function closeStaffTypeModal(){
+  document.getElementById('staffTypeModal').style.display = 'none';
+  stModalStaffId = null;
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+  const modal = document.getElementById('staffTypeModal');
+  if(modal) modal.addEventListener('click', function(e){ if(e.target === modal) closeStaffTypeModal(); });
+});
+
+async function confirmStaffType(){
+  const selected = document.querySelector('input[name="stOption"]:checked');
+  if(!selected || !stModalStaffId) return;
+  const newType = selected.value;
+
   const res = await fetch(
-    SUPABASE_URL + '/rest/v1/compliance_staff?id=eq.' + id,
+    SUPABASE_URL + '/rest/v1/compliance_staff?id=eq.' + stModalStaffId,
     { method: 'PATCH',
       headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON), 'Content-Type': 'application/json' },
       body: JSON.stringify({ staff_type: newType })
     }
   );
-  if(res.ok){ loadStaffTable(); showToast('✓ ' + name + ' set to ' + labels[idx]); }
+
+  closeStaffTypeModal();
+  if(res.ok){ loadStaffTable(); showToast('✓ ' + stModalStaffName + ' updated'); }
   else { showToast('Error updating staff type'); }
 }
 
