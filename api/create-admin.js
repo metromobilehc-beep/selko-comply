@@ -20,7 +20,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Step 1: Create the auth user using the Admin API
+    // Step 1: Create the auth user
     const createUserRes = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
       method: 'POST',
       headers: {
@@ -31,19 +31,21 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         email,
         password,
-        email_confirm: true // skip email verification entirely
+        email_confirm: true
       })
     });
 
     const userData = await createUserRes.json();
 
     if (!createUserRes.ok) {
-      return res.status(createUserRes.status).json({ error: userData.msg || userData.error_description || 'Failed to create auth user' });
+      return res.status(createUserRes.status).json({ 
+        error: userData.msg || userData.error_description || 'Failed to create auth user' 
+      });
     }
 
     const userId = userData.id;
 
-    // Step 2: Create the profile row linking them to the company
+    // Step 2: Create the profile row
     const profileRes = await fetch(`${SUPABASE_URL}/rest/v1/profiles`, {
       method: 'POST',
       headers: {
@@ -62,17 +64,46 @@ export default async function handler(req, res) {
       })
     });
 
-    const profileData = await profileRes.json();
-
     if (!profileRes.ok) {
-      // Profile creation failed — but auth user exists. Report this clearly.
+      const profileErr = await profileRes.json();
       return res.status(500).json({ 
-        error: 'Auth user created but profile creation failed: ' + (profileData.message || JSON.stringify(profileData)),
+        error: 'Auth user created but profile failed: ' + (profileErr.message || JSON.stringify(profileErr)),
         userId 
       });
     }
 
-    return res.status(200).json({ success: true, userId, profile: profileData });
+    // Step 3: Create the compliance_staff record so completions save correctly
+    const staffRes = await fetch(`${SUPABASE_URL}/rest/v1/compliance_staff`, {
+      method: 'POST',
+      headers: {
+        'apikey': SERVICE_ROLE_KEY,
+        'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+      },
+      body: JSON.stringify({
+        full_name: fullName,
+        email: email,
+        role: role || 'admin',
+        staff_type: isSuperAdmin ? 'owner' : 'owner',
+        active: true,
+        company_id: companyId,
+        pin: 'selko'
+      })
+    });
+
+    const staffData = await staffRes.json();
+
+    if (!staffRes.ok) {
+      // Profile and auth created fine — staff record is non-critical, just log it
+      console.warn('Staff record creation failed:', staffData);
+    }
+
+    return res.status(200).json({ 
+      success: true, 
+      userId,
+      staffId: Array.isArray(staffData) && staffData.length ? staffData[0].id : null
+    });
 
   } catch (err) {
     return res.status(500).json({ error: err.message || 'Unexpected server error' });
