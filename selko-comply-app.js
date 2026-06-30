@@ -14,9 +14,27 @@ document.addEventListener('DOMContentLoaded', function(){
   document.getElementById('loginBtnTrigger')?.addEventListener('click', doLogin);
   document.getElementById('loginPassInput')?.addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
   document.getElementById('signOutBtn')?.addEventListener('click', doSignOut);
-  // Init auth listener
+  // Check for existing session on load
+  sb.auth.getSession().then(async ({ data: { session } }) => {
+    if(session?.user){
+      authToken = session.access_token || '';
+      await loadApp(session.user);
+    }
+  });
+
+  // Listen for auth state changes (login/logout)
   sb.auth.onAuthStateChange(async (event, session) => {
-    if(session?.user && !currentUser) await loadApp(session.user);
+    if(event === 'SIGNED_IN' && session?.user && !currentUser){
+      authToken = session.access_token || '';
+      await loadApp(session.user);
+    }
+    if(event === 'SIGNED_OUT'){
+      currentUser = null;
+      currentProfile = null;
+      authToken = '';
+      document.getElementById('app').style.display = 'none';
+      document.getElementById('loginWrap').style.display = 'flex';
+    }
   });
 });
 
