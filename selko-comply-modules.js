@@ -5,7 +5,16 @@
 const MODULES = [
   {
     id: 'hipaa',
-    track: ['newhire','annual'],
+    track: ['newhire','annual',
+      { title: 'Regulatory References', content: `<p>This module is based on the following federal regulations and guidance:</p>
+        <ul>
+          <li><strong>45 CFR §164.530(b)</strong> — HIPAA Privacy Rule, workforce training requirement</li>
+          <li><strong>45 CFR §164.308(a)(5)</strong> — HIPAA Security Rule, security awareness and training</li>
+          <li><strong>45 CFR §164.530(j)</strong> — Documentation retention (minimum 6 years)</li>
+          <li><strong>45 CFR §164.402–414</strong> — Breach Notification Rule</li>
+          <li><strong>45 CFR §160.102</strong> — Administrative Simplification, business associate training obligations</li>
+        </ul>
+        <div class="callout">Your completion record for this module — including date, score, and signature — is retained as your documentation of compliance with §164.530(j).</div>` }],
     icon: '🔒',
     title: 'HIPAA Comprehensive Training',
     desc: 'PHI, patient rights, permitted disclosures, breach response, social media, and home health-specific scenarios.',
@@ -43,7 +52,16 @@ const MODULES = [
   },
   {
     id: 'osha_safety',
-    track: ['newhire','annual'],
+    track: ['newhire','annual',
+      { title: 'Regulatory References', content: `<p>This module is based on the following federal standards and guidance:</p>
+        <ul>
+          <li><strong>29 CFR 1910.1030</strong> — OSHA Bloodborne Pathogens Standard</li>
+          <li><strong>29 CFR 1910.132</strong> — Personal Protective Equipment, general requirements</li>
+          <li><strong>29 USC §654 (General Duty Clause)</strong> — Employer duty to provide a workplace free of recognized hazards</li>
+          <li><strong>OSHA Guidelines for Preventing Workplace Violence for Healthcare and Social Service Workers</strong> (2015, updated guidance) — framework for violence prevention, not an enforceable standard, but used by OSHA to establish "recognized hazard" under the General Duty Clause</li>
+          <li><strong>NIOSH Type I–IV classification</strong> — standard framework for categorizing workplace violence</li>
+        </ul>
+        <div class="callout warn">OSHA does not yet have a single enforceable workplace violence standard for healthcare. Citations are issued under the General Duty Clause when a recognized hazard is not addressed. A proposed rule for healthcare and social assistance employers remains pending as of 2026.</div>` }],
     icon: '🦺',
     title: 'OSHA & Field Safety',
     desc: 'Workplace hazards, bloodborne pathogens, personal safety, vehicle safety, and workplace violence prevention.',
@@ -75,7 +93,14 @@ const MODULES = [
   },
   {
     id: 'abuse_neglect',
-    track: ['newhire','annual'],
+    track: ['newhire','annual',
+      { title: 'Regulatory References', content: `<p>This module is based on state mandatory reporter law and federal guidance:</p>
+        <ul>
+          <li><strong>State mandatory reporter statute</strong> — varies by state; for Oklahoma, Title 43A O.S. §10-104</li>
+          <li><strong>Elder Justice Act (42 USC §1397j et seq.)</strong> — federal framework supporting state adult protective services</li>
+          <li><strong>CMS Conditions of Participation, 42 CFR §484.75</strong> — home health agencies must have policies addressing abuse, neglect, and exploitation reporting</li>
+        </ul>
+        <div class="callout warn">Mandatory reporter laws are state-specific. Pro-tier customization can replace this generic reference with your exact state statute and hotline number.</div>` }],
     icon: '🛡️',
     title: 'Abuse, Neglect & Exploitation',
     desc: 'Mandatory reporter obligations, recognition of signs, reporting protocols, and your state law.',
@@ -103,7 +128,14 @@ const MODULES = [
   },
   {
     id: 'emergency_proc',
-    track: ['newhire','annual'],
+    track: ['newhire','annual',
+      { title: 'Regulatory References', content: `<p>This module reflects clinical best practice and CMS expectations for home health agencies:</p>
+        <ul>
+          <li><strong>CMS Conditions of Participation, 42 CFR §484.60</strong> — care planning, coordination, and emergency preparedness for home health patients</li>
+          <li><strong>42 CFR §484.102</strong> — Emergency Preparedness requirements for home health agencies</li>
+          <li><strong>American Heart Association Guidelines</strong> — CPR and emergency cardiovascular care standards</li>
+        </ul>
+        <div class="callout">This module does not replace certified CPR/BLS training. Maintain current certification per your state licensure board and agency requirements.</div>` }],
     icon: '🚨',
     title: 'Emergency Procedures',
     desc: 'Medical emergencies, falls, stroke, fire, severe weather, and critical incident reporting.',
@@ -129,7 +161,14 @@ const MODULES = [
   },
   {
     id: 'infection_control',
-    track: ['newhire','annual'],
+    track: ['newhire','annual',
+      { title: 'Regulatory References', content: `<p>This module is based on the following standards and guidance:</p>
+        <ul>
+          <li><strong>42 CFR §484.70</strong> — CMS Condition of Participation, infection prevention and control for home health agencies</li>
+          <li><strong>CDC Guideline for Hand Hygiene in Health-Care Settings</strong> — hand hygiene technique and indications</li>
+          <li><strong>CDC Guideline for Isolation Precautions</strong> — standard and transmission-based precautions</li>
+          <li><strong>29 CFR 1910.1030</strong> — OSHA Bloodborne Pathogens Standard (overlapping requirement)</li>
+        </ul>` }],
     icon: '🧤',
     title: 'Infection Control',
     desc: 'Hand hygiene, PPE, transmission-based precautions, C. diff, wound care, and immunization requirements.',
@@ -157,7 +196,13 @@ const MODULES = [
   },
   {
     id: 'device_compliance',
-    track: ['newhire','annual'],
+    track: ['newhire','annual',
+      { title: 'Regulatory References', content: `<p>This module reflects organizational policy informed by HIPAA Security Rule principles:</p>
+        <ul>
+          <li><strong>45 CFR §164.312</strong> — HIPAA Security Rule, technical safeguards (device and media controls, transmission security)</li>
+          <li><strong>45 CFR §164.310</strong> — HIPAA Security Rule, physical safeguards (workstation and device security)</li>
+        </ul>
+        <div class="callout">Specific device policies (MDM platform, approved communication tools) are organizational policy, not federal regulation. Pro-tier customization reflects your organization's actual device and platform choices.</div>` }],
     icon: '📱',
     title: 'Device & Communication Compliance',
     desc: "your company-issued device policy, your MDM system, HIPAA-compliant communication, and your approved scheduling platform acceptable use.",
@@ -180,7 +225,17 @@ const MODULES = [
 ,
   {
     id: 'admin_compliance',
-    track: ['newhire','annual'],
+    track: ['newhire','annual',
+      { title: 'Regulatory References', content: `<p>This module is based on the following federal regulations:</p>
+        <ul>
+          <li><strong>45 CFR §164.504(e)</strong> — Business Associate Agreement requirements</li>
+          <li><strong>45 CFR §164.308(a)(1)</strong> — Security Risk Assessment requirement</li>
+          <li><strong>45 CFR §164.530(j)</strong> — Documentation and training record retention (6 years)</li>
+          <li><strong>45 CFR §164.400–414</strong> — Breach Notification Rule, organizational obligations</li>
+          <li><strong>29 CFR 1910.1030(f)</strong> — OSHA Hepatitis B vaccination and exposure control plan requirements</li>
+          <li><strong>29 CFR 1904</strong> — OSHA recordkeeping (Form 300 log)</li>
+        </ul>
+        <div class="callout">These citations represent the core federal framework. State-specific requirements (workers compensation, mandatory reporter law, business licensing) are addressed separately and vary by jurisdiction.</div>` }],
     icon: '🏢',
     title: 'Organizational Compliance — Admin & Owner',
     desc: 'HIPAA organizational obligations, Business Associate Agreements, risk assessments, breach response planning, and CMS survey readiness.',
