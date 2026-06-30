@@ -213,8 +213,14 @@ function renderModuleGrid(){
     return;
   }
   const isAdmin = currentProfile && (currentProfile.role === 'admin' || currentProfile.role === 'owner');
-  console.log('Module filter — role:', currentProfile?.role, 'isAdmin:', isAdmin);
-  const mods = MODULES.filter(m => m && m.track && m.track.includes(currentTrack) && (!m.adminOnly || isAdmin));
+  const staffType = currentProfile?.staff_type || (isAdmin ? 'owner' : 'clinician');
+  console.log('Module filter — role:', currentProfile?.role, 'staffType:', staffType, 'isAdmin:', isAdmin);
+  const mods = MODULES.filter(m => {
+    if(!m || !m.track || !m.track.includes(currentTrack)) return false;
+    if(m.adminOnly && !isAdmin) return false;
+    if(m.staffTypes && !m.staffTypes.includes(staffType)) return false;
+    return true;
+  });
   grid.innerHTML = mods.map(m => {
     const done = completedModules.has(m.id);
     return `<div class="module-card${done?' completed':''}" onclick="openModule('${m.id}')">
@@ -647,12 +653,16 @@ async function loadStaffTable(){
         '<span style="font-size:12px;color:var(--muted)">' + (email || '<em style="opacity:.5">not set</em>') + '</span>' +
         ' <button onclick="editStaffEmail(' + "'" + sid + "','" + name + "','" + email + "'" + ')" style="padding:2px 6px;font-size:10px;border:0.5px solid var(--border);border-radius:5px;background:transparent;cursor:pointer;color:var(--muted)">✏</button>' +
       '</td>' +
-      '<td><span style="font-weight:500;color:' + (role==='admin'?'var(--gold)':'var(--teal)') + '">' + role + '</span></td>' +
+      '<td>' +
+        '<span style="font-weight:500;color:' + (role==='admin'?'var(--gold)':'var(--teal)') + '">' + role + '</span>' +
+        '<br><span style="font-size:10px;color:var(--muted)">' + (s.staff_type||'clinician') + '</span>' +
+      '</td>' +
       '<td><span style="font-size:12px;font-weight:600;color:' + (active?'var(--green)':'var(--red)') + '">' + (active?'● Active':'○ Inactive') + '</span></td>' +
       '<td><div class="module-dots">' + compDots + '</div></td>' +
       '<td>' +
         '<div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">' +
           '<button class="btn sm" onclick="resetStaffPassword(' + "'" + sid + "','" + name + "','" + email + "'" + ')">Reset password</button>' +
+          '<button class="btn sm" style="border-color:#7c3aed;color:#7c3aed" onclick="changeStaffType(' + "'" + sid + "','" + name + "','" + (s.staff_type||'clinician') + "'" + ')">⚙ Type</button>' +
           '<button class="btn sm" style="border-color:' + (active?'var(--red)':'var(--green)') + ';color:' + (active?'var(--red)':'var(--green)') + '" onclick="toggleStaffActive(' + "'" + sid + "'," + active + ')">' + (active?'Deactivate':'Reactivate') + '</button>' +
           '<button class="btn sm" style="border-color:var(--gold);color:var(--gold)" onclick="toggleStaffRole(' + "'" + sid + "','" + role + "'" + ')">' + (role==='admin'?'→ Clinician':'→ Admin') + '</button>' +
           (email ? '<button class="btn sm" style="border-color:var(--teal);color:var(--teal)" onclick="sendReminder(' + "'" + name + "','" + email + "'" + ')">📧 Remind</button>' : '') +
@@ -674,7 +684,9 @@ async function saveNewStaff(){
     SUPABASE_URL + '/rest/v1/compliance_staff',
     { method: 'POST',
       headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON), 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
-      body: JSON.stringify({ full_name: name, email: email || null, role, active: true, company_id: currentProfile.company_id, pin: 'selko' })
+      body: JSON.stringify({ full_name: name, email: email || null, role, 
+        staff_type: document.getElementById('newStaffType')?.value || 'clinician',
+        active: true, company_id: currentProfile.company_id, pin: 'selko' })
     }
   );
   if(!res.ok){ const e = await res.json(); errEl.textContent = e.message || 'Error saving staff member.'; errEl.style.display = 'block'; return; }
@@ -724,6 +736,34 @@ async function resetStaffPassword(id, name, email){
     showToast('Could not send reset — staff member may not have a login account yet');
   }
 }
+async function changeStaffType(id, name, currentType){
+  const types = ['clinician', 'office', 'owner'];
+  const labels = ['Clinician (all 6 modules)', 'Office/Admin (HIPAA, Abuse, Device)', 'Owner/Director (all 7 modules)'];
+  const current = types.indexOf(currentType);
+  const choice = prompt(
+    'Staff type for ' + name + ':\n' +
+    '1 = Clinician (all 6 modules)\n' +
+    '2 = Office/Admin (HIPAA, Abuse, Device)\n' +
+    '3 = Owner/Director (all 7 modules)\n\n' +
+    'Enter 1, 2, or 3:',
+    (current + 1).toString()
+  );
+  if(!choice) return;
+  const idx = parseInt(choice) - 1;
+  if(idx < 0 || idx > 2){ showToast('Enter 1, 2, or 3'); return; }
+  const newType = types[idx];
+  if(newType === currentType) return;
+  const res = await fetch(
+    SUPABASE_URL + '/rest/v1/compliance_staff?id=eq.' + id,
+    { method: 'PATCH',
+      headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ staff_type: newType })
+    }
+  );
+  if(res.ok){ loadStaffTable(); showToast('✓ ' + name + ' set to ' + labels[idx]); }
+  else { showToast('Error updating staff type'); }
+}
+
 async function editStaffName(id, currentName){
   const newName = prompt('Update name for ' + currentName + ':', currentName);
   if(!newName || newName === currentName) return;
