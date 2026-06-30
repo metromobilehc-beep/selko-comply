@@ -262,6 +262,7 @@ function openModule(id){
   document.getElementById('trainingViewer').style.display = 'block';
   document.getElementById('viewerTitle').textContent = currentModule.title;
   renderSection();
+  window.scrollTo({ top: 0, behavior: 'instant' });
 }
 
 function closeTraining(){
@@ -418,6 +419,9 @@ function submitQuiz(){
   document.getElementById('submitBtn').style.display='none';
   
   // Add result + attestation
+  setTimeout(() => {
+    document.getElementById('trainingContent').scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }, 100);
   document.getElementById('trainingContent').innerHTML += `
     <div class="section-card" style="margin-top:1rem;background:${passed?'var(--teal-lt)':'var(--red-lt)'};border-color:${passed?'var(--teal-md)':'#fca5a5'}">
       <div style="font-size:32px;font-weight:700;color:${passed?'var(--teal)':'var(--red)'}">${score}%</div>
@@ -471,13 +475,19 @@ async function completeModule(score){
   setTimeout(() => { closeTraining(); renderModuleGrid(); renderWelcomeStats(); }, 1200);
 }
 
+function scrollToTrainingTop(){
+  const viewer = document.getElementById('trainingViewer');
+  if(viewer) viewer.scrollIntoView({ behavior: 'instant', block: 'start' });
+  window.scrollTo({ top: viewer ? viewer.offsetTop - 10 : 0, behavior: 'instant' });
+}
+
 function prevSection(){ 
   if(window.speechSynthesis) window.speechSynthesis.cancel(); speechPlaying = false;
-  if(currentSection > 0){ currentSection--; quizSelections={}; renderSection(); } 
+  if(currentSection > 0){ currentSection--; quizSelections={}; renderSection(); scrollToTrainingTop(); } 
 }
 function nextSection(){ 
   if(window.speechSynthesis) window.speechSynthesis.cancel(); speechPlaying = false;
-  currentSection++; quizSelections={}; renderSection(); 
+  currentSection++; quizSelections={}; renderSection(); scrollToTrainingTop();
 }
 
 // ── TABS ──
