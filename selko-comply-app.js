@@ -1141,6 +1141,30 @@ function toggleAdvanced(){
   btn.textContent = open ? '▶ Show advanced settings — Pro client customization' : '▼ Hide advanced settings';
 }
 
+async function deleteCompany(){
+  const id = document.getElementById('drawerCompanyId').value;
+  const name = document.getElementById('dCoName').value;
+  if(!confirm('Permanently delete ' + name + '?\n\nThis will remove the company and is NOT reversible. Any staff or completions tied to this company will be orphaned.\n\nType the company name to confirm in the next prompt.')) return;
+  const confirmName = prompt('Type "' + name + '" to confirm deletion:');
+  if(confirmName !== name){ showToast('Name did not match — deletion cancelled'); return; }
+
+  const res = await fetch(
+    SUPABASE_URL + '/rest/v1/companies?id=eq.' + id,
+    { method: 'DELETE',
+      headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON) }
+    }
+  );
+
+  if(res.ok){
+    closeDrawer();
+    showToast('✓ ' + name + ' deleted');
+    loadSuperAdminData();
+  } else {
+    const err = await res.json().catch(()=>({}));
+    showToast('Delete failed — ' + (err.message || 'check for linked records'));
+  }
+}
+
 function showAddCompany(){
   document.getElementById('addCompanyForm').style.display = 'block';
   document.getElementById('newCoName').focus();
