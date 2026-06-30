@@ -16,10 +16,14 @@ document.addEventListener('DOMContentLoaded', function(){
   document.getElementById('signOutBtn')?.addEventListener('click', doSignOut);
   // Check for existing session on load
   sb.auth.getSession().then(async ({ data: { session } }) => {
+    const loader = document.getElementById('initialLoader');
     if(session?.user){
       authToken = session.access_token || '';
       await loadApp(session.user);
+    } else {
+      document.getElementById('loginWrap').style.display = 'flex';
     }
+    if(loader) loader.style.display = 'none';
   });
 
   // Listen for auth state changes (login/logout)
@@ -97,7 +101,6 @@ async function doSignOut(){
 // ── LOAD APP ──
 async function loadApp(user){
   currentUser = user;
-  showStatus('Loading your profile...');
   console.log('loadApp called for:', user.email, 'id:', user.id);
 
   try {
@@ -141,6 +144,8 @@ async function loadApp(user){
     currentProfile = data;
 
     // Update UI
+    const loader = document.getElementById('initialLoader');
+    if(loader) loader.style.display = 'none';
     document.getElementById('loginWrap').style.display = 'none';
     document.getElementById('app').style.display = 'block';
     const initials = (data.full_name || '?').split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
