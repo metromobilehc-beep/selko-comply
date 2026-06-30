@@ -109,21 +109,28 @@
         </div>
         <div id="bulkReminderStatus" style="display:none;font-size:12px;padding:8px 12px;border-radius:8px;margin-bottom:1rem"></div>
         <div id="addStaffForm" style="display:none;background:var(--surface);border:0.5px solid var(--border);border-radius:10px;padding:1.25rem;margin-bottom:1rem">
-          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
-            <div style="flex:1;min-width:160px"><label>Full name</label><input type="text" id="newName" placeholder="Jane Smith, PTA"></div>
-            <div style="flex:1;min-width:160px"><label>Email</label><input type="email" id="newEmail" placeholder="jane@email.com"></div>
-            <div style="min-width:120px"><label>Role</label><select id="newRole"><option value="clinician">Clinician</option><option value="admin">Admin</option></select></div>
-            <div style="min-width:160px"><label>Staff type</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+            <div class="field"><label>Full name</label><input type="text" id="newName" placeholder="Jane Smith, PTA"></div>
+            <div class="field"><label>Email</label><input type="email" id="newEmail" placeholder="jane@email.com"></div>
+            <div class="field">
+              <label>App access</label>
+              <select id="newRole">
+                <option value="clinician">Clinician (training only)</option>
+                <option value="admin">Admin (staff management)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Required modules</label>
               <select id="newStaffType">
                 <option value="clinician">Clinician — all 6 modules</option>
                 <option value="office">Office / Admin — HIPAA, Abuse, Device</option>
                 <option value="owner">Owner / Director — all 7 modules</option>
               </select>
             </div>
-            <div style="display:flex;gap:6px">
-              <button class="btn primary" onclick="saveNewStaff()">Save</button>
-              <button class="btn ghost" onclick="hideAddStaffForm()">X</button>
-            </div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn primary" onclick="saveNewStaff()">Save staff member</button>
+            <button class="btn ghost" onclick="hideAddStaffForm()">Cancel</button>
           </div>
           <div id="addStaffError" style="color:var(--red);font-size:12px;margin-top:8px;display:none"></div>
         </div>
@@ -176,35 +183,31 @@
           <div style="font-size:12px;color:#0a6b58;background:var(--teal-lt);border:0.5px solid var(--teal-md);border-radius:8px;padding:9px 12px;margin-bottom:1rem;line-height:1.5">
             💡 Enter the agency name — URL ID fills automatically. Add the admin email and choose a plan. Start all new clients on Standard.
           </div>
-          <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:1rem">
-            <div style="display:flex;gap:10px">
-              <div style="flex:2">
-                <label>Company name</label>
-                <input type="text" id="newCoName" placeholder="e.g. Acme Home Health" oninput="autoSlug(this.value)">
-              </div>
-              <div style="flex:1">
-                <label>URL ID (slug)</label>
-                <input type="text" id="newCoSlug" placeholder="e.g. acme">
-                <div style="font-size:11px;color:var(--muted);margin-top:3px">comply.selko360.com?org=<strong id="slugPreview">...</strong></div>
-              </div>
+          <div style="display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:12px">
+            <div class="field">
+              <label>Company name</label>
+              <input type="text" id="newCoName" placeholder="e.g. Acme Home Health" oninput="autoSlug(this.value)">
             </div>
-            <div style="display:flex;gap:10px">
-              <div style="flex:2">
-                <label>Admin email</label>
-                <input type="email" id="newCoEmail" placeholder="e.g. director@acmehomehealth.com">
-              </div>
-              <div style="flex:1">
-                <label>Plan</label>
-                <select id="newCoPlan">
-                  <option value="standard">Standard — $39/mo</option>
-                  <option value="pro">Pro — $79/mo</option>
-                </select>
-              </div>
+            <div class="field">
+              <label>URL ID (slug)</label>
+              <input type="text" id="newCoSlug" placeholder="e.g. acme">
+              <div style="font-size:11px;color:var(--muted);margin-top:3px">comply.selko360.com?org=<strong id="slugPreview">...</strong></div>
+            </div>
+            <div class="field">
+              <label>Admin email</label>
+              <input type="email" id="newCoEmail" placeholder="e.g. director@acmehomehealth.com">
+            </div>
+            <div class="field">
+              <label>Plan</label>
+              <select id="newCoPlan">
+                <option value="standard">Standard — $39/mo</option>
+                <option value="pro">Pro — $79/mo</option>
+              </select>
             </div>
           </div>
           <div style="display:flex;gap:8px">
-            <button class="btn primary" onclick="saveNewCompany()">Create company</button>
-            <button class="btn ghost" onclick="document.getElementById('addCompanyForm').style.display='none'">Cancel</button>
+            <button class="btn primary" onclick="saveNewCompany()">+ Create company</button>
+            <button class="btn ghost" onclick="hideAddCompanyForm()">Cancel</button>
           </div>
           <div id="newCoError" style="color:var(--red);font-size:12px;margin-top:8px;display:none"></div>
         </div>

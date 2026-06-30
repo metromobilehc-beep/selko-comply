@@ -1223,6 +1223,15 @@ function showAddCompany(){
   document.getElementById('newCoName').focus();
 }
 
+function hideAddCompanyForm(){
+  document.getElementById('addCompanyForm').style.display = 'none';
+  document.getElementById('newCoName').value = '';
+  document.getElementById('newCoSlug').value = '';
+  document.getElementById('newCoEmail').value = '';
+  document.getElementById('slugPreview').textContent = '...';
+  document.getElementById('newCoError').style.display = 'none';
+}
+
 async function saveNewCompany(){
   const name = document.getElementById('newCoName').value.trim();
   const slug = document.getElementById('newCoSlug').value.trim();
@@ -1242,10 +1251,7 @@ async function saveNewCompany(){
   );
 
   if(res.ok){
-    document.getElementById('addCompanyForm').style.display = 'none';
-    document.getElementById('newCoName').value = '';
-    document.getElementById('newCoSlug').value = '';
-    document.getElementById('newCoEmail').value = '';
+    hideAddCompanyForm();
     showToast('✓ ' + name + ' created');
     loadSuperAdminData();
   } else {
