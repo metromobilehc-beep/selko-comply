@@ -953,9 +953,9 @@ async function saveCompanySettings(){
     plan: document.getElementById('dCoPlan').value,
     logo_url: document.getElementById('dCoLogo').value.trim() || null,
     branding_enabled: document.getElementById('dBranding').checked,
-    has_compliance: document.getElementById('dHasCompliance').checked,
-    has_credtrack: document.getElementById('dHasCred').checked,
-    has_hep: document.getElementById('dHasHep').checked,
+    has_compliance: true, // always true for Comply clients
+    has_credtrack: false, // coming soon
+    has_hep: false, // coming soon
     custom_contacts: {
       privacy_officer: document.getElementById('dPrivacyOfficer').value.trim(),
       privacy_email: document.getElementById('dPrivacyEmail').value.trim(),
@@ -991,8 +991,10 @@ async function saveCompanySettings(){
     if(idx >= 0) allCompanies[idx] = { ...allCompanies[idx], ...payload };
     loadSuperAdminData();
   } else {
+    const errData = await res.json().catch(() => ({}));
     statusEl.style.cssText = 'display:block;color:var(--red);font-size:12px;margin-top:8px';
-    statusEl.textContent = '✗ Save failed — try again';
+    statusEl.textContent = '✗ Save failed — ' + (errData.message || res.status);
+    console.error('Save failed:', res.status, errData);
   }
 }
 
