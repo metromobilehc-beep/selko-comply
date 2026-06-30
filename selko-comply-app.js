@@ -664,7 +664,7 @@ async function loadStaffTable(){
           '<button class="btn sm" onclick="resetStaffPassword(' + "'" + sid + "','" + name + "','" + email + "'" + ')">Reset password</button>' +
           '<button class="btn sm" style="border-color:#7c3aed;color:#7c3aed" onclick="changeStaffType(' + "'" + sid + "','" + name + "','" + (s.staff_type||'clinician') + "'" + ')">⚙ Type</button>' +
           '<button class="btn sm" style="border-color:' + (active?'var(--red)':'var(--green)') + ';color:' + (active?'var(--red)':'var(--green)') + '" onclick="toggleStaffActive(' + "'" + sid + "'," + active + ')">' + (active?'Deactivate':'Reactivate') + '</button>' +
-          '<button class="btn sm" style="border-color:var(--gold);color:var(--gold)" onclick="toggleStaffRole(' + "'" + sid + "','" + role + "'" + ')">' + (role==='admin'?'→ Clinician':'→ Admin') + '</button>' +
+
           (email ? '<button class="btn sm" style="border-color:var(--teal);color:var(--teal)" onclick="sendReminder(' + "'" + name + "','" + email + "'" + ')">📧 Remind</button>' : '') +
           '<button class="btn sm" style="border-color:var(--red);color:var(--red)" onclick="deleteStaffMember(' + "'" + sid + "','" + name + "'" + ')">Delete</button>' +
         '</div>' +
