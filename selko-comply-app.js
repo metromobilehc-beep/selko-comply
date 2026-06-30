@@ -1218,6 +1218,52 @@ async function deleteCompany(){
   }
 }
 
+async function createAdminLogin(){
+  const name = document.getElementById('inviteAdminName').value.trim();
+  const email = document.getElementById('inviteAdminEmail').value.trim();
+  const password = document.getElementById('inviteAdminPassword').value.trim();
+  const isSuperAdmin = document.getElementById('inviteIsSuperAdmin').checked;
+  const companyId = document.getElementById('drawerCompanyId').value;
+  const statusEl = document.getElementById('inviteAdminStatus');
+
+  statusEl.style.display = 'block';
+  statusEl.style.cssText = 'display:block;font-size:12px;margin-top:8px;color:var(--muted)';
+
+  if(!name || !email || !password || !companyId){
+    statusEl.style.color = 'var(--red)';
+    statusEl.textContent = 'Name, email, and password are all required.';
+    return;
+  }
+
+  statusEl.textContent = 'Creating login...';
+
+  try {
+    const res = await fetch('/api/create-admin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email, password, fullName: name,
+        companyId, role: 'admin', isSuperAdmin
+      })
+    });
+    const data = await res.json();
+
+    if(res.ok && data.success){
+      statusEl.style.color = 'var(--green)';
+      statusEl.textContent = '✓ Login created — ' + email + ' can now sign in with the password you set.';
+      showToast('✓ Admin login created for ' + name);
+      document.getElementById('inviteAdminName').value = '';
+      document.getElementById('inviteAdminEmail').value = '';
+    } else {
+      statusEl.style.color = 'var(--red)';
+      statusEl.textContent = '✗ ' + (data.error || 'Failed to create login');
+    }
+  } catch(e) {
+    statusEl.style.color = 'var(--red)';
+    statusEl.textContent = '✗ Network error — ' + e.message;
+  }
+}
+
 function showAddCompany(){
   document.getElementById('addCompanyForm').style.display = 'block';
   document.getElementById('newCoName').focus();
