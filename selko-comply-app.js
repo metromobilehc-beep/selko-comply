@@ -1213,12 +1213,64 @@ async function saveNewCompany(){
 }
 
 // ── TEXT TO SPEECH ──
+const ACRONYM_PRONUNCIATION = {
+  'HIPAA': 'HIPPa',
+  'OSHA': 'OH-sha',
+  'PHI': 'P-H-I',
+  'ePHI': 'E-P-H-I',
+  'MRSA': 'MER-sa',
+  'RACE': 'race',
+  'PASS': 'pass',
+  'FAST': 'fast',
+  'TPO': 'T-P-O',
+  'APS': 'A-P-S',
+  'DHS': 'D-H-S',
+  'EMS': 'E-M-S',
+  'PPE': 'P-P-E',
+  'CPR': 'C-P-R',
+  'AED': 'A-E-D',
+  'MDM': 'M-D-M',
+  'SMS': 'S-M-S',
+  'CMS': 'C-M-S',
+  'HHS': 'H-H-S',
+  'OCR': 'O-C-R',
+  'DKA': 'D-K-A',
+  'MDRO': 'M-D-R-O',
+  'SSN': 'S-S-N',
+  'DNR': 'D-N-R',
+  'SOC': 'S-O-C',
+  'TB': 'T-B',
+  'MMR': 'M-M-R',
+  'Tdap': 'T-dap',
+  'VRE': 'V-R-E',
+  'PEP': 'P-E-P',
+  'CFR': 'C-F-R',
+  'HAI': 'H-A-I',
+  'HAIs': 'H-A-Is',
+  'EMR': 'E-M-R',
+  'EMRs': 'E-M-Rs',
+  'NIOSH': 'NYE-osh',
+  'BAA': 'B-A-A',
+  'BAAs': 'B-A-As',
+  'OK DHS': 'Oklahoma D-H-S'
+};
+
+function applyPronunciation(text){
+  let out = text;
+  for(const [acronym, pronunciation] of Object.entries(ACRONYM_PRONUNCIATION)){
+    const regex = new RegExp('\\b' + acronym + '\\b', 'g');
+    out = out.replace(regex, pronunciation);
+  }
+  return out;
+}
+
 function getSlideText(){
   if(!currentModule || currentSection >= currentModule.slides.length) return '';
   const s = currentModule.slides[currentSection];
   const tmp = document.createElement('div');
   tmp.innerHTML = s.title + '. ' + s.content;
-  return tmp.textContent.replace(/[ \t\n]+/g,' ').trim();
+  const rawText = tmp.textContent.replace(/[ \t\n]+/g,' ').trim();
+  return applyPronunciation(rawText);
 }
 
 function toggleListen(){
