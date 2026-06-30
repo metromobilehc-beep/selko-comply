@@ -1226,13 +1226,43 @@ function toggleListen(){
   else { startListen(); }
 }
 
+function getBestVoice(){
+  const voices = window.speechSynthesis.getVoices();
+  if(!voices.length) return null;
+
+  // Priority order: best-sounding voices across platforms
+  const priorityNames = [
+    'Google US English',           // Chrome desktop/Android — best quality
+    'Samantha',                    // iOS/macOS — high quality natural voice
+    'Microsoft Aria Online',       // Windows/Edge — natural voice
+    'Microsoft Jenny Online',
+    'Microsoft Guy Online',
+    'Karen', 'Moira', 'Tessa',     // Other natural Apple voices
+  ];
+
+  for(const name of priorityNames){
+    const match = voices.find(v => v.name.includes(name));
+    if(match) return match;
+  }
+
+  // Fallback: prefer non-local (cloud/network) en-US voices — usually better quality than on-device
+  const networkVoice = voices.find(v => v.lang.startsWith('en-US') && !v.localService);
+  if(networkVoice) return networkVoice;
+
+  // Fallback: any en-US voice
+  const usVoice = voices.find(v => v.lang.startsWith('en-US'));
+  if(usVoice) return usVoice;
+
+  // Fallback: any English voice
+  return voices.find(v => v.lang.startsWith('en')) || voices[0];
+}
+
 function startListen(){
   if(!window.speechSynthesis) return;
   const text = getSlideText();
   speechUtterance = new SpeechSynthesisUtterance(text);
   speechUtterance.rate = speechRate; speechUtterance.pitch = 1.0;
-  const voices = window.speechSynthesis.getVoices();
-  const v = voices.find(v=>v.lang==='en-US'&&v.name.includes('Google')) || voices.find(v=>v.lang.startsWith('en-US'));
+  const v = getBestVoice();
   if(v) speechUtterance.voice = v;
   speechUtterance.onstart = ()=>{ speechPlaying=true; updateListenBtn(true); };
   speechUtterance.onend = speechUtterance.onerror = ()=>{ speechPlaying=false; updateListenBtn(false); };
