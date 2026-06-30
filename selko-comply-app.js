@@ -1118,16 +1118,54 @@ async function uploadLogo(input){
   }
 }
 
+let originalProfile = null;
+
 async function viewAsAdmin(companyId){
   const id = companyId || document.getElementById('drawerCompanyId').value;
   const co = allCompanies.find(c => c.id === id);
   if(!co) return;
-  // Switch view to this company without logging out
+
+  // Save original profile so we can exit cleanly
+  if(!originalProfile) originalProfile = { ...currentProfile };
+
   viewingAsCompany = co;
   currentProfile = { ...currentProfile, company_id: co.id, companies: co };
+
+  // Update topbar to show view-as banner
+  showViewAsBanner(co.name);
+
+  // Update welcome bar
+  document.getElementById('welcomeSub').textContent = co.name + ' · Compliance training (viewing as admin)';
+
   showToast('Now viewing as ' + co.name + ' admin');
-  showTab('admin'); // jump to their staff overview
+  closeDrawer();
+  showTab('admin');
   renderAdminTable();
+}
+
+function showViewAsBanner(companyName){
+  let banner = document.getElementById('viewAsBanner');
+  if(!banner){
+    banner = document.createElement('div');
+    banner.id = 'viewAsBanner';
+    banner.style.cssText = 'background:var(--gold);color:var(--navy);padding:8px 1.5rem;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:10px;position:sticky;top:52px;z-index:49';
+    document.querySelector('.topbar').insertAdjacentElement('afterend', banner);
+  }
+  banner.innerHTML = '👁 Viewing as <strong>' + companyName + '</strong> admin &nbsp;·&nbsp; <button onclick="exitViewAs()" style="background:var(--navy);color:#fff;border:none;border-radius:6px;padding:4px 12px;font-size:12px;font-weight:600;cursor:pointer">Exit view-as mode</button>';
+  banner.style.display = 'flex';
+}
+
+function exitViewAs(){
+  if(originalProfile){
+    currentProfile = originalProfile;
+    originalProfile = null;
+  }
+  viewingAsCompany = null;
+  const banner = document.getElementById('viewAsBanner');
+  if(banner) banner.style.display = 'none';
+  document.getElementById('welcomeSub').textContent = (currentProfile.companies?.name || '') + ' · Compliance training';
+  showToast('Returned to your own admin view');
+  showTab('superadmin');
 }
 
 function autoSlug(name){
