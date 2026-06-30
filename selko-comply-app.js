@@ -640,7 +640,9 @@ async function loadStaffTable(){
     const active = s.active !== false;
     const sid = s.id;
     return '<tr>' +
-      '<td style="font-weight:500">' + (s.full_name||'—') + '</td>' +
+      '<td style="font-weight:500">' + (s.full_name||'—') +
+        ' <button onclick="editStaffName(\''+sid+'\',\''+name+'\' )" style="padding:2px 6px;font-size:10px;border:0.5px solid var(--border);border-radius:5px;background:transparent;cursor:pointer;color:var(--muted)">✏</button>' +
+      '</td>' +
       '<td>' +
         '<span style="font-size:12px;color:var(--muted)">' + (email || '<em style="opacity:.5">not set</em>') + '</span>' +
         ' <button onclick="editStaffEmail(' + "'" + sid + "','" + name + "','" + email + "'" + ')" style="padding:2px 6px;font-size:10px;border:0.5px solid var(--border);border-radius:5px;background:transparent;cursor:pointer;color:var(--muted)">✏</button>' +
@@ -722,6 +724,20 @@ async function resetStaffPassword(id, name, email){
     showToast('Could not send reset — staff member may not have a login account yet');
   }
 }
+async function editStaffName(id, currentName){
+  const newName = prompt('Update name for ' + currentName + ':', currentName);
+  if(!newName || newName === currentName) return;
+  const res = await fetch(
+    SUPABASE_URL + '/rest/v1/compliance_staff?id=eq.' + id,
+    { method: 'PATCH',
+      headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ full_name: newName.trim() })
+    }
+  );
+  if(res.ok){ loadStaffTable(); showToast('✓ Name updated to ' + newName.trim()); }
+  else { showToast('Error updating name'); }
+}
+
 async function editStaffEmail(id, name, currentEmail){
   const newEmail = prompt('Email address for ' + name + ':', currentEmail || '');
   if(newEmail === null) return;
