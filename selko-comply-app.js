@@ -570,6 +570,18 @@ function toggleDetail(idx){
 }
 
 
+function showAddStaffForm(){
+  document.getElementById('addStaffForm').style.display = 'block';
+  document.getElementById('newName').focus();
+}
+
+function hideAddStaffForm(){
+  document.getElementById('addStaffForm').style.display = 'none';
+  ['newName','newEmail'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  const errEl = document.getElementById('addStaffError');
+  if(errEl) errEl.style.display = 'none';
+}
+
 async function loadStaffTable(){
   const res = await fetch(
     SUPABASE_URL + '/rest/v1/compliance_staff?company_id=eq.' + currentProfile.company_id + '&order=full_name',
@@ -642,7 +654,7 @@ async function saveNewStaff(){
     SUPABASE_URL + '/rest/v1/compliance_staff',
     { method: 'POST',
       headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON), 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
-      body: JSON.stringify({ full_name: name, email: email || null, role, active: true, company_id: currentProfile.company_id })
+      body: JSON.stringify({ full_name: name, email: email || null, role, active: true, company_id: currentProfile.company_id, pin: 'selko' })
     }
   );
   if(!res.ok){ const e = await res.json(); errEl.textContent = e.message || 'Error saving staff member.'; errEl.style.display = 'block'; return; }
@@ -716,6 +728,66 @@ async function deleteStaffMember(id, name){
   );
   loadStaffTable();
   showToast('✓ ' + name + ' deleted');
+}
+
+async function sendAllReminders(){
+  const statusEl = document.getElementById('bulkReminderStatus');
+  statusEl.style.display = 'block';
+  statusEl.style.cssText = 'display:block;font-size:12px;padding:8px 12px;border-radius:8px;margin-bottom:1rem;background:var(--teal-lt);border:0.5px solid var(--teal-md);color:#0a6b58';
+  statusEl.textContent = 'Loading staff list...';
+
+  // Fetch all active staff with emails
+  const res = await fetch(
+    SUPABASE_URL + '/rest/v1/compliance_staff?company_id=eq.' + currentProfile.company_id + '&active=eq.true&select=full_name,email',
+    { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON) }}
+  );
+  const staff = await res.json();
+  const withEmail = (staff || []).filter(s => s.email);
+
+  if(!withEmail.length){
+    statusEl.style.background = 'var(--red-lt)';
+    statusEl.style.color = 'var(--red)';
+    statusEl.textContent = 'No staff with email addresses found. Add emails in the staff list first.';
+    return;
+  }
+
+  if(!confirm('Send training reminders to ' + withEmail.length + ' staff members with email addresses?')) {
+    statusEl.style.display = 'none';
+    return;
+  }
+
+  emailjs.init(EMAILJS_PUBLIC_KEY);
+  let sent = 0, failed = 0;
+  statusEl.textContent = 'Sending... 0/' + withEmail.length;
+
+  for(const s of withEmail){
+    try {
+      await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+        to_email: s.email,
+        to_name: s.full_name,
+        subject_line: 'Action Required — Complete Your Compliance Training',
+        message_body: 'Please log in and complete your required compliance training modules at your earliest convenience.',
+        tool_url: TOOL_URL,
+        company_name: currentProfile.companies?.name || 'your organization'
+      });
+      sent++;
+      statusEl.textContent = 'Sending... ' + sent + '/' + withEmail.length;
+    } catch(e) {
+      failed++;
+      console.error('Failed for', s.email, e);
+    }
+  }
+
+  if(failed === 0){
+    statusEl.style.background = 'var(--green-lt)';
+    statusEl.style.color = 'var(--green)';
+    statusEl.textContent = '✓ Reminders sent to ' + sent + ' staff members';
+    showToast('✓ Reminders sent to ' + sent + ' staff members');
+  } else {
+    statusEl.style.background = 'var(--gold-lt)';
+    statusEl.style.color = '#92710a';
+    statusEl.textContent = 'Sent ' + sent + ', failed ' + failed + '. Check EmailJS settings.';
+  }
 }
 
 async function sendReminder(name, email){
@@ -956,6 +1028,14 @@ function autoSlug(name){
   const previewEl = document.getElementById('slugPreview');
   if(slugEl) slugEl.value = slug;
   if(previewEl) previewEl.textContent = slug || 'slug';
+}
+
+function toggleAdvanced(){
+  const el = document.getElementById('advancedSettings');
+  const btn = document.getElementById('advancedToggle');
+  const open = el.style.display !== 'none';
+  el.style.display = open ? 'none' : 'block';
+  btn.textContent = open ? '▶ Show advanced settings — Pro client customization' : '▼ Hide advanced settings';
 }
 
 function showAddCompany(){
