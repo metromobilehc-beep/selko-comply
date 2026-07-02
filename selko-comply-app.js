@@ -1399,6 +1399,18 @@ function closeModuleEditor(){
   editingQuiz = [];
 }
 
+async function clearErrorLog(){
+  if(!confirm('Clear all error logs? This cannot be undone.')) return;
+  const res = await fetch(
+    SUPABASE_URL + '/rest/v1/error_logs?id=neq.00000000-0000-0000-0000-000000000000',
+    { method: 'DELETE',
+      headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON) }
+    }
+  );
+  if(res.ok){ showToast('✓ Error log cleared'); loadSuperAdminData(); }
+  else { showToast('Clear failed'); }
+}
+
 // ── ERROR LOGGING ──
 async function logError(type, message, context){
   try {
