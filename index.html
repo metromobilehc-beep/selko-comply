@@ -233,6 +233,19 @@
               <div class="field"><label>Privacy Officer name</label><input type="text" id="dPrivacyOfficer" placeholder="e.g. Jane Smith, DPT"></div>
               <div class="field"><label>Privacy Officer email</label><input type="email" id="dPrivacyEmail" placeholder="e.g. privacy@company.com"></div>
               <div class="field"><label>Backup contact</label><input type="text" id="dBackupContact" placeholder="e.g. John Doe, PT"></div>
+              <div class="field">
+                <label>Account status</label>
+                <select id="dStatus">
+                  <option value="trial">Trial</option>
+                  <option value="active">Active</option>
+                  <option value="past_due">Past due</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Trial end date <span style="font-weight:400;color:var(--muted)">(leave blank if active)</span></label>
+                <input type="date" id="dTrialEndsAt">
+              </div>
               <div class="field"><label>Logo URL <span style="font-weight:400;color:var(--muted)">(paste link)</span></label><input type="url" id="dCoLogo" placeholder="https://..."></div>
               <div class="field"><label>Upload logo</label><input type="file" id="dCoLogoFile" accept="image/*" style="padding:6px 8px;font-size:12px;width:100%" onchange="uploadLogo(this)"></div>
             </div>

@@ -143,6 +143,41 @@ async function loadApp(user){
 
     currentProfile = data;
 
+    // Check trial status
+    const co = data.companies || {};
+    if(co.status === 'trial' && co.trial_ends_at){
+      const daysLeft = Math.ceil((new Date(co.trial_ends_at) - new Date()) / (1000 * 60 * 60 * 24));
+      if(daysLeft <= 0){
+        // Trial expired — show lockout
+        document.getElementById('loginWrap').style.display = 'none';
+        document.getElementById('app').style.display = 'block';
+        document.getElementById('trainingTab').style.display = 'none';
+        const loader = document.getElementById('initialLoader');
+        if(loader) loader.style.display = 'none';
+        document.getElementById('app').innerHTML = `
+          <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f0f2f5;padding:2rem">
+            <div style="background:#fff;border-radius:16px;padding:2.5rem;max-width:420px;text-align:center;border:0.5px solid #e2e6ea">
+              <div style="font-size:40px;margin-bottom:1rem">⏰</div>
+              <div style="font-size:18px;font-weight:700;color:#0D1B3D;margin-bottom:.5rem">Trial period ended</div>
+              <div style="font-size:14px;color:#6b7280;margin-bottom:1.5rem;line-height:1.6">Your 14-day trial of Selko Comply has expired. Contact us to activate your subscription and restore access.</div>
+              <a href="mailto:smacedpt@gmail.com?subject=Selko Comply Subscription — ${co.name}" style="display:inline-block;background:#0D1B3D;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px">Contact Selko to activate</a>
+            </div>
+          </div>`;
+        return;
+      } else if(daysLeft <= 7){
+        // Show trial warning banner
+        setTimeout(() => {
+          const app = document.getElementById('app');
+          if(app){
+            const banner = document.createElement('div');
+            banner.style.cssText = 'background:#fef3c7;border-bottom:1px solid #f59e0b;padding:8px 1.5rem;font-size:13px;font-weight:500;color:#92400e;text-align:center';
+            banner.textContent = '⚠️ Your trial expires in ' + daysLeft + ' day' + (daysLeft===1?'':'s') + ' — contact Selko to activate your subscription.';
+            app.prepend(banner);
+          }
+        }, 500);
+      }
+    }
+
     // Update UI
     const loader = document.getElementById('initialLoader');
     if(loader) loader.style.display = 'none';
@@ -1014,9 +1049,29 @@ async function loadSuperAdminData(){
     const comps = compCounts[co.id] || 0;
     const planColor = co.plan==='pro'?'var(--gold)':co.plan==='enterprise'?'#7c3aed':'var(--teal)';
     const planLabel = (co.plan||'standard').toUpperCase();
+    
+    // Trial status
+    let statusBadge = '';
+    let statusBar = '';
+    if(co.status === 'trial' && co.trial_ends_at){
+      const daysLeft = Math.ceil((new Date(co.trial_ends_at) - new Date()) / (1000*60*60*24));
+      if(daysLeft <= 0){
+        statusBadge = '<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:#fee2e2;color:#dc2626;border:0.5px solid #fca5a5;margin-left:6px">EXPIRED</span>';
+        statusBar = '<div style="font-size:11px;color:#dc2626;margin-bottom:.5rem">⚠️ Trial expired</div>';
+      } else {
+        statusBadge = '<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:#fef3c7;color:#92400e;border:0.5px solid #f59e0b;margin-left:6px">TRIAL</span>';
+        statusBar = '<div style="font-size:11px;color:#92400e;margin-bottom:.5rem">⏰ ' + daysLeft + ' day' + (daysLeft===1?'':'s') + ' left in trial</div>';
+      }
+    } else if(co.status === 'past_due'){
+      statusBadge = '<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:#fee2e2;color:#dc2626;border:0.5px solid #fca5a5;margin-left:6px">PAST DUE</span>';
+    } else if(co.status === 'cancelled'){
+      statusBadge = '<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:#f3f4f6;color:#6b7280;border:0.5px solid #d1d5db;margin-left:6px">CANCELLED</span>';
+    }
+
     return `<div style="background:var(--white);border:0.5px solid var(--border);border-radius:12px;padding:1.25rem;position:relative">
       <div style="position:absolute;top:12px;right:12px;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;background:${planColor}20;color:${planColor};border:0.5px solid ${planColor}">${planLabel}</div>
-      <div style="font-size:15px;font-weight:600;color:var(--navy);margin-bottom:4px;padding-right:60px">${co.name}</div>
+      <div style="font-size:15px;font-weight:600;color:var(--navy);margin-bottom:4px;padding-right:80px">${co.name}${statusBadge}</div>
+      ${statusBar}
       <div style="font-size:12px;color:var(--muted);margin-bottom:.75rem">${staff} staff · ${comps} completions</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
         <button class="btn sm primary" onclick="openCompanyDrawer('${co.id}')">⚙ Settings</button>
@@ -1056,6 +1111,8 @@ function openCompanyDrawer(companyId){
   document.getElementById('dHasCompliance').checked = co.has_compliance !== false;
   document.getElementById('dHasCred').checked = co.has_credtrack !== false;
   document.getElementById('dHasHep').checked = co.has_hep !== false;
+  document.getElementById('dStatus').value = co.status || 'active';
+  document.getElementById('dTrialEndsAt').value = co.trial_ends_at ? co.trial_ends_at.split('T')[0] : '';
 
   document.getElementById('drawerStatus').style.display = 'none';
   document.getElementById('companyDrawer').style.display = 'block';
@@ -1075,6 +1132,8 @@ async function saveCompanySettings(){
     name: document.getElementById('dCoName').value.trim(),
     plan: document.getElementById('dCoPlan').value,
     logo_url: document.getElementById('dCoLogo').value.trim() || null,
+    status: document.getElementById('dStatus').value,
+    trial_ends_at: document.getElementById('dTrialEndsAt').value || null,
     branding_enabled: document.getElementById('dBranding').checked,
     has_compliance: true, // always true for Comply clients
     has_credtrack: false, // coming soon
@@ -1317,7 +1376,14 @@ async function saveNewCompany(){
     SUPABASE_URL + '/rest/v1/companies',
     { method: 'POST',
       headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON), 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
-      body: JSON.stringify({ name, slug, plan, admin_emails: email ? [email] : [], has_compliance: true, has_credtrack: false, has_hep: false, active: true })
+      body: JSON.stringify({ 
+        name, slug, plan, 
+        admin_emails: email ? [email] : [], 
+        has_compliance: true, has_credtrack: false, has_hep: false, 
+        active: true,
+        status: 'trial',
+        trial_ends_at: new Date(Date.now() + 14*24*60*60*1000).toISOString()
+      })
     }
   );
 
