@@ -223,12 +223,14 @@ async function loadApp(user){
 
 // ── LOAD MODULES FROM SUPABASE ──
 async function loadModulesFromSupabase(companyId){
+  console.log('loadModulesFromSupabase called, companyId:', companyId, 'authToken set:', !!authToken);
   try {
     const modRes = await fetch(
       SUPABASE_URL + '/rest/v1/compliance_modules?active=eq.true&order=sort_order&select=*',
       { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON) }}
     );
     const dbModules = await modRes.json();
+    console.log('DB modules fetched:', Array.isArray(dbModules) ? dbModules.length : 'error', dbModules);
     if(!Array.isArray(dbModules) || !dbModules.length) return;
 
     dbModules.forEach(dbMod => {
