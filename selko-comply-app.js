@@ -325,16 +325,16 @@ function applyCompanyVars(html){
 
   let out = html;
 
-  // Always substitute company name
-  out = out.replace(/your organization's/g, name + "'s");
-  out = out.replace(/your organization/g, name);
+  // Always substitute company name — handle both capitalized and lowercase
+  out = out.replace(/[Yy]our organization's/g, name + "'s");
+  out = out.replace(/[Yy]our organization/g, name);
 
   // Pro substitutions
   if(isPro){
     // Contacts
     if(contacts.privacy_officer){
-      out = out.replace(/your designated Privacy Officer/g, contacts.privacy_officer);
-      out = out.replace(/your designated supervisor or Privacy Officer/g, contacts.privacy_officer + ' or ' + (contacts.backup_contact || 'your backup supervisor'));
+      out = out.replace(/[Yy]our designated Privacy Officer/g, contacts.privacy_officer);
+      out = out.replace(/[Yy]our designated supervisor or Privacy Officer/g, contacts.privacy_officer + ' or ' + (contacts.backup_contact || 'your backup supervisor'));
     }
     if(contacts.backup_contact){
       out = out.replace(/your backup supervisor contact/g, contacts.backup_contact);
@@ -346,11 +346,11 @@ function applyCompanyVars(html){
 
     // Tools and devices
     if(vars.scheduling_tool){
-      out = out.replace(/your approved scheduling platform/g, vars.scheduling_tool);
+      out = out.replace(/[Yy]our approved scheduling platform/g, vars.scheduling_tool);
     }
     if(vars.device){
-      out = out.replace(/your company-issued device/g, vars.device);
-      out = out.replace(/your MDM system/g, vars.mdm || (vars.device + ' MDM'));
+      out = out.replace(/[Yy]our company-issued device/g, vars.device);
+      out = out.replace(/[Yy]our MDM system/g, vars.mdm || (vars.device + ' MDM'));
     }
 
     // State-specific
