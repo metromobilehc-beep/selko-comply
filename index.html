@@ -82,6 +82,7 @@
       <button class="tab-btn" id="adminTab" onclick="showTab('admin')" style="display:none">Staff overview</button>
       <button class="tab-btn" id="manageTab" onclick="showTab('manage')" style="display:none">Manage staff</button>
       <button class="tab-btn" id="superAdminTab" onclick="showTab('superadmin')" style="display:none;background:var(--navy);color:var(--gold);border-color:var(--gold)">⚡ Selko Admin</button>
+      <button class="tab-btn" id="moduleEditorTab" onclick="showTab('moduleeditor')" style="display:none;background:var(--navy);color:#0BA7A0;border-color:#0BA7A0">📋 Modules</button>
     </div>
 
     <!-- TRAINING TAB -->
@@ -156,6 +157,68 @@
     </div>
 
   </div>
+
+      <!-- MODULE EDITOR PANEL -->
+      <div id="moduleEditorTab2" style="display:none">
+        <div style="background:var(--navy);border-radius:12px;padding:1.25rem 1.5rem;margin-bottom:1.25rem;display:flex;gap:1.5rem;flex-wrap:wrap;align-items:center">
+          <div style="flex:1">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.4);margin-bottom:4px">Selko Comply</div>
+            <div style="font-size:16px;font-weight:600;color:#fff">Module Editor</div>
+          </div>
+          <div style="font-size:12px;color:rgba(255,255,255,.5)">Edit global modules or create Pro company overrides</div>
+        </div>
+
+        <!-- Module list -->
+        <div id="moduleList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;margin-bottom:1.25rem"></div>
+
+        <!-- Module editor drawer -->
+        <div id="moduleEditorDrawer" style="display:none" class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
+            <div>
+              <div class="card-title" style="margin:0" id="moduleEditorTitle">Edit module</div>
+              <div style="font-size:12px;color:var(--muted);margin-top:3px" id="moduleEditorSubtitle"></div>
+            </div>
+            <button class="btn ghost sm" onclick="closeModuleEditor()">✕ Close</button>
+          </div>
+          <input type="hidden" id="editingModuleId">
+          <input type="hidden" id="editingModuleCompanyId">
+
+          <!-- Module metadata -->
+          <div style="background:var(--teal-lt);border:0.5px solid var(--teal-md);border-radius:10px;padding:1.25rem;margin-bottom:1rem">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--teal);margin-bottom:1rem">Module settings</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <div class="field"><label>Title</label><input type="text" id="editModuleTitle" placeholder="Module title"></div>
+              <div class="field"><label>Icon</label><input type="text" id="editModuleIcon" placeholder="🔒" style="width:60px"></div>
+              <div class="field"><label>Description</label><input type="text" id="editModuleDesc" placeholder="Brief description"></div>
+              <div class="field"><label>Pass score (%)</label><input type="number" id="editModulePassScore" min="50" max="100" value="80"></div>
+            </div>
+          </div>
+
+          <!-- Slides editor -->
+          <div style="margin-bottom:1rem">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+              <div class="card-title" style="margin:0">Slides <span id="slideCount" style="font-size:11px;font-weight:400;color:var(--muted)"></span></div>
+              <button class="btn sm primary" onclick="addSlide()">+ Add slide</button>
+            </div>
+            <div id="slidesEditor"></div>
+          </div>
+
+          <!-- Quiz editor -->
+          <div style="margin-bottom:1.25rem">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+              <div class="card-title" style="margin:0">Quiz questions <span id="quizCount" style="font-size:11px;font-weight:400;color:var(--muted)"></span></div>
+              <button class="btn sm primary" onclick="addQuizQuestion()">+ Add question</button>
+            </div>
+            <div id="quizEditor"></div>
+          </div>
+
+          <div style="display:flex;gap:8px">
+            <button class="btn primary" onclick="saveModuleEdits()">💾 Save module</button>
+            <button class="btn ghost" onclick="closeModuleEditor()">Cancel</button>
+          </div>
+          <div id="moduleEditorStatus" style="font-size:12px;margin-top:8px;display:none"></div>
+        </div>
+      </div>
 
       <!-- SUPER ADMIN PANEL -->
       <div id="superAdminTab2" style="display:none">

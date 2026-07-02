@@ -202,6 +202,7 @@ async function loadApp(user){
     }
     if(data.is_super_admin){
       document.getElementById('superAdminTab').style.display = 'block';
+      document.getElementById('moduleEditorTab').style.display = 'block';
     }
 
     await loadCompletions();
@@ -566,6 +567,9 @@ function showTab(tab){
   if(mt2) mt2.style.display = tab==='manage'?'block':'none';
   const sa2 = document.getElementById('superAdminTab2');
   if(sa2) sa2.style.display = tab==='superadmin'?'block':'none';
+  const me2 = document.getElementById('moduleEditorTab2');
+  if(me2) me2.style.display = tab==='moduleeditor'?'block':'none';
+  if(tab==='moduleeditor') loadModuleEditor();
   if(tab==='manage') loadStaffTable();
   if(tab==='admin') renderAdminTable();
   if(tab==='superadmin') loadSuperAdminData();
@@ -1025,6 +1029,213 @@ function showToast(msg){
   toastTimer = setTimeout(() => { el.style.opacity='0'; el.style.transform='translateY(8px)'; }, 3000);
 }
 
+
+// ── MODULE EDITOR ──
+let editingSlides = [];
+let editingQuiz = [];
+
+async function loadModuleEditor(){
+  const res = await fetch(
+    SUPABASE_URL + '/rest/v1/compliance_modules?order=sort_order&select=*',
+    { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON) }}
+  );
+  const modules = await res.json();
+  const el = document.getElementById('moduleList');
+  if(!Array.isArray(modules) || !modules.length){
+    el.innerHTML = '<p style="color:var(--muted);font-size:13px">No modules found. Run the seed SQL first.</p>';
+    return;
+  }
+
+  el.innerHTML = modules.map(m => {
+    const isGlobal = !m.company_id;
+    const badge = isGlobal
+      ? '<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:var(--teal-lt);color:var(--teal);border:0.5px solid var(--teal-md)">GLOBAL</span>'
+      : '<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:var(--gold-lt);color:var(--gold);border:0.5px solid var(--gold-md)">PRO OVERRIDE</span>';
+    const hasCustomContent = m.slides && m.quiz;
+    return `<div style="background:var(--white);border:0.5px solid var(--border);border-radius:12px;padding:1.25rem">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <span style="font-size:20px">${m.icon||'📋'}</span>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:600;color:var(--navy)">${m.title}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">${badge} ${m.admin_only?'· Admin only':''}</div>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:.75rem;line-height:1.5">${m.description||''}</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:.75rem">
+        ${hasCustomContent ? '✓ Custom content stored in Supabase' : '📄 Using default JS content'}
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn sm primary" onclick="openModuleEditor('${m.id}', ${JSON.stringify(m.company_id||null)})">✏ Edit</button>
+        ${hasCustomContent ? `<button class="btn sm" style="border-color:var(--red);color:var(--red)" onclick="resetModuleContent('${m.id}')">↺ Reset to default</button>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function openModuleEditor(moduleId, companyId){
+  // Load module from Supabase
+  const res = await fetch(
+    SUPABASE_URL + '/rest/v1/compliance_modules?id=eq.' + moduleId + (companyId ? '&company_id=eq.'+companyId : '&company_id=is.null') + '&select=*&limit=1',
+    { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON) }}
+  );
+  const data = await res.json();
+  const m = Array.isArray(data) && data.length ? data[0] : null;
+  if(!m){ showToast('Module not found'); return; }
+
+  document.getElementById('editingModuleId').value = moduleId;
+  document.getElementById('editingModuleCompanyId').value = companyId || '';
+  document.getElementById('moduleEditorTitle').textContent = (m.icon||'📋') + ' ' + m.title;
+  document.getElementById('moduleEditorSubtitle').textContent = companyId ? 'Pro company override' : 'Global module — changes affect all Standard clients';
+  document.getElementById('editModuleTitle').value = m.title || '';
+  document.getElementById('editModuleIcon').value = m.icon || '';
+  document.getElementById('editModuleDesc').value = m.description || '';
+  document.getElementById('editModulePassScore').value = m.pass_score || 80;
+
+  // Load slides — from Supabase if available, else from JS file
+  const jsModule = typeof MODULES !== 'undefined' ? MODULES.find(mod => mod.id === moduleId) : null;
+  editingSlides = m.slides || (jsModule ? jsModule.slides : []);
+  editingQuiz = m.quiz || (jsModule ? jsModule.quiz : []);
+
+  renderSlidesEditor();
+  renderQuizEditor();
+
+  document.getElementById('moduleEditorStatus').style.display = 'none';
+  document.getElementById('moduleEditorDrawer').style.display = 'block';
+  document.getElementById('moduleEditorDrawer').scrollIntoView({ behavior: 'smooth' });
+}
+
+function renderSlidesEditor(){
+  document.getElementById('slideCount').textContent = '(' + editingSlides.length + ' slides)';
+  document.getElementById('slidesEditor').innerHTML = editingSlides.map((s, i) => `
+    <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:8px;padding:1rem;margin-bottom:8px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <span style="font-size:11px;font-weight:700;color:var(--muted)">SLIDE ${i+1}</span>
+        <button onclick="moveSlide(${i}, -1)" ${i===0?'disabled':''} style="padding:2px 6px;font-size:11px;border:0.5px solid var(--border);border-radius:4px;background:transparent;cursor:pointer">↑</button>
+        <button onclick="moveSlide(${i}, 1)" ${i===editingSlides.length-1?'disabled':''} style="padding:2px 6px;font-size:11px;border:0.5px solid var(--border);border-radius:4px;background:transparent;cursor:pointer">↓</button>
+        <button onclick="deleteSlide(${i})" style="padding:2px 6px;font-size:11px;border:0.5px solid var(--red);color:var(--red);border-radius:4px;background:transparent;cursor:pointer;margin-left:auto">✕ Remove</button>
+      </div>
+      <div class="field" style="margin-bottom:8px">
+        <label>Slide title</label>
+        <input type="text" value="${(s.title||'').replace(/"/g,'&quot;')}" onchange="editingSlides[${i}].title=this.value" style="width:100%">
+      </div>
+      <div class="field">
+        <label>Content (HTML allowed)</label>
+        <textarea rows="4" style="width:100%;font-size:12px;font-family:monospace" onchange="editingSlides[${i}].content=this.value">${s.content||''}</textarea>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderQuizEditor(){
+  document.getElementById('quizCount').textContent = '(' + editingQuiz.length + ' questions)';
+  document.getElementById('quizEditor').innerHTML = editingQuiz.map((q, qi) => `
+    <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:8px;padding:1rem;margin-bottom:8px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <span style="font-size:11px;font-weight:700;color:var(--muted)">Q${qi+1}</span>
+        <button onclick="deleteQuizQuestion(${qi})" style="padding:2px 6px;font-size:11px;border:0.5px solid var(--red);color:var(--red);border-radius:4px;background:transparent;cursor:pointer;margin-left:auto">✕ Remove</button>
+      </div>
+      <div class="field" style="margin-bottom:8px">
+        <label>Question</label>
+        <input type="text" value="${(q.q||'').replace(/"/g,'&quot;')}" onchange="editingQuiz[${qi}].q=this.value" style="width:100%">
+      </div>
+      ${(q.options||[]).map((opt, oi) => `
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+          <input type="radio" name="correct_${qi}" ${q.answer===oi?'checked':''} onchange="editingQuiz[${qi}].answer=${oi}" style="accent-color:var(--teal)">
+          <input type="text" value="${(opt||'').replace(/"/g,'&quot;')}" onchange="editingQuiz[${qi}].options[${oi}]=this.value" style="flex:1;font-size:12px">
+        </div>
+      `).join('')}
+      <div style="font-size:11px;color:var(--muted);margin-top:4px">Select the radio button next to the correct answer</div>
+      <div class="field" style="margin-top:8px">
+        <label>Explanation (shown after quiz)</label>
+        <input type="text" value="${(q.explanation||'').replace(/"/g,'&quot;')}" onchange="editingQuiz[${qi}].explanation=this.value" style="width:100%;font-size:12px">
+      </div>
+    </div>
+  `).join('');
+}
+
+function addSlide(){
+  editingSlides.push({ title: 'New Slide', content: '<p>Enter slide content here.</p>' });
+  renderSlidesEditor();
+  document.getElementById('slidesEditor').lastElementChild?.scrollIntoView({ behavior: 'smooth' });
+}
+
+function deleteSlide(idx){
+  if(!confirm('Remove this slide?')) return;
+  editingSlides.splice(idx, 1);
+  renderSlidesEditor();
+}
+
+function moveSlide(idx, dir){
+  const newIdx = idx + dir;
+  if(newIdx < 0 || newIdx >= editingSlides.length) return;
+  [editingSlides[idx], editingSlides[newIdx]] = [editingSlides[newIdx], editingSlides[idx]];
+  renderSlidesEditor();
+}
+
+function addQuizQuestion(){
+  editingQuiz.push({ q: 'New question?', options: ['Option A', 'Option B', 'Option C', 'Option D'], answer: 0, explanation: 'Explanation here.' });
+  renderQuizEditor();
+}
+
+function deleteQuizQuestion(idx){
+  if(!confirm('Remove this question?')) return;
+  editingQuiz.splice(idx, 1);
+  renderQuizEditor();
+}
+
+async function saveModuleEdits(){
+  const moduleId = document.getElementById('editingModuleId').value;
+  const companyId = document.getElementById('editingModuleCompanyId').value || null;
+  const statusEl = document.getElementById('moduleEditorStatus');
+  statusEl.style.display = 'none';
+
+  const payload = {
+    title: document.getElementById('editModuleTitle').value.trim(),
+    icon: document.getElementById('editModuleIcon').value.trim(),
+    description: document.getElementById('editModuleDesc').value.trim(),
+    pass_score: parseInt(document.getElementById('editModulePassScore').value) || 80,
+    slides: editingSlides,
+    quiz: editingQuiz,
+    updated_at: new Date().toISOString()
+  };
+
+  const url = SUPABASE_URL + '/rest/v1/compliance_modules?id=eq.' + moduleId + (companyId ? '&company_id=eq.'+companyId : '&company_id=is.null');
+  const res = await fetch(url, {
+    method: 'PATCH',
+    headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON), 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+
+  if(res.ok){
+    statusEl.style.cssText = 'display:block;color:var(--green);font-size:12px;margin-top:8px';
+    statusEl.textContent = '✓ Module saved to Supabase';
+    showToast('✓ ' + payload.title + ' saved');
+    loadModuleEditor();
+  } else {
+    const err = await res.json().catch(()=>({}));
+    statusEl.style.cssText = 'display:block;color:var(--red);font-size:12px;margin-top:8px';
+    statusEl.textContent = '✗ Save failed — ' + (err.message || res.status);
+  }
+}
+
+async function resetModuleContent(moduleId){
+  if(!confirm('Reset this module to default JS content? Custom slides and quiz will be removed from Supabase.')) return;
+  const res = await fetch(
+    SUPABASE_URL + '/rest/v1/compliance_modules?id=eq.' + moduleId + '&company_id=is.null',
+    { method: 'PATCH',
+      headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slides: null, quiz: null })
+    }
+  );
+  if(res.ok){ showToast('✓ Module reset to default content'); loadModuleEditor(); }
+  else { showToast('Reset failed'); }
+}
+
+function closeModuleEditor(){
+  document.getElementById('moduleEditorDrawer').style.display = 'none';
+  editingSlides = [];
+  editingQuiz = [];
+}
 
 // ── ERROR LOGGING ──
 async function logError(type, message, context){
