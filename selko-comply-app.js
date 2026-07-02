@@ -1121,8 +1121,8 @@ async function loadModuleEditor(){
         ${hasCustomContent ? '✓ Custom content stored in Supabase' : '📄 Using default JS content'}
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="btn sm primary" onclick="openModuleEditor('${m.id}', ${JSON.stringify(m.company_id||null)})">✏ Edit</button>
-        ${hasCustomContent ? `<button class="btn sm" style="border-color:var(--red);color:var(--red)" onclick="resetModuleContent('${m.id}')">↺ Reset to default</button>` : ''}
+        <button class="btn sm primary" onclick="openModuleEditor('${m.id}', ${m.company_id ? "'" + m.company_id + "'" : 'null'})">✏ Edit</button>
+        ${isGlobal ? (hasCustomContent ? `<button class="btn sm" style="border-color:var(--red);color:var(--red)" onclick="resetModuleContent('${m.id}')">↺ Reset to default</button>` : '') : `<button class="btn sm" style="border-color:var(--red);color:var(--red)" onclick="deleteCustomModule('${m.id}')">🗑 Delete</button>`}
       </div>
     </div>`;
   };
@@ -1142,8 +1142,9 @@ async function loadModuleEditor(){
 
 async function openModuleEditor(moduleId, companyId){
   // Load module from Supabase
+  const isCustom = companyId && companyId !== 'null';
   const res = await fetch(
-    SUPABASE_URL + '/rest/v1/compliance_modules?id=eq.' + moduleId + (companyId ? '&company_id=eq.'+companyId : '&company_id=is.null') + '&select=*&limit=1',
+    SUPABASE_URL + '/rest/v1/compliance_modules?id=eq.' + moduleId + (isCustom ? '&company_id=eq.'+companyId : '&company_id=is.null') + '&select=*&limit=1',
     { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON) }}
   );
   const data = await res.json();
@@ -1267,7 +1268,9 @@ async function saveModuleEdits(){
     updated_at: new Date().toISOString()
   };
 
-  const url = SUPABASE_URL + '/rest/v1/compliance_modules?id=eq.' + moduleId + (companyId ? '&company_id=eq.'+companyId : '&company_id=is.null');
+  const compId = document.getElementById('editingModuleCompanyId').value;
+  const isCustomMod = compId && compId !== 'null' && compId !== '';
+  const url = SUPABASE_URL + '/rest/v1/compliance_modules?id=eq.' + moduleId + (isCustomMod ? '&company_id=eq.'+compId : '&company_id=is.null');
   const res = await fetch(url, {
     method: 'PATCH',
     headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON), 'Content-Type': 'application/json' },
@@ -1284,6 +1287,18 @@ async function saveModuleEdits(){
     statusEl.style.cssText = 'display:block;color:var(--red);font-size:12px;margin-top:8px';
     statusEl.textContent = '✗ Save failed — ' + (err.message || res.status);
   }
+}
+
+async function deleteCustomModule(moduleId){
+  if(!confirm('Delete this custom module? This cannot be undone.')) return;
+  const res = await fetch(
+    SUPABASE_URL + '/rest/v1/compliance_modules?id=eq.' + moduleId,
+    { method: 'DELETE',
+      headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON) }
+    }
+  );
+  if(res.ok){ showToast('✓ Custom module deleted'); loadModuleEditor(); }
+  else { showToast('Delete failed'); }
 }
 
 async function resetModuleContent(moduleId){
