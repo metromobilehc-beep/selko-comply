@@ -1046,7 +1046,15 @@ async function loadModuleEditor(){
     return;
   }
 
-  el.innerHTML = modules.map(m => {
+  // Separate global and custom modules
+  const globalMods = modules.filter(m => !m.company_id);
+  const customMods = modules.filter(m => m.company_id);
+
+  // Get company names for custom modules
+  const companyNames = {};
+  allCompanies.forEach(co => companyNames[co.id] = co.name);
+
+  const renderCard = (m) => {
     const isGlobal = !m.company_id;
     const badge = isGlobal
       ? '<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:var(--teal-lt);color:var(--teal);border:0.5px solid var(--teal-md)">GLOBAL</span>'
@@ -1069,7 +1077,19 @@ async function loadModuleEditor(){
         ${hasCustomContent ? `<button class="btn sm" style="border-color:var(--red);color:var(--red)" onclick="resetModuleContent('${m.id}')">↺ Reset to default</button>` : ''}
       </div>
     </div>`;
-  }).join('');
+  };
+
+  let html = globalMods.map(renderCard).join('');
+  
+  if(customMods.length){
+    html += '<div style="grid-column:1/-1;margin-top:.5rem;margin-bottom:.25rem"><div style="font-size:13px;font-weight:600;color:var(--navy)">Custom modules</div><div style="font-size:12px;color:var(--muted)">Pro company-specific content</div></div>';
+    html += customMods.map(m => {
+      const coName = companyNames[m.company_id] || m.company_id;
+      return renderCard(m).replace('PRO OVERRIDE', coName + ' — Custom');
+    }).join('');
+  }
+
+  el.innerHTML = html;
 }
 
 async function openModuleEditor(moduleId, companyId){
@@ -1229,6 +1249,85 @@ async function resetModuleContent(moduleId){
   );
   if(res.ok){ showToast('✓ Module reset to default content'); loadModuleEditor(); }
   else { showToast('Reset failed'); }
+}
+
+function openNewModuleForm(){
+  // Populate company dropdown
+  const sel = document.getElementById('newModuleCompany');
+  if(sel && allCompanies.length){
+    sel.innerHTML = allCompanies
+      .filter(co => co.plan === 'pro' || co.plan === 'enterprise')
+      .map(co => `<option value="${co.id}">${co.name} (${co.plan})</option>`)
+      .join('');
+    if(!sel.innerHTML) sel.innerHTML = '<option value="">No Pro companies found</option>';
+  }
+  document.getElementById('newModuleForm').style.display = 'block';
+  document.getElementById('newModuleForm').scrollIntoView({ behavior: 'smooth' });
+}
+
+function closeNewModuleForm(){
+  document.getElementById('newModuleForm').style.display = 'none';
+  document.getElementById('newModuleId').value = '';
+  document.getElementById('newModuleTitle').value = '';
+  document.getElementById('newModuleDesc').value = '';
+  document.getElementById('newModuleError').style.display = 'none';
+}
+
+async function saveNewModule(){
+  const id = document.getElementById('newModuleId').value.trim().replace(/\s+/g,'_').toLowerCase();
+  const title = document.getElementById('newModuleTitle').value.trim();
+  const desc = document.getElementById('newModuleDesc').value.trim();
+  const icon = document.getElementById('newModuleIconNew').value.trim() || '📋';
+  const passScore = parseInt(document.getElementById('newModulePassScore').value) || 80;
+  const companyId = document.getElementById('newModuleCompany').value;
+  const errEl = document.getElementById('newModuleError');
+  errEl.style.display = 'none';
+
+  if(!id || !title || !companyId){
+    errEl.textContent = 'Module ID, title, and company are required.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  // Build staff types array
+  const staffTypes = [];
+  if(document.getElementById('newModTypeClinician').checked) staffTypes.push('clinician');
+  if(document.getElementById('newModTypeOffice').checked) staffTypes.push('office');
+  if(document.getElementById('newModTypeOwner').checked) staffTypes.push('owner');
+  if(document.getElementById('newModTypeAdmin').checked) staffTypes.push('admin');
+
+  const res = await fetch(
+    SUPABASE_URL + '/rest/v1/compliance_modules',
+    { method: 'POST',
+      headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON), 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+      body: JSON.stringify({
+        id: id + '_' + companyId.substring(0,8), // ensure uniqueness
+        title,
+        description: desc,
+        icon,
+        track: ['newhire','annual'],
+        pass_score: passScore,
+        mins: 20,
+        active: true,
+        sort_order: 99,
+        admin_only: false,
+        staff_types: staffTypes,
+        company_id: companyId,
+        slides: [{ title: 'Introduction', content: '<p>Enter your slide content here.</p>' }],
+        quiz: [{ q: 'Sample question?', options: ['Option A', 'Option B', 'Option C', 'Option D'], answer: 0, explanation: 'Explanation here.' }]
+      })
+    }
+  );
+
+  if(res.ok){
+    closeNewModuleForm();
+    showToast('✓ Custom module created — click Edit to add content');
+    loadModuleEditor();
+  } else {
+    const e = await res.json().catch(()=>({}));
+    errEl.textContent = e.message || 'Error creating module';
+    errEl.style.display = 'block';
+  }
 }
 
 function closeModuleEditor(){
