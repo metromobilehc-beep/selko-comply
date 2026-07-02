@@ -169,7 +169,52 @@
         </div>
 
         <!-- Module list -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px">
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--navy)">Global modules</div>
+            <div style="font-size:12px;color:var(--muted)">Available to all companies</div>
+          </div>
+          <button class="btn primary" onclick="openNewModuleForm()">+ Create custom module</button>
+        </div>
         <div id="moduleList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;margin-bottom:1.25rem"></div>
+
+        <!-- New custom module form -->
+        <div id="newModuleForm" style="display:none" class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
+            <div class="card-title" style="margin:0">+ Create custom module</div>
+            <button class="btn ghost sm" onclick="closeNewModuleForm()">✕ Close</button>
+          </div>
+          <div style="background:var(--gold-lt);border:0.5px solid var(--gold-md);border-radius:8px;padding:10px 14px;margin-bottom:1rem;font-size:12px;color:#92710a">
+            ⭐ Custom modules are Pro only — they appear only for the selected company's staff.
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem">
+            <div class="field"><label>Module ID <span style="font-weight:400;color:var(--muted)">(unique, no spaces)</span></label><input type="text" id="newModuleId" placeholder="e.g. orientation_2026"></div>
+            <div class="field"><label>Icon</label><input type="text" id="newModuleIconNew" placeholder="📋" style="width:60px"></div>
+            <div class="field"><label>Title</label><input type="text" id="newModuleTitle" placeholder="e.g. Agency Orientation 2026"></div>
+            <div class="field"><label>Pass score (%)</label><input type="number" id="newModulePassScore" value="80" min="50" max="100"></div>
+            <div class="field" style="grid-column:1/-1"><label>Description</label><input type="text" id="newModuleDesc" placeholder="Brief description of what this module covers"></div>
+            <div class="field">
+              <label>Assign to company</label>
+              <select id="newModuleCompany">
+                <option value="">Loading companies...</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Staff types</label>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
+                <label style="font-size:12px;cursor:pointer"><input type="checkbox" id="newModTypeClinician" checked> Clinician</label>
+                <label style="font-size:12px;cursor:pointer"><input type="checkbox" id="newModTypeOffice"> Office</label>
+                <label style="font-size:12px;cursor:pointer"><input type="checkbox" id="newModTypeOwner" checked> Owner</label>
+                <label style="font-size:12px;cursor:pointer"><input type="checkbox" id="newModTypeAdmin" checked> Admin</label>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn primary" onclick="saveNewModule()">Create module</button>
+            <button class="btn ghost" onclick="closeNewModuleForm()">Cancel</button>
+          </div>
+          <div id="newModuleError" style="color:var(--red);font-size:12px;margin-top:8px;display:none"></div>
+        </div>
 
         <!-- Module editor drawer -->
         <div id="moduleEditorDrawer" style="display:none" class="card">
