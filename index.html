@@ -102,7 +102,8 @@
       <div class="card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
           <div class="card-title" style="margin:0">Staff management</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <div id="seatUsage"></div>
             <button class="btn sm" style="border-color:var(--teal);color:var(--teal)" onclick="sendAllReminders()">📧 Remind all</button>
             <button class="btn primary sm" onclick="showAddStaffForm()">+ Add staff member</button>
           </div>
@@ -250,7 +251,8 @@
             <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--teal);margin-bottom:1rem">⚡ Quick setup — fill this for every client</div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
               <div class="field"><label>Company name</label><input type="text" id="dCoName" placeholder="e.g. Acme Home Health"></div>
-              <div class="field"><label>Plan</label><select id="dCoPlan"><option value="standard">Standard — $39/mo</option><option value="pro">Pro — $79/mo</option><option value="enterprise">Enterprise</option></select></div>
+              <div class="field"><label>Plan</label><select id="dCoPlan" onchange="autoSetSeatLimit(this.value)"><option value="standard">Standard — $39/mo</option><option value="pro">Pro — $79/mo</option><option value="enterprise">Enterprise</option></select></div>
+              <div class="field"><label>Seat limit <span style="font-weight:400;color:var(--muted)">(auto-set by plan)</span></label><input type="number" id="dSeatLimit" placeholder="e.g. 20" min="1"></div>
               <div class="field"><label>Admin email</label><input type="email" id="dOrgEmail" placeholder="e.g. admin@company.com"></div>
               <div class="field"><label>Privacy Officer name</label><input type="text" id="dPrivacyOfficer" placeholder="e.g. Jane Smith, DPT"></div>
               <div class="field"><label>Privacy Officer email</label><input type="email" id="dPrivacyEmail" placeholder="e.g. privacy@company.com"></div>

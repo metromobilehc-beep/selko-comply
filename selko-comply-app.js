@@ -746,6 +746,28 @@ async function loadStaffTable(){
       '</td>' +
     '</tr>';
   }).join('');
+
+  // Seat usage counter
+  const coData = currentProfile?.companies || {};
+  const seatLimit = coData.seat_limit || null;
+  const activeCount = staff.filter(s => s.active !== false).length;
+  const seatEl = document.getElementById('seatUsage');
+  const addBtn = document.querySelector('button[onclick="showAddStaffForm()"]');
+
+  if(seatLimit !== null){
+    const pct = Math.round((activeCount/seatLimit)*100);
+    const color = pct >= 100 ? 'var(--red)' : pct >= 80 ? '#92400e' : 'var(--teal)';
+    const warning = pct >= 100 ? ' — <a onclick="alert(\'Contact Selko to upgrade your plan.\')" style="color:var(--red);cursor:pointer">upgrade to add more</a>' : pct >= 80 ? ' — approaching limit' : '';
+    if(seatEl) seatEl.innerHTML = '<span style="font-size:12px;font-weight:600;color:' + color + '">' + activeCount + ' of ' + seatLimit + ' seats used</span>' + warning;
+    if(addBtn){
+      addBtn.disabled = activeCount >= seatLimit;
+      addBtn.style.opacity = activeCount >= seatLimit ? '0.5' : '1';
+      addBtn.style.cursor = activeCount >= seatLimit ? 'not-allowed' : 'pointer';
+      addBtn.title = activeCount >= seatLimit ? 'Seat limit reached — contact Selko to upgrade' : '';
+    }
+  } else {
+    if(seatEl) seatEl.innerHTML = '<span style="font-size:12px;color:var(--muted)">' + activeCount + ' staff total</span>';
+  }
 }
 
 async function saveNewStaff(){
@@ -1072,7 +1094,10 @@ async function loadSuperAdminData(){
       <div style="position:absolute;top:12px;right:12px;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;background:${planColor}20;color:${planColor};border:0.5px solid ${planColor}">${planLabel}</div>
       <div style="font-size:15px;font-weight:600;color:var(--navy);margin-bottom:4px;padding-right:80px">${co.name}${statusBadge}</div>
       ${statusBar}
-      <div style="font-size:12px;color:var(--muted);margin-bottom:.75rem">${staff} staff · ${comps} completions</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:.75rem">
+        ${staff} staff · ${comps} completions
+        ${co.seat_limit ? ' · <span style="font-weight:600;color:' + (staff/co.seat_limit>=1?'var(--red)':staff/co.seat_limit>=0.8?'#92400e':'var(--muted)') + '">' + staff + '/' + co.seat_limit + ' seats</span>' : ''}
+      </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
         <button class="btn sm primary" onclick="openCompanyDrawer('${co.id}')">⚙ Settings</button>
         <button class="btn sm" style="border-color:var(--gold);color:var(--gold)" onclick="viewAsAdmin('${co.id}')">👁 View as admin</button>
@@ -1111,6 +1136,7 @@ function openCompanyDrawer(companyId){
   document.getElementById('dHasCompliance').checked = co.has_compliance !== false;
   document.getElementById('dHasCred').checked = co.has_credtrack !== false;
   document.getElementById('dHasHep').checked = co.has_hep !== false;
+  document.getElementById('dSeatLimit').value = co.seat_limit || '';
   document.getElementById('dStatus').value = co.status || 'active';
   document.getElementById('dTrialEndsAt').value = co.trial_ends_at ? co.trial_ends_at.split('T')[0] : '';
 
@@ -1132,6 +1158,7 @@ async function saveCompanySettings(){
     name: document.getElementById('dCoName').value.trim(),
     plan: document.getElementById('dCoPlan').value,
     logo_url: document.getElementById('dCoLogo').value.trim() || null,
+    seat_limit: document.getElementById('dSeatLimit').value ? parseInt(document.getElementById('dSeatLimit').value) : null,
     status: document.getElementById('dStatus').value,
     trial_ends_at: document.getElementById('dTrialEndsAt').value || null,
     branding_enabled: document.getElementById('dBranding').checked,
@@ -1270,6 +1297,14 @@ function autoSlug(name){
   if(previewEl) previewEl.textContent = slug || 'slug';
 }
 
+function autoSetSeatLimit(plan){
+  const el = document.getElementById('dSeatLimit');
+  if(!el) return;
+  if(plan === 'standard') el.value = 20;
+  else if(plan === 'pro') el.value = 35;
+  else el.value = '';
+}
+
 function toggleAdvanced(){
   const el = document.getElementById('advancedSettings');
   const btn = document.getElementById('advancedToggle');
@@ -1348,6 +1383,11 @@ async function createAdminLogin(){
   }
 }
 
+function toggleTrialDays(){
+  const el = document.getElementById('trialDaysRow');
+  if(el) el.style.display = document.getElementById('newCoTrial').checked ? 'flex' : 'none';
+}
+
 function showAddCompany(){
   document.getElementById('addCompanyForm').style.display = 'block';
   document.getElementById('newCoName').focus();
@@ -1381,15 +1421,40 @@ async function saveNewCompany(){
         admin_emails: email ? [email] : [], 
         has_compliance: true, has_credtrack: false, has_hep: false, 
         active: true,
-        status: 'trial',
-        trial_ends_at: new Date(Date.now() + 14*24*60*60*1000).toISOString()
-      })
+        status: document.getElementById('newCoTrial')?.checked ? 'trial' : 'active',
+        trial_ends_at: document.getElementById('newCoTrial')?.checked 
+          ? new Date(Date.now() + parseInt(document.getElementById('newCoTrialDays')?.value||14)*24*60*60*1000).toISOString()
+          : null
+      }),
     }
   );
 
   if(res.ok){
+    const newCo = await res.json().catch(()=>[]);
+    const newCoId = Array.isArray(newCo) && newCo.length ? newCo[0].id : null;
+
+    // Add demo employee if requested
+    const addDemo = document.getElementById('newCoAddDemo')?.checked;
+    if(addDemo && newCoId){
+      await fetch(
+        SUPABASE_URL + '/rest/v1/compliance_staff',
+        { method: 'POST',
+          headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON), 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            full_name: 'Demo Clinician, PT',
+            email: 'demo@' + (slug || 'demo') + '.com',
+            role: 'clinician',
+            staff_type: 'clinician',
+            active: true,
+            company_id: newCoId,
+            pin: 'selko'
+          })
+        }
+      );
+    }
+
     hideAddCompanyForm();
-    showToast('✓ ' + name + ' created');
+    showToast('✓ ' + name + ' created' + (addDemo ? ' with demo employee' : ''));
     loadSuperAdminData();
   } else {
     const e = await res.json();
