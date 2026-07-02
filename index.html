@@ -205,6 +205,28 @@
               </select>
             </div>
           </div>
+          <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:12px">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px">Trial options</div>
+            <div style="display:flex;gap:1.5rem;flex-wrap:wrap">
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px">
+                <input type="checkbox" id="newCoTrial" checked style="accent-color:var(--teal)" onchange="toggleTrialDays()">
+                Start as 14-day trial
+              </label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px">
+                <input type="checkbox" id="newCoAddDemo" checked style="accent-color:var(--teal)">
+                Add demo employee
+              </label>
+            </div>
+            <div id="trialDaysRow" style="margin-top:8px;display:flex;align-items:center;gap:8px">
+              <label style="font-size:12px;color:var(--muted)">Trial length:</label>
+              <select id="newCoTrialDays" style="width:auto;padding:4px 8px;font-size:12px">
+                <option value="7">7 days</option>
+                <option value="14" selected>14 days</option>
+                <option value="21">21 days</option>
+                <option value="30">30 days</option>
+              </select>
+            </div>
+          </div>
           <div style="display:flex;gap:8px">
             <button class="btn primary" onclick="saveNewCompany()">+ Create company</button>
             <button class="btn ghost" onclick="hideAddCompanyForm()">Cancel</button>
