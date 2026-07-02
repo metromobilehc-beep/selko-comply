@@ -529,6 +529,7 @@ async function completeModule(score){
   if(!res.ok){ 
     const errData = await res.json().catch(()=>({}));
     console.error('Completion save failed:', res.status, errData);
+    logError('completion_save_failed', errData.message || String(res.status), 'module:' + currentModule?.id);
     btn.disabled = false; 
     btn.textContent = 'Error — try again'; 
     showToast('Save failed: ' + (errData.message || errData.hint || res.status));
@@ -1025,6 +1026,35 @@ function showToast(msg){
 }
 
 
+// ── ERROR LOGGING ──
+async function logError(type, message, context){
+  try {
+    await fetch(
+      SUPABASE_URL + '/rest/v1/error_logs',
+      { method: 'POST',
+        headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON), 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          company_id: currentProfile?.company_id || null,
+          user_email: currentProfile?.email || null,
+          error_type: type,
+          error_message: message,
+          context: context || null,
+          url: window.location.href
+        })
+      }
+    );
+  } catch(e){ console.warn('Error logging failed:', e); }
+}
+
+// Global JS error catcher
+window.addEventListener('error', function(e){
+  logError('js_error', e.message, e.filename + ':' + e.lineno);
+});
+
+window.addEventListener('unhandledrejection', function(e){
+  logError('promise_rejection', String(e.reason), null);
+});
+
 // ── SUPER ADMIN ──
 let allCompanies = [];
 let viewingAsCompany = null;
@@ -1063,6 +1093,30 @@ async function loadSuperAdminData(){
     <div style="text-align:center"><div style="font-size:22px;font-weight:700;color:var(--teal)">${totalStaff}</div><div style="font-size:11px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.06em">Total staff</div></div>
     <div style="text-align:center"><div style="font-size:22px;font-weight:700;color:var(--teal)">${totalComps}</div><div style="font-size:11px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.06em">Completions</div></div>
   `;
+
+  // Error log summary
+  try {
+    const errRes = await fetch(
+      SUPABASE_URL + '/rest/v1/error_logs?select=*&order=created_at.desc&limit=10',
+      { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON) }}
+    );
+    const errors = await errRes.json();
+    const errEl = document.getElementById('errorLogPanel');
+    if(errEl && Array.isArray(errors)){
+      if(!errors.length){
+        errEl.innerHTML = '<div style="font-size:12px;color:var(--muted)">✓ No errors logged</div>';
+      } else {
+        errEl.innerHTML = errors.map(e => 
+          '<div style="padding:8px 12px;border-bottom:0.5px solid var(--border);font-size:12px">' +
+          '<span style="font-weight:600;color:var(--red)">' + (e.error_type||'error') + '</span> ' +
+          '<span style="color:var(--muted)">' + new Date(e.created_at).toLocaleString() + '</span>' +
+          '<div style="color:var(--navy);margin-top:2px">' + (e.error_message||'') + '</div>' +
+          '<div style="color:var(--muted);font-size:11px">' + (e.user_email||'') + (e.context?' · '+e.context:'') + '</div>' +
+          '</div>'
+        ).join('');
+      }
+    }
+  } catch(e){ console.warn('Could not load error logs:', e); }
 
   // Company cards
   const cards = document.getElementById('companyCards');
