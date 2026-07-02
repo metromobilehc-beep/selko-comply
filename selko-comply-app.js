@@ -205,6 +205,7 @@ async function loadApp(user){
       document.getElementById('moduleEditorTab').style.display = 'block';
     }
 
+    await loadModulesFromSupabase(currentProfile.company_id);
     await loadCompletions();
     renderModuleGrid();
     renderWelcomeStats();
@@ -219,6 +220,51 @@ async function loadApp(user){
   }
 }
 
+
+// ── LOAD MODULES FROM SUPABASE ──
+async function loadModulesFromSupabase(companyId){
+  try {
+    const modRes = await fetch(
+      SUPABASE_URL + '/rest/v1/compliance_modules?active=eq.true&order=sort_order&select=*',
+      { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON) }}
+    );
+    const dbModules = await modRes.json();
+    if(!Array.isArray(dbModules) || !dbModules.length) return;
+
+    dbModules.forEach(dbMod => {
+      const isForThisCompany = !dbMod.company_id || dbMod.company_id === companyId;
+      if(!isForThisCompany) return;
+
+      const jsMod = MODULES.find(m => m.id === dbMod.id);
+      if(jsMod){
+        jsMod.title = dbMod.title || jsMod.title;
+        jsMod.desc = dbMod.description || jsMod.desc;
+        jsMod.icon = dbMod.icon || jsMod.icon;
+        jsMod.passScore = dbMod.pass_score || jsMod.passScore;
+        jsMod.adminOnly = dbMod.admin_only !== null ? dbMod.admin_only : jsMod.adminOnly;
+        jsMod.staffTypes = dbMod.staff_types || jsMod.staffTypes;
+        if(dbMod.slides && dbMod.slides.length) jsMod.slides = dbMod.slides;
+        if(dbMod.quiz && dbMod.quiz.length) jsMod.quiz = dbMod.quiz;
+      } else {
+        // Custom module — add to MODULES array
+        MODULES.push({
+          id: dbMod.id,
+          title: dbMod.title,
+          desc: dbMod.description || '',
+          icon: dbMod.icon || '📋',
+          track: dbMod.track || ['newhire','annual'],
+          passScore: dbMod.pass_score || 80,
+          mins: dbMod.mins || 20,
+          adminOnly: dbMod.admin_only || false,
+          staffTypes: dbMod.staff_types || ['clinician','owner','admin'],
+          slides: dbMod.slides || [{ title: 'Coming soon', content: '<p>Content coming soon.</p>' }],
+          quiz: dbMod.quiz || []
+        });
+      }
+    });
+    console.log('Modules synced from Supabase. Total:', MODULES.length);
+  } catch(e){ console.warn('Could not load modules from Supabase:', e); }
+}
 
 // ── LOAD COMPLETIONS ──
 async function loadCompletions(){
