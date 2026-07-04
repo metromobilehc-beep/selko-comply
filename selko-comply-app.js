@@ -981,6 +981,47 @@ async function deleteStaffMember(id, name){
   showToast('✓ ' + name + ' deleted');
 }
 
+async function exportStaff(format){
+  const res = await fetch(
+    SUPABASE_URL + '/rest/v1/compliance_staff?company_id=eq.' + currentProfile.company_id + '&active=eq.true&order=full_name&select=full_name,email,role,staff_type',
+    { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON) }}
+  );
+  const staff = await res.json();
+  if(!Array.isArray(staff) || !staff.length){ showToast('No staff to export'); return; }
+
+  if(format === 'csv'){
+    const header = 'Full Name,Email,Role,Staff Type';
+    const rows = staff.map(s => 
+      [s.full_name||'', s.email||'', s.role||'', s.staff_type||'clinician']
+      .map(v => '"' + v.replace(/"/g,'""') + '"').join(',')
+    );
+    const csv = [header, ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = (currentProfile.companies?.name || 'selko') + '-staff-' + new Date().toISOString().split('T')[0] + '.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('✓ Staff exported as CSV — ' + staff.length + ' records');
+  } else if(format === 'json'){
+    const json = JSON.stringify({ 
+      company: currentProfile.companies?.name,
+      company_id: currentProfile.company_id,
+      exported_at: new Date().toISOString(),
+      staff 
+    }, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = (currentProfile.companies?.name || 'selko') + '-staff-' + new Date().toISOString().split('T')[0] + '.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('✓ Staff exported as JSON — ' + staff.length + ' records');
+  }
+}
+
 async function sendAllReminders(){
   const statusEl = document.getElementById('bulkReminderStatus');
   statusEl.style.display = 'block';
