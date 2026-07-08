@@ -94,37 +94,40 @@
     background: #fff;
     border-radius: 16px;
     box-shadow: 0 4px 32px rgba(26,46,74,.12);
-    padding: 40px 36px;
+    padding: 44px 40px;
     width: 100%;
-    max-width: 400px;
+    max-width: 440px;
   }
   .login-card h2 { color: var(--navy); font-size: 22px; margin-bottom: 6px; }
   .login-card p { color: var(--gray-600); font-size: 14px; margin-bottom: 28px; }
 
-  .form-group { margin-bottom: 18px; }
-  label { display: block; font-size: 13px; font-weight: 600; color: var(--navy); margin-bottom: 6px; }
-  input[type=text], input[type=password], select {
+  .form-group { margin-bottom: 20px; }
+  label { display: block; font-size: 13px; font-weight: 600; color: var(--navy); margin-bottom: 8px; }
+  input[type=text], input[type=email], input[type=password], select {
     width: 100%;
-    padding: 10px 14px;
+    padding: 14px 16px;
+    height: 50px;
     border: 1.5px solid var(--gray-200);
-    border-radius: 8px;
-    font-size: 14px;
+    border-radius: 10px;
+    font-size: 16px;
     color: var(--navy);
     background: #fff;
-    transition: border-color .2s;
+    transition: border-color .2s, box-shadow .2s;
     outline: none;
     appearance: none;
   }
-  input:focus, select:focus { border-color: var(--teal); }
+  input::placeholder { color: var(--gray-400); }
+  input:focus, select:focus { border-color: var(--teal); box-shadow: 0 0 0 4px rgba(42,143,160,.12); }
 
   .btn-primary {
     width: 100%;
-    padding: 12px;
+    padding: 15px;
+    height: 52px;
     background: linear-gradient(135deg, var(--navy), #243d5c);
     color: #fff;
     border: none;
-    border-radius: 8px;
-    font-size: 15px;
+    border-radius: 10px;
+    font-size: 16px;
     font-weight: 700;
     cursor: pointer;
     transition: opacity .2s;
