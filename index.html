@@ -670,6 +670,40 @@ const SUPABASE_URL = 'https://zxserlkhwkfoqiepurdr.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp4c2VybGtod2tmb3FpZXB1cmRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0NDM1NDIsImV4cCI6MjA5NjAxOTU0Mn0.cA9LJSn5t4sIbIemdQGQsdwtQFwb-6Q9xIZi48UYq34';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// ══ PASSWORD RECOVERY ══
+const isRecoveryLink = location.hash.includes('type=recovery') || location.search.includes('type=recovery') || location.search.includes('reset=true');
+
+sb.auth.onAuthStateChange((event, session) => {
+  if (event === 'PASSWORD_RECOVERY') {
+    showSetNewPasswordForm();
+  }
+});
+
+function showSetNewPasswordForm() {
+  document.body.innerHTML = `
+    <div style="max-width:340px;margin:80px auto;font-family:sans-serif;">
+      <h2>Set a new password</h2>
+      <input type="password" id="newPass" placeholder="New password" style="width:100%;margin-bottom:10px;padding:8px;box-sizing:border-box;">
+      <button id="savePassBtn" style="width:100%;padding:8px;">Save password</button>
+      <div id="passErr" style="color:#c0392b;font-size:13px;margin-top:8px;"></div>
+    </div>`;
+  document.getElementById('savePassBtn').onclick = async () => {
+    const pw = document.getElementById('newPass').value;
+    if (pw.length < 8) {
+      document.getElementById('passErr').textContent = 'Password must be at least 8 characters.';
+      return;
+    }
+    const { error } = await sb.auth.updateUser({ password: pw });
+    if (error) {
+      document.getElementById('passErr').textContent = error.message;
+    } else {
+      alert('Password updated. Please sign in again.');
+      await sb.auth.signOut();
+      location.href = COMPANY_CONFIG.toolUrl;
+    }
+  };
+}
+
 // ── EMAILJS CONFIG ──
 const EMAILJS_SERVICE_ID          = 'service_wnhqs7e';
 const EMAILJS_TEMPLATE_ID         = 'template_gq1z2x6';   // Staff reminder template
@@ -681,7 +715,7 @@ const EMAILJS_PUBLIC_KEY          = 'kc6pC-rqwD0xph-A0';
 const COMPANY_CONFIG = {
   name:               'Metro Mobile Health Care',
   adminEmails:        ['metromobilehc@gmail.com'],
-  toolUrl:            'https://metromobilehc-beep.github.io/mmhc-compliance-tool',
+  toolUrl:            'https://comply.selko360.com',
   downloadWindowDays: 14,
 };
 
@@ -709,6 +743,7 @@ const FALLBACK_STAFF = [
 // logged in (e.g. refreshed the page), restore their session
 // without making them log in again.
 async function initAuth() {
+  if (isRecoveryLink) return;
   const { data: { session } } = await sb.auth.getSession();
   if (session) {
     await handleAuthSession(session);
