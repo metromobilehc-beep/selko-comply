@@ -10,11 +10,9 @@ document.addEventListener('DOMContentLoaded', function(){
     return;
   }
   sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-  // Wire up event listeners
   document.getElementById('loginBtnTrigger')?.addEventListener('click', doLogin);
   document.getElementById('loginPassInput')?.addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
   document.getElementById('signOutBtn')?.addEventListener('click', doSignOut);
-  // Check for existing session on load
   sb.auth.getSession().then(async ({ data: { session } }) => {
     const loader = document.getElementById('initialLoader');
     if(session?.user){
@@ -26,7 +24,6 @@ document.addEventListener('DOMContentLoaded', function(){
     if(loader) loader.style.display = 'none';
   });
 
-  // Listen for auth state changes (login/logout)
   sb.auth.onAuthStateChange(async (event, session) => {
     if(event === 'SIGNED_IN' && session?.user && !currentUser){
       authToken = session.access_token || '';
@@ -52,17 +49,13 @@ let completedModules = new Set();
 let currentModule = null;
 let currentSection = 0;
 let quizAnswered = false;
-let authToken = ''; // stores JWT after login
+let authToken = '';
 
-// ── EMAILJS CONFIG ──
 const EMAILJS_SERVICE_ID = 'service_wnhqs7e';
 const EMAILJS_TEMPLATE_ID = 'template_gq1z2x6';
 const EMAILJS_PUBLIC_KEY = 'kc6pC-rqwD0xph-A0';
 const TOOL_URL = 'https://comply.selko360.com';
 
-// Modules loaded from selko-comply-modules.js
-
-// ── AUTH ──
 function showStatus(msg){ 
   const e = document.getElementById('loginErr'); 
   e.style.background='var(--teal-lt)';
@@ -72,7 +65,6 @@ function showStatus(msg){
   e.style.display = 'block'; 
 }
 async function doLogin(){
-  console.log('doLogin called');
   const email = document.getElementById('loginEmail').value.trim();
   const pass = document.getElementById('loginPassInput').value;
   const btn = document.getElementById('loginBtnTrigger');
@@ -82,9 +74,7 @@ async function doLogin(){
   btn.disabled = true; btn.textContent = 'Signing in…';
   const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
   if(error){ showErr(error.message); btn.disabled = false; btn.textContent = 'Sign in'; return; }
-  // Pass session token directly so loadApp doesn't need to call getSession
   authToken = data.session?.access_token || '';
-  console.log('Auth token stored:', authToken ? 'YES' : 'NO');
   await loadApp(data.user);
 }
 
@@ -98,14 +88,9 @@ async function doSignOut(){
   currentUser = null; currentProfile = null;
 }
 
-// ── LOAD APP ──
 async function loadApp(user){
   currentUser = user;
-  console.log('loadApp called for:', user.email, 'id:', user.id);
-
   try {
-    // Use anon key directly — RLS is off on profiles, so this works
-    console.log('Fetching profile via REST...');
     const profRes = await fetch(
       SUPABASE_URL + '/rest/v1/profiles?id=eq.' + user.id + '&select=*',
       { headers:{ 
@@ -114,7 +99,6 @@ async function loadApp(user){
       }}
     );
     const profArr = await profRes.json();
-    console.log('Profile REST response:', profRes.status, profArr);
     const data = profArr?.[0];
 
     if(!data){
@@ -122,7 +106,6 @@ async function loadApp(user){
       return;
     }
 
-    // Get company separately
     const coRes = await fetch(
       SUPABASE_URL + '/rest/v1/companies?id=eq.' + data.company_id + '&select=name,slug',
       { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON) }}
@@ -131,7 +114,6 @@ async function loadApp(user){
     if(Array.isArray(coArr) && coArr.length){
       data.companies = coArr[0];
     } else {
-      console.log('Company fetch empty — retrying with anon key');
       const coRes2 = await fetch(
         SUPABASE_URL + '/rest/v1/companies?id=eq.' + data.company_id + '&select=*',
         { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON }}
@@ -139,16 +121,13 @@ async function loadApp(user){
       const coArr2 = await coRes2.json();
       data.companies = (Array.isArray(coArr2) && coArr2.length) ? coArr2[0] : { name: 'Your Organization', slug: '' };
     }
-    console.log('Company:', data.companies);
 
     currentProfile = data;
 
-    // Check trial status
     const co = data.companies || {};
     if(co.status === 'trial' && co.trial_ends_at){
       const daysLeft = Math.ceil((new Date(co.trial_ends_at) - new Date()) / (1000 * 60 * 60 * 24));
       if(daysLeft <= 0){
-        // Trial expired — show lockout
         document.getElementById('loginWrap').style.display = 'none';
         document.getElementById('app').style.display = 'block';
         document.getElementById('trainingTab').style.display = 'none';
@@ -165,7 +144,6 @@ async function loadApp(user){
           </div>`;
         return;
       } else if(daysLeft <= 7){
-        // Show trial warning banner
         setTimeout(() => {
           const app = document.getElementById('app');
           if(app){
@@ -178,7 +156,6 @@ async function loadApp(user){
       }
     }
 
-    // Update UI
     const loader = document.getElementById('initialLoader');
     if(loader) loader.style.display = 'none';
     document.getElementById('loginWrap').style.display = 'none';
@@ -190,15 +167,12 @@ async function loadApp(user){
     document.getElementById('welcomeName').textContent = 'Welcome, ' + (data.full_name.split(' ')[0]);
     document.getElementById('welcomeSub').textContent = (data.companies?.name || '') + ' · Compliance training';
 
-    console.log('Role check:', data.role, '| Is admin:', data.role === 'admin', '| Super admin:', data.is_super_admin);
     if(data.is_super_admin){
-      // Load all companies for super admin
       loadSuperAdminData();
     }
     if(data.role === 'admin'){
       document.getElementById('adminTab').style.display = 'block';
       document.getElementById('manageTab').style.display = 'block';
-      console.log('Admin tab shown');
     }
     if(data.is_super_admin){
       document.getElementById('superAdminTab').style.display = 'block';
@@ -210,7 +184,6 @@ async function loadApp(user){
     renderModuleGrid();
     renderWelcomeStats();
     if(data.role === 'admin'){
-      console.log('Calling renderAdminTable...');
       renderAdminTable();
     }
 
@@ -220,17 +193,13 @@ async function loadApp(user){
   }
 }
 
-
-// ── LOAD MODULES FROM SUPABASE ──
 async function loadModulesFromSupabase(companyId){
-  console.log('loadModulesFromSupabase called, companyId:', companyId, 'authToken set:', !!authToken);
   try {
     const modRes = await fetch(
       SUPABASE_URL + '/rest/v1/compliance_modules?active=eq.true&order=sort_order&select=*',
       { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON) }}
     );
     const dbModules = await modRes.json();
-    console.log('DB modules fetched:', Array.isArray(dbModules) ? dbModules.length : 'error', dbModules);
     if(!Array.isArray(dbModules) || !dbModules.length) return;
 
     dbModules.forEach(dbMod => {
@@ -248,7 +217,6 @@ async function loadModulesFromSupabase(companyId){
         if(dbMod.slides && dbMod.slides.length) jsMod.slides = dbMod.slides;
         if(dbMod.quiz && dbMod.quiz.length) jsMod.quiz = dbMod.quiz;
       } else {
-        // Custom module — add to MODULES array
         MODULES.push({
           id: dbMod.id,
           title: dbMod.title,
@@ -264,11 +232,9 @@ async function loadModulesFromSupabase(companyId){
         });
       }
     });
-    console.log('Modules synced from Supabase. Total:', MODULES.length);
   } catch(e){ console.warn('Could not load modules from Supabase:', e); }
 }
 
-// ── LOAD COMPLETIONS ──
 async function loadCompletions(){
   try {
     const res = await fetch(
@@ -277,14 +243,11 @@ async function loadCompletions(){
     );
     const data = await res.json();
     completedModules = new Set((data || []).map(r => r.module_id));
-    console.log('Completed modules:', [...completedModules]);
   } catch(e) {
-    console.log('loadCompletions error:', e);
     completedModules = new Set();
   }
 }
 
-// ── TRACK ──
 function setTrack(track, btn){
   currentTrack = track;
   document.querySelectorAll('#trackNew,#trackAnnual').forEach(b=>b.classList.remove('active'));
@@ -293,7 +256,6 @@ function setTrack(track, btn){
   renderWelcomeStats();
 }
 
-// ── RENDER MODULES ──
 function renderModuleGrid(){
   const grid = document.getElementById('moduleGrid');
   if(!grid) return;
@@ -303,7 +265,6 @@ function renderModuleGrid(){
   }
   const isAdmin = currentProfile && (currentProfile.role === 'admin' || currentProfile.role === 'owner');
   const staffType = currentProfile?.staff_type || (isAdmin ? 'owner' : 'clinician');
-  console.log('Module filter — role:', currentProfile?.role, 'staffType:', staffType, 'isAdmin:', isAdmin);
   const mods = MODULES.filter(m => {
     if(!m || !m.track || !m.track.includes(currentTrack)) return false;
     if(m.adminOnly && !isAdmin) return false;
@@ -339,7 +300,6 @@ function renderWelcomeStats(){
   `;
 }
 
-// ── TRAINING VIEWER ──
 function openModule(id){
   currentModule = MODULES.find(m => m.id === id);
   if(!currentModule) return;
@@ -374,13 +334,10 @@ function applyCompanyVars(html){
 
   let out = html;
 
-  // Always substitute company name — handle both capitalized and lowercase
   out = out.replace(/[Yy]our organization's/g, name + "'s");
   out = out.replace(/[Yy]our organization/g, name);
 
-  // Pro substitutions
   if(isPro){
-    // Contacts
     if(contacts.privacy_officer){
       out = out.replace(/[Yy]our designated Privacy Officer/g, contacts.privacy_officer);
       out = out.replace(/[Yy]our designated supervisor or Privacy Officer/g, contacts.privacy_officer + ' or ' + (contacts.backup_contact || 'your backup supervisor'));
@@ -393,7 +350,6 @@ function applyCompanyVars(html){
       out = out.replace(/your organization's compliance email/g, contacts.privacy_email);
     }
 
-    // Tools and devices
     if(vars.scheduling_tool){
       out = out.replace(/[Yy]our approved scheduling platform/g, vars.scheduling_tool);
     }
@@ -402,7 +358,6 @@ function applyCompanyVars(html){
       out = out.replace(/[Yy]our MDM system/g, vars.mdm || (vars.device + ' MDM'));
     }
 
-    // State-specific
     if(vars.state){
       out = out.replace(/your state's mandatory reporting statute/g, vars.state + ' mandatory reporting law');
       out = out.replace(/your state's adult protective services website/g, vars.aps_website || (vars.state.toLowerCase() + ' APS website'));
@@ -419,7 +374,7 @@ function applyCompanyVars(html){
 }
 
 function renderSection(){
-  const total = currentModule.slides.length + 1; // +1 for quiz slide
+  const total = currentModule.slides.length + 1;
   const pct = Math.round((currentSection / (total)) * 100);
   document.getElementById('progressBar').style.width = pct + '%';
 
@@ -473,14 +428,12 @@ let quizSelections = {};
 
 function selectOpt(qi, oi){
   quizSelections[qi] = oi;
-  // Update button styles for this question
   currentModule.quiz[qi].options.forEach((_,i)=>{
     const btn = document.getElementById('opt_'+qi+'_'+i);
     if(btn){ btn.style.background=''; btn.style.borderColor=''; btn.style.color=''; }
   });
   const sel = document.getElementById('opt_'+qi+'_'+oi);
   if(sel){ sel.style.background='var(--teal-lt)'; sel.style.borderColor='var(--teal)'; sel.style.color='var(--teal)'; }
-  // Enable submit if all answered
   const allDone = currentModule.quiz.every((_,i) => quizSelections[i] !== undefined);
   const btn = document.getElementById('submitBtn');
   if(btn) btn.disabled = !allDone;
@@ -507,7 +460,6 @@ function submitQuiz(){
   const passed = score >= (currentModule.passScore || 80);
   document.getElementById('submitBtn').style.display='none';
   
-  // Add result + attestation
   setTimeout(() => {
     document.getElementById('trainingContent').scrollIntoView({ behavior: 'smooth', block: 'end' });
   }, 100);
@@ -537,7 +489,6 @@ function toggleComplete(){
 async function completeModule(score){
   const btn = document.getElementById('completeBtn');
   btn.disabled = true; btn.textContent = 'Saving…';
-  // Look up the compliance_staff record for this user
   let staffId = currentUser.id;
   let employeeName = currentProfile.full_name || currentProfile.email || '';
   try {
@@ -605,7 +556,6 @@ function nextSection(){
   currentSection++; quizSelections={}; renderSection(); scrollToTrainingTop();
 }
 
-// ── TABS ──
 function showTab(tab){
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   event.currentTarget.classList.add('active');
@@ -623,7 +573,6 @@ function showTab(tab){
   if(tab==='superadmin') loadSuperAdminData();
 }
 
-// ── ADMIN TABLE ──
 async function renderAdminTable(){
   const staffRes = await fetch(
     SUPABASE_URL + '/rest/v1/compliance_staff?company_id=eq.' + currentProfile.company_id + '&order=full_name&active=eq.true',
@@ -674,7 +623,6 @@ async function renderAdminTable(){
     const lastDate = Object.values(comp).sort((a,b)=>new Date(b.date)-new Date(a.date))[0]?.date;
     const dateStr = lastDate ? new Date(lastDate).toLocaleDateString() : '—';
 
-    // Detail rows — one per module
     const detailRows = staffMods.map(m => {
       const c = comp[m.id];
       return '<tr class="detail-row" id="detail_' + si + '" style="display:none;background:var(--surface)">' +
@@ -741,7 +689,6 @@ async function loadStaffTable(){
   );
   const staff = await res.json();
   
-  // Get completions for module dots
   const cRes = await fetch(
     SUPABASE_URL + '/rest/v1/compliance_completions?company_id=eq.' + currentProfile.company_id + '&select=staff_id,module_id,employee_name',
     { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON) }}
@@ -789,6 +736,7 @@ async function loadStaffTable(){
       '<td><div class="module-dots">' + compDots + '</div></td>' +
       '<td>' +
         '<div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">' +
+          (email ? '<button class="btn sm" style="border-color:var(--gold);color:var(--gold)" onclick="sendComplyInvite(' + "'" + sid + "','" + name + "','" + email + "'" + ')">Send invite</button>' : '') +
           '<button class="btn sm" onclick="resetStaffPassword(' + "'" + sid + "','" + name + "','" + email + "'" + ')">Reset password</button>' +
           '<button class="btn sm" style="border-color:#7c3aed;color:#7c3aed" onclick="changeStaffType(' + "'" + sid + "','" + name + "','" + (s.staff_type||'clinician') + "'" + ')">⚙ Type</button>' +
           '<button class="btn sm" style="border-color:' + (active?'var(--red)':'var(--green)') + ';color:' + (active?'var(--red)':'var(--green)') + '" onclick="toggleStaffActive(' + "'" + sid + "'," + active + ')">' + (active?'Deactivate':'Reactivate') + '</button>' +
@@ -800,7 +748,6 @@ async function loadStaffTable(){
     '</tr>';
   }).join('');
 
-  // Seat usage counter
   const coData = currentProfile?.companies || {};
   const seatLimit = coData.seat_limit || null;
   const activeCount = staff.filter(s => s.active !== false).length;
@@ -870,8 +817,55 @@ async function toggleStaffRole(id, currentRole){
   showToast('✓ Role updated to ' + newRole);
 }
 
+async function sendComplyInvite(id, name, email){
+  if(!confirm('Send login invite to ' + name + ' at ' + email + '?')) return;
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    const res = await fetch('https://zxserlkhwkfoqiepurdr.supabase.co/functions/v1/invite-staff', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + session.access_token,
+      },
+      body: JSON.stringify({
+        name:               name,
+        email:              email,
+        company_id:         currentProfile.company_id,
+        role:               'staff',
+        inviter_company_id: currentProfile.company_id,
+        app:                'comply',
+      }),
+    });
+    const result = await res.json();
+    if (result.error) throw new Error(result.error);
+    showToast('✓ Invite sent to ' + name);
+  } catch(e) {
+    showToast('Invite failed: ' + e.message);
+  }
+}
+
 async function resetStaffPassword(id, name, email){
   if(!email){ showToast('No email on file for ' + name + ' — add an email first'); return; }
+
+  // Safeguard: a reset only works if this person already has an account.
+  // Check first instead of silently sending a link that won't work.
+  try {
+    const profRes = await fetch(
+      SUPABASE_URL + '/rest/v1/profiles?email=eq.' + encodeURIComponent(email) + '&select=id&limit=1',
+      { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON) }}
+    );
+    const profData = await profRes.json();
+    if (!Array.isArray(profData) || !profData.length) {
+      const wantsInvite = confirm(
+        name + ' (' + email + ") doesn't have an account yet — they haven't accepted an invite, so a password reset won't work for them.\n\nSend them a login invite instead?"
+      );
+      if (wantsInvite) { await sendComplyInvite(id, name, email); }
+      return;
+    }
+  } catch(e) {
+    console.warn('Could not check for existing account, proceeding with reset attempt:', e);
+  }
+
   if(!confirm('Send password reset email to ' + name + ' at ' + email + '?')) return;
   const res = await fetch(
     SUPABASE_URL + '/auth/v1/recover',
@@ -1028,7 +1022,6 @@ async function sendAllReminders(){
   statusEl.style.cssText = 'display:block;font-size:12px;padding:8px 12px;border-radius:8px;margin-bottom:1rem;background:var(--teal-lt);border:0.5px solid var(--teal-md);color:#0a6b58';
   statusEl.textContent = 'Loading staff list...';
 
-  // Fetch all active staff with emails
   const res = await fetch(
     SUPABASE_URL + '/rest/v1/compliance_staff?company_id=eq.' + currentProfile.company_id + '&active=eq.true&select=full_name,email',
     { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON) }}
@@ -1102,7 +1095,6 @@ async function sendReminder(name, email){
   }
 }
 
-// ── TOAST ──
 let toastTimer;
 function showToast(msg){
   let el = document.getElementById('selko-toast');
@@ -1119,7 +1111,6 @@ function showToast(msg){
 }
 
 
-// ── MODULE EDITOR ──
 let editingSlides = [];
 let editingQuiz = [];
 
@@ -1135,11 +1126,9 @@ async function loadModuleEditor(){
     return;
   }
 
-  // Separate global and custom modules
   const globalMods = modules.filter(m => !m.company_id);
   const customMods = modules.filter(m => m.company_id);
 
-  // Get company names for custom modules
   const companyNames = {};
   allCompanies.forEach(co => companyNames[co.id] = co.name);
 
@@ -1182,7 +1171,6 @@ async function loadModuleEditor(){
 }
 
 async function openModuleEditor(moduleId, companyId){
-  // Load module from Supabase
   const isCustom = companyId && companyId !== 'null';
   const res = await fetch(
     SUPABASE_URL + '/rest/v1/compliance_modules?id=eq.' + moduleId + (isCustom ? '&company_id=eq.'+companyId : '&company_id=is.null') + '&select=*&limit=1',
@@ -1201,7 +1189,6 @@ async function openModuleEditor(moduleId, companyId){
   document.getElementById('editModuleDesc').value = m.description || '';
   document.getElementById('editModulePassScore').value = m.pass_score || 80;
 
-  // Load slides — from Supabase if available, else from JS file
   const jsModule = typeof MODULES !== 'undefined' ? MODULES.find(mod => mod.id === moduleId) : null;
   editingSlides = m.slides || (jsModule ? jsModule.slides : []);
   editingQuiz = m.quiz || (jsModule ? jsModule.quiz : []);
@@ -1356,7 +1343,6 @@ async function resetModuleContent(moduleId){
 }
 
 function openNewModuleForm(){
-  // Populate company dropdown
   const sel = document.getElementById('newModuleCompany');
   if(sel && allCompanies.length){
     sel.innerHTML = allCompanies
@@ -1393,7 +1379,6 @@ async function saveNewModule(){
     return;
   }
 
-  // Build staff types array
   const staffTypes = [];
   if(document.getElementById('newModTypeClinician').checked) staffTypes.push('clinician');
   if(document.getElementById('newModTypeOffice').checked) staffTypes.push('office');
@@ -1405,7 +1390,7 @@ async function saveNewModule(){
     { method: 'POST',
       headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON), 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
       body: JSON.stringify({
-        id: id + '_' + companyId.substring(0,8), // ensure uniqueness
+        id: id + '_' + companyId.substring(0,8),
         title,
         description: desc,
         icon,
@@ -1452,7 +1437,6 @@ async function clearErrorLog(){
   else { showToast('Clear failed'); }
 }
 
-// ── ERROR LOGGING ──
 async function logError(type, message, context){
   try {
     await fetch(
@@ -1472,7 +1456,6 @@ async function logError(type, message, context){
   } catch(e){ console.warn('Error logging failed:', e); }
 }
 
-// Global JS error catcher
 window.addEventListener('error', function(e){
   logError('js_error', e.message, e.filename + ':' + e.lineno);
 });
@@ -1481,19 +1464,16 @@ window.addEventListener('unhandledrejection', function(e){
   logError('promise_rejection', String(e.reason), null);
 });
 
-// ── SUPER ADMIN ──
 let allCompanies = [];
 let viewingAsCompany = null;
 
 async function loadSuperAdminData(){
-  // Load all companies
   const res = await fetch(
     SUPABASE_URL + '/rest/v1/companies?select=*&order=name',
     { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON) }}
   );
   allCompanies = await res.json();
 
-  // Load staff counts per company
   const staffRes = await fetch(
     SUPABASE_URL + '/rest/v1/compliance_staff?select=company_id',
     { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON) }}
@@ -1502,7 +1482,6 @@ async function loadSuperAdminData(){
   const staffCounts = {};
   (allStaff||[]).forEach(s => { staffCounts[s.company_id] = (staffCounts[s.company_id]||0) + 1; });
 
-  // Load completion counts per company
   const compRes = await fetch(
     SUPABASE_URL + '/rest/v1/compliance_completions?select=company_id',
     { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON) }}
@@ -1511,7 +1490,6 @@ async function loadSuperAdminData(){
   const compCounts = {};
   (allComps||[]).forEach(c => { compCounts[c.company_id] = (compCounts[c.company_id]||0) + 1; });
 
-  // Platform stats
   const totalStaff = Object.values(staffCounts).reduce((a,b)=>a+b,0);
   const totalComps = Object.values(compCounts).reduce((a,b)=>a+b,0);
   document.getElementById('platformStats').innerHTML = `
@@ -1520,7 +1498,6 @@ async function loadSuperAdminData(){
     <div style="text-align:center"><div style="font-size:22px;font-weight:700;color:var(--teal)">${totalComps}</div><div style="font-size:11px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.06em">Completions</div></div>
   `;
 
-  // Error log summary
   try {
     const errRes = await fetch(
       SUPABASE_URL + '/rest/v1/error_logs?select=*&order=created_at.desc&limit=10',
@@ -1544,7 +1521,6 @@ async function loadSuperAdminData(){
     }
   } catch(e){ console.warn('Could not load error logs:', e); }
 
-  // Company cards
   const cards = document.getElementById('companyCards');
   cards.innerHTML = allCompanies.map(co => {
     const staff = staffCounts[co.id] || 0;
@@ -1552,7 +1528,6 @@ async function loadSuperAdminData(){
     const planColor = co.plan==='pro'?'var(--gold)':co.plan==='enterprise'?'#7c3aed':'var(--teal)';
     const planLabel = (co.plan||'standard').toUpperCase();
     
-    // Trial status
     let statusBadge = '';
     let statusBar = '';
     if(co.status === 'trial' && co.trial_ends_at){
@@ -1642,9 +1617,9 @@ async function saveCompanySettings(){
     status: document.getElementById('dStatus').value,
     trial_ends_at: document.getElementById('dTrialEndsAt').value || null,
     branding_enabled: document.getElementById('dBranding').checked,
-    has_compliance: true, // always true for Comply clients
-    has_credtrack: false, // coming soon
-    has_hep: false, // coming soon
+    has_compliance: true,
+    has_credtrack: false,
+    has_hep: false,
     custom_contacts: {
       privacy_officer: document.getElementById('dPrivacyOfficer').value.trim(),
       privacy_email: document.getElementById('dPrivacyEmail').value.trim(),
@@ -1675,7 +1650,6 @@ async function saveCompanySettings(){
     statusEl.style.cssText = 'display:block;color:var(--green);font-size:12px;margin-top:8px';
     statusEl.textContent = '✓ Saved successfully';
     showToast('✓ ' + payload.name + ' settings saved');
-    // Update local cache
     const idx = allCompanies.findIndex(c => c.id === id);
     if(idx >= 0) allCompanies[idx] = { ...allCompanies[idx], ...payload };
     loadSuperAdminData();
@@ -1696,7 +1670,6 @@ async function uploadLogo(input){
 
   showToast('Uploading logo...');
 
-  // Upload to Supabase Storage
   const res = await fetch(
     SUPABASE_URL + '/storage/v1/object/company-assets/' + path,
     { method: 'POST',
@@ -1721,16 +1694,13 @@ async function viewAsAdmin(companyId){
   const co = allCompanies.find(c => c.id === id);
   if(!co) return;
 
-  // Save original profile so we can exit cleanly
   if(!originalProfile) originalProfile = { ...currentProfile };
 
   viewingAsCompany = co;
   currentProfile = { ...currentProfile, company_id: co.id, companies: co };
 
-  // Update topbar to show view-as banner
   showViewAsBanner(co.name);
 
-  // Update welcome bar
   document.getElementById('welcomeSub').textContent = co.name + ' · Compliance training (viewing as admin)';
 
   showToast('Now viewing as ' + co.name + ' admin');
@@ -1913,7 +1883,6 @@ async function saveNewCompany(){
     const newCo = await res.json().catch(()=>[]);
     const newCoId = Array.isArray(newCo) && newCo.length ? newCo[0].id : null;
 
-    // Add demo employee if requested
     const addDemo = document.getElementById('newCoAddDemo')?.checked;
     if(addDemo && newCoId){
       await fetch(
@@ -1943,7 +1912,6 @@ async function saveNewCompany(){
   }
 }
 
-// ── TEXT TO SPEECH ──
 const ACRONYM_PRONUNCIATION = {
   'HIPAA': 'HIPPa',
   'OSHA': 'OH-sha',
@@ -2013,14 +1981,13 @@ function getBestVoice(){
   const voices = window.speechSynthesis.getVoices();
   if(!voices.length) return null;
 
-  // Priority order: best-sounding voices across platforms
   const priorityNames = [
-    'Google US English',           // Chrome desktop/Android — best quality
-    'Samantha',                    // iOS/macOS — high quality natural voice
-    'Microsoft Aria Online',       // Windows/Edge — natural voice
+    'Google US English',
+    'Samantha',
+    'Microsoft Aria Online',
     'Microsoft Jenny Online',
     'Microsoft Guy Online',
-    'Karen', 'Moira', 'Tessa',     // Other natural Apple voices
+    'Karen', 'Moira', 'Tessa',
   ];
 
   for(const name of priorityNames){
@@ -2028,15 +1995,12 @@ function getBestVoice(){
     if(match) return match;
   }
 
-  // Fallback: prefer non-local (cloud/network) en-US voices — usually better quality than on-device
   const networkVoice = voices.find(v => v.lang.startsWith('en-US') && !v.localService);
   if(networkVoice) return networkVoice;
 
-  // Fallback: any en-US voice
   const usVoice = voices.find(v => v.lang.startsWith('en-US'));
   if(usVoice) return usVoice;
 
-  // Fallback: any English voice
   return voices.find(v => v.lang.startsWith('en')) || voices[0];
 }
 
