@@ -90,6 +90,70 @@ async function doLogin(){
 
 function showErr(msg){ const e = document.getElementById('loginErr'); e.textContent = msg; e.style.display = 'block'; }
 
+// ── FORCED PASSWORD CHANGE (temp/admin-set passwords) ──
+function showForceChangePasswordScreen() {
+  document.body.innerHTML = `
+    <div style="max-width:340px;margin:80px auto;font-family:sans-serif;">
+      <h2>Set a permanent password</h2>
+      <p style="color:#475569;font-size:14px;margin-bottom:14px;">You're logging in with a temporary password. Choose a new one to continue — you'll only see this once.</p>
+      <input type="password" id="forcePass1" placeholder="New password" style="width:100%;margin-bottom:10px;padding:8px;box-sizing:border-box;">
+      <input type="password" id="forcePass2" placeholder="Confirm new password" style="width:100%;margin-bottom:10px;padding:8px;box-sizing:border-box;">
+      <button id="forcePassBtn" style="width:100%;padding:8px;">Save and continue</button>
+      <div id="forcePassErr" style="color:#c0392b;font-size:13px;margin-top:8px;"></div>
+    </div>`;
+  document.getElementById('forcePassBtn').onclick = async () => {
+    const p1 = document.getElementById('forcePass1').value;
+    const p2 = document.getElementById('forcePass2').value;
+    const errEl = document.getElementById('forcePassErr');
+    errEl.textContent = '';
+    if (p1.length < 6) { errEl.textContent = 'Password must be at least 6 characters.'; return; }
+    if (p1 !== p2) { errEl.textContent = 'Passwords do not match.'; return; }
+    const { error: updErr } = await sb.auth.updateUser({ password: p1 });
+    if (updErr) { errEl.textContent = updErr.message; return; }
+    if (currentProfile?.id) {
+      await fetch(
+        SUPABASE_URL + '/rest/v1/profiles?id=eq.' + currentProfile.id,
+        { method: 'PATCH',
+          headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON), 'Content-Type': 'application/json' },
+          body: JSON.stringify({ must_change_password: false })
+        }
+      );
+    }
+    location.reload();
+  };
+}
+
+// ── TEMP PASSWORD SETUP (replaces email-invite-link flow) ──
+function generateTempPassword() {
+  const words = ['Coral','Amber','Delta','Cedar','Ember','Falcon','Granite','Harbor','Ivory','Juniper','Maple','Onyx','Quartz','River','Sable','Timber'];
+  const word = words[Math.floor(Math.random() * words.length)];
+  const digits = Math.floor(1000 + Math.random() * 9000);
+  return `${word}${digits}!`;
+}
+
+function showTempPasswordModal(fullName, email, tempPassword, emailSent, emailError) {
+  const div = document.createElement('div');
+  div.id = 'tempPassModal';
+  div.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;';
+  const statusHtml = emailSent
+    ? `<p style="font-size:13px;color:#0d9488;margin-bottom:14px;">✓ Emailed to ${email} from Selko.</p>`
+    : `<p style="font-size:13px;color:#b3541e;margin-bottom:14px;">⚠ Email could not be sent${emailError ? ' (' + emailError + ')' : ''} — share these with them directly instead.</p>`;
+  div.innerHTML = `
+    <div style="background:#fff;border-radius:10px;padding:24px;max-width:380px;width:90%;font-family:sans-serif;">
+      <h3 style="margin:0 0 10px;color:#0b2340;">Login ready for ${fullName}</h3>
+      ${statusHtml}
+      <div style="background:#f4f6f9;border-radius:6px;padding:12px;margin-bottom:14px;">
+        <div style="font-size:12px;color:#64748b;">Email</div>
+        <div style="font-size:14px;font-weight:600;margin-bottom:8px;user-select:all;">${email}</div>
+        <div style="font-size:12px;color:#64748b;">Temporary password</div>
+        <div style="font-size:16px;font-weight:700;font-family:monospace;user-select:all;">${tempPassword}</div>
+      </div>
+      <p style="font-size:12px;color:#94a3b8;margin-bottom:14px;">They should change this after logging in.</p>
+      <button onclick="document.getElementById('tempPassModal').remove()" style="width:100%;padding:10px;background:#0d9488;color:#fff;border:none;border-radius:6px;font-weight:600;cursor:pointer;">Done</button>
+    </div>`;
+  document.body.appendChild(div);
+}
+
 async function doSignOut(){
   await sb.auth.signOut();
   document.getElementById('app').style.display = 'none';
@@ -159,6 +223,14 @@ async function loadApp(user){
         await sb.auth.signOut();
         return;
       }
+    }
+
+    // Anyone set up via setupComplyStaffLogin()/resetStaffPassword() (temp
+    // password, admin-generated) gets must_change_password=true. Force them
+    // to pick their own password before they see anything else in the app.
+    if (data.must_change_password) {
+      showForceChangePasswordScreen();
+      return;
     }
 
     // Check trial status
@@ -807,7 +879,7 @@ async function loadStaffTable(){
       '<td><div class="module-dots">' + compDots + '</div></td>' +
       '<td>' +
         '<div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">' +
-          (email ? '<button class="btn sm" style="border-color:var(--gold);color:var(--gold)" onclick="sendComplyInvite(' + "'" + sid + "','" + name + "','" + email + "'" + ')">Send invite</button>' : '') +
+          (email ? '<button class="btn sm" style="border-color:var(--gold);color:var(--gold)" onclick="setupComplyStaffLogin(' + "'" + sid + "','" + name + "','" + email + "'" + ')">Set up login</button>' : '') +
           '<button class="btn sm" onclick="resetStaffPassword(' + "'" + sid + "','" + name + "','" + email + "'" + ')">Reset password</button>' +
           '<button class="btn sm" style="border-color:#7c3aed;color:#7c3aed" onclick="changeStaffType(' + "'" + sid + "','" + name + "','" + (s.staff_type||'clinician') + "'" + ')">⚙ Type</button>' +
           '<button class="btn sm" style="border-color:' + (active?'var(--red)':'var(--green)') + ';color:' + (active?'var(--red)':'var(--green)') + '" onclick="toggleStaffActive(' + "'" + sid + "'," + active + ')">' + (active?'Deactivate':'Reactivate') + '</button>' +
@@ -889,67 +961,68 @@ async function toggleStaffRole(id, currentRole){
   showToast('✓ Role updated to ' + newRole);
 }
 
-async function sendComplyInvite(id, name, email){
-  if(!confirm('Send login invite to ' + name + ' at ' + email + '?')) return;
+async function setupComplyStaffLogin(id, name, email){
+  if(!confirm('Set up login for ' + name + ' (' + email + ')?\n\nA temporary password will be generated and emailed to them directly from Selko.')) return;
+
+  const tempPassword = generateTempPassword();
   try {
     const { data: { session } } = await sb.auth.getSession();
-    const res = await fetch('https://zxserlkhwkfoqiepurdr.supabase.co/functions/v1/invite-staff', {
+    const res = await fetch('https://zxserlkhwkfoqiepurdr.supabase.co/functions/v1/set-user-password', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + session.access_token,
       },
       body: JSON.stringify({
-        name:               name,
-        email:              email,
-        company_id:         currentProfile.company_id,
-        role:               'staff',
-        inviter_company_id: currentProfile.company_id,
-        app:                'comply',
+        email,
+        password: tempPassword,
+        name,
+        company_id: currentProfile.company_id,
+        role: 'staff',
+        login_url: 'https://comply.selko360.com',
       }),
     });
     const result = await res.json();
     if (result.error) throw new Error(result.error);
-    showToast('✓ Invite sent to ' + name);
+
+    // Comply matches staff to profiles by email at query time (no
+    // profile_id column on compliance_staff), so nothing else to link here.
+    showTempPasswordModal(name, email, tempPassword, result.email_sent, result.email_error);
+    loadStaffTable();
   } catch(e) {
-    showToast('Invite failed: ' + e.message);
+    showToast('Setup failed: ' + e.message);
   }
 }
 
 async function resetStaffPassword(id, name, email){
   if(!email){ showToast('No email on file for ' + name + ' — add an email first'); return; }
 
-  // Safeguard: a reset only works if this person already has an account.
-  // Check first instead of silently sending a link that won't work.
-  try {
-    const profRes = await fetch(
-      SUPABASE_URL + '/rest/v1/profiles?email=eq.' + encodeURIComponent(email) + '&select=id&limit=1',
-      { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON) }}
-    );
-    const profData = await profRes.json();
-    if (!Array.isArray(profData) || !profData.length) {
-      const wantsInvite = confirm(
-        name + ' (' + email + ") doesn't have an account yet — they haven't accepted an invite, so a password reset won't work for them.\n\nSend them a login invite instead?"
-      );
-      if (wantsInvite) { await sendComplyInvite(id, name, email); }
-      return;
-    }
-  } catch(e) {
-    console.warn('Could not check for existing account, proceeding with reset attempt:', e);
-  }
+  if(!confirm('Set a new temporary password for ' + name + ' (' + email + ')?')) return;
 
-  if(!confirm('Send password reset email to ' + name + ' at ' + email + '?')) return;
-  const res = await fetch(
-    SUPABASE_URL + '/auth/v1/recover',
-    { method: 'POST',
-      headers:{ 'apikey': SUPABASE_ANON, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: email })
-    }
-  );
-  if(res.ok){
-    showToast('\u2713 Password reset email sent to ' + name);
-  } else {
-    showToast('Could not send reset — staff member may not have a login account yet');
+  const tempPassword = generateTempPassword();
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    const res = await fetch('https://zxserlkhwkfoqiepurdr.supabase.co/functions/v1/set-user-password', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + session.access_token,
+      },
+      body: JSON.stringify({
+        email,
+        password: tempPassword,
+        name,
+        company_id: currentProfile.company_id,
+        role: 'staff',
+        login_url: 'https://comply.selko360.com',
+      }),
+    });
+    const result = await res.json();
+    if (result.error) throw new Error(result.error);
+
+    showTempPasswordModal(name, email, tempPassword, result.email_sent, result.email_error);
+  } catch(e) {
+    showToast('Reset failed: ' + e.message);
   }
 }
 let stModalStaffId = null;
