@@ -855,7 +855,7 @@ async function saveNewStaff(){
       headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON), 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
       body: JSON.stringify({ full_name: name, email: email || null, role, 
         staff_type: document.getElementById('newStaffType')?.value || 'clinician',
-        active: true, company_id: currentProfile.company_id, pin: 'selko' })
+        active: true, company_id: currentProfile.company_id })
     }
   );
   if(!res.ok){ const e = await res.json(); errEl.textContent = e.message || 'Error saving staff member.'; errEl.style.display = 'block'; return; }
@@ -1992,8 +1992,7 @@ async function saveNewCompany(){
             role: 'clinician',
             staff_type: 'clinician',
             active: true,
-            company_id: newCoId,
-            pin: 'selko'
+            company_id: newCoId
           })
         }
       );
