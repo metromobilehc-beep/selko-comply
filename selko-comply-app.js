@@ -962,7 +962,7 @@ async function toggleStaffRole(id, currentRole){
 }
 
 async function setupComplyStaffLogin(id, name, email){
-  if(!confirm('Set up login for ' + name + ' (' + email + ')?\n\nA temporary password will be generated and emailed to them directly from Selko.')) return;
+  if(!confirm('Set up login for ' + name + ' (' + email + ')?\n\nIf they don\'t have a Selko account yet, one will be created and emailed to them. If they already have an account (e.g. from another Selko app), this just grants access — their existing password stays the same.')) return;
 
   const tempPassword = generateTempPassword();
   try {
@@ -981,6 +981,7 @@ async function setupComplyStaffLogin(id, name, email){
         role: 'staff',
         login_url: 'https://comply.selko360.com',
         app_label: 'Comply',
+        force_reset: false,
       }),
     });
     const result = await res.json();
@@ -988,7 +989,11 @@ async function setupComplyStaffLogin(id, name, email){
 
     // Comply matches staff to profiles by email at query time (no
     // profile_id column on compliance_staff), so nothing else to link here.
-    showTempPasswordModal(name, email, tempPassword, result.email_sent, result.email_error);
+    if (result.password_reset) {
+      showTempPasswordModal(name, email, tempPassword, result.email_sent, result.email_error);
+    } else {
+      showToast('✓ ' + name + ' already has a Selko login — access to Comply granted, no password changed.');
+    }
     loadStaffTable();
   } catch(e) {
     showToast('Setup failed: ' + e.message);
@@ -1017,6 +1022,7 @@ async function resetStaffPassword(id, name, email){
         role: 'staff',
         login_url: 'https://comply.selko360.com',
         app_label: 'Comply',
+        force_reset: true,
       }),
     });
     const result = await res.json();
