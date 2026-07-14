@@ -980,6 +980,7 @@ async function setupComplyStaffLogin(id, name, email){
         company_id: currentProfile.company_id,
         role: 'staff',
         login_url: 'https://comply.selko360.com',
+        app_label: 'Comply',
       }),
     });
     const result = await res.json();
@@ -1015,6 +1016,7 @@ async function resetStaffPassword(id, name, email){
         company_id: currentProfile.company_id,
         role: 'staff',
         login_url: 'https://comply.selko360.com',
+        app_label: 'Comply',
       }),
     });
     const result = await res.json();
