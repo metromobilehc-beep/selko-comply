@@ -655,7 +655,7 @@ async function completeModule(score){
     year: new Date().getFullYear()
   };
   const res = await fetch(
-    SUPABASE_URL + '/rest/v1/compliance_completions',
+    SUPABASE_URL + '/rest/v1/compliance_completions?on_conflict=staff_id,module_id',
     { method: 'POST',
       headers:{ 
         'apikey': SUPABASE_ANON,
@@ -682,10 +682,7 @@ async function completeModule(score){
 }
 
 // ── CERTIFICATE OF COMPLETION ──
-function generateCertificatePDF(opts){
-  if(!window.jspdf || !window.jspdf.jsPDF){ showToast('Certificate library failed to load — check your connection and try again.'); return; }
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'letter' });
+function drawCertificatePage(doc, opts){
   const W = 792, H = 612;
   const navy = '#0D1B3D', navy2 = '#1E3A8A', teal = '#0BA7A0', gold = '#c9a84c', goldLt = '#e8d9a8', cream = '#fdfaf2', muted = '#6B7280';
 
@@ -788,7 +785,13 @@ function generateCertificatePDF(opts){
   const certId = 'SC-' + (opts.moduleId || 'MOD').toString().slice(0, 6).toUpperCase() + '-' + new Date(opts.completedDate || Date.now()).getTime().toString().slice(-6);
   doc.setTextColor(muted); doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
   doc.text('Certificate ID: ' + certId, W / 2, H - 62, { align: 'center' });
+}
 
+function generateCertificatePDF(opts){
+  if(!window.jspdf || !window.jspdf.jsPDF){ showToast('Certificate library failed to load — check your connection and try again.'); return; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'letter' });
+  drawCertificatePage(doc, opts);
   const fileName = (opts.employeeName || 'certificate').replace(/[^a-z0-9]+/gi, '_') + '-' + (opts.moduleId || 'module') + '.pdf';
   doc.save(fileName);
 }
@@ -807,7 +810,7 @@ async function downloadMyCertificate(moduleId){
       employeeName = staffData[0].full_name || employeeName;
     }
     const compRes = await fetch(
-      SUPABASE_URL + '/rest/v1/compliance_completions?staff_id=eq.' + staffId + '&module_id=eq.' + moduleId + '&select=score,completed_at&limit=1',
+      SUPABASE_URL + '/rest/v1/compliance_completions?staff_id=eq.' + staffId + '&module_id=eq.' + moduleId + '&select=score,completed_at&order=completed_at.desc&limit=1',
       { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON) }}
     );
     const compData = await compRes.json();
@@ -863,6 +866,54 @@ function downloadStaffCertificate(staffIndex, moduleId){
   }
 }
 
+function bulkDownloadCertificates(){
+  try{
+    if(!window.jspdf || !window.jspdf.jsPDF){ showToast('Certificate library failed to load — check your connection and try again.'); return; }
+    const staffList = window._adminStaffList || [];
+    const compByStaff = window._adminCompByStaff || {};
+    const allMods = (typeof MODULES !== 'undefined') ? MODULES : [];
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'letter' });
+    const companyName = currentProfile.companies?.name || '';
+    const signerName = currentProfile.full_name || null;
+    let count = 0;
+
+    // Sort staff alphabetically so the packet prints in a predictable order
+    const sortedStaff = [...staffList].sort((a, b) => (a.full_name || '').localeCompare(b.full_name || ''));
+
+    sortedStaff.forEach(s => {
+      const comp = compByStaff[s.id] || {};
+      Object.keys(comp)
+        .sort((a, b) => (a > b ? 1 : -1))
+        .forEach(moduleId => {
+          const c = comp[moduleId];
+          const mod = allMods.find(m => m.id === moduleId);
+          if(count > 0) doc.addPage();
+          drawCertificatePage(doc, {
+            employeeName: s.full_name,
+            moduleTitle: mod?.title || moduleId,
+            moduleId,
+            companyName,
+            completedDate: c.date,
+            score: c.score,
+            signerName,
+            signerTitle: 'Program Administrator'
+          });
+          count++;
+        });
+    });
+
+    if(count === 0){ showToast('No completed certificates found yet for this company.'); return; }
+
+    const fileName = (companyName || 'company').replace(/[^a-z0-9]+/gi, '_') + '-all-certificates-' + new Date().toISOString().split('T')[0] + '.pdf';
+    doc.save(fileName);
+    showToast('Downloaded ' + count + ' certificate' + (count === 1 ? '' : 's') + '.');
+  } catch(e){
+    console.error('Bulk certificate export failed:', e);
+    showToast('Could not generate certificates — please try again.');
+  }
+}
+
 function scrollToTrainingTop(){
   const viewer = document.getElementById('trainingViewer');
   if(viewer) viewer.scrollIntoView({ behavior: 'instant', block: 'start' });
@@ -905,7 +956,7 @@ async function renderAdminTable(){
   const staff = await staffRes.json();
 
   const compRes = await fetch(
-    SUPABASE_URL + '/rest/v1/compliance_completions?company_id=eq.' + currentProfile.company_id + '&select=staff_id,module_id,score,completed_at',
+    SUPABASE_URL + '/rest/v1/compliance_completions?company_id=eq.' + currentProfile.company_id + '&select=staff_id,module_id,score,completed_at&order=completed_at.asc',
     { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON) }}
   );
   const completions = await compRes.json();
@@ -981,6 +1032,7 @@ async function renderAdminTable(){
       '<div style="padding:10px 16px;background:var(--surface);border:0.5px solid var(--border);border-radius:8px;font-size:13px"><strong style="color:var(--navy);font-size:18px">' + (completions||[]).length + '</strong> <span style="color:var(--muted)">total completions</span></div>' +
       '<div style="padding:10px 16px;background:var(--gold-lt);border:0.5px solid var(--gold-md);border-radius:8px;font-size:13px"><strong style="color:var(--gold);font-size:18px">' + clinicianMods.length + '</strong> <span style="color:var(--muted)">required modules</span></div>' +
       '<div style="padding:10px 16px;background:var(--surface);border:0.5px solid var(--border);border-radius:8px;font-size:12px;color:var(--muted);display:flex;align-items:center">▶ Click any row to see individual module dates</div>' +
+      '<button class="btn" style="margin-left:auto" onclick="bulkDownloadCertificates()">🎓 Download All Certificates</button>' +
     '</div>' +
     '<div style="overflow-x:auto"><table class="staff-table" style="min-width:700px">' +
       '<thead><tr><th>Name</th><th>Role</th><th>Status</th><th>Modules</th><th>Last activity</th></tr></thead>' +
