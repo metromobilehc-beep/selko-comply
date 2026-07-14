@@ -687,72 +687,107 @@ function generateCertificatePDF(opts){
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'letter' });
   const W = 792, H = 612;
-  const navy = '#0D1B3D', teal = '#0BA7A0', gold = '#c9a84c', muted = '#6B7280';
+  const navy = '#0D1B3D', navy2 = '#1E3A8A', teal = '#0BA7A0', gold = '#c9a84c', goldLt = '#e8d9a8', cream = '#fdfaf2', muted = '#6B7280';
 
-  doc.setFillColor('#ffffff'); doc.rect(0, 0, W, H, 'F');
+  // Base panel
+  doc.setFillColor(cream); doc.rect(0, 0, W, H, 'F');
 
-  // Top and bottom brand bars
-  doc.setFillColor(navy); doc.rect(0, 0, W, 14, 'F');
-  doc.setFillColor(teal); doc.rect(0, 14, W, 4, 'F');
-  doc.setFillColor(navy); doc.rect(0, H - 14, W, 14, 'F');
-  doc.setFillColor(gold); doc.rect(0, H - 18, W, 4, 'F');
+  // Layered diagonal ribbon corner motifs (all four corners)
+  function corner(cx, cy, sx, sy){
+    doc.setFillColor(navy);  doc.triangle(cx, cy, cx + sx*150, cy, cx, cy + sy*112, 'F');
+    doc.setFillColor(navy2); doc.triangle(cx, cy, cx + sx*112, cy, cx, cy + sy*84, 'F');
+    doc.setFillColor(teal);  doc.triangle(cx, cy, cx + sx*74,  cy, cx, cy + sy*56, 'F');
+    doc.setFillColor(gold);  doc.triangle(cx, cy, cx + sx*36,  cy, cx, cy + sy*27, 'F');
+  }
+  corner(0, 0, 1, 1);
+  corner(W, 0, -1, 1);
+  corner(0, H, 1, -1);
+  corner(W, H, -1, -1);
 
-  // Double border frame
-  doc.setDrawColor(navy); doc.setLineWidth(1.5); doc.rect(36, 36, W - 72, H - 72);
-  doc.setDrawColor(gold); doc.setLineWidth(0.75); doc.rect(44, 44, W - 88, H - 88);
+  // Inset cream card to keep the center clean, then a formal double border
+  doc.setFillColor(cream); doc.roundedRect(46, 46, W - 92, H - 92, 4, 4, 'F');
+  doc.setDrawColor(navy);  doc.setLineWidth(1.75); doc.roundedRect(46, 46, W - 92, H - 92, 4, 4);
+  doc.setDrawColor(gold);  doc.setLineWidth(0.75); doc.roundedRect(56, 56, W - 112, H - 112, 3, 3);
 
-  // Logo badge
-  doc.setFillColor(navy); doc.circle(W / 2, 92, 26, 'F');
-  doc.setDrawColor(teal); doc.setLineWidth(2); doc.circle(W / 2, 92, 26, 'S');
-  doc.setTextColor('#ffffff'); doc.setFont('helvetica', 'bold'); doc.setFontSize(16);
-  doc.text('S', W / 2, 99, { align: 'center' });
+  // Small diamond corner ornaments on the inner frame
+  function diamond(x, y, r, col){
+    doc.setFillColor(col);
+    doc.triangle(x - r, y, x, y - r, x, y + r, 'F');
+    doc.triangle(x + r, y, x, y - r, x, y + r, 'F');
+  }
+  [[56,56],[W-56,56],[56,H-56],[W-56,H-56]].forEach(([x,y]) => diamond(x, y, 6, gold));
+
+  // Emblem — gold seal with ribbon tails
+  const emX = W / 2, emY = 96, emR = 24;
+  doc.setFillColor(navy2);
+  doc.triangle(emX - 16, emY + 10, emX - 4, emY + 10, emX - 10, emY + 54, 'F');
+  doc.triangle(emX + 16, emY + 10, emX + 4, emY + 10, emX + 10, emY + 54, 'F');
+  doc.setFillColor(gold); doc.circle(emX, emY, emR, 'F');
+  doc.setDrawColor(navy); doc.setLineWidth(1.5); doc.circle(emX, emY, emR, 'S');
+  doc.setDrawColor(cream); doc.setLineWidth(0.75); doc.circle(emX, emY, emR - 4.5, 'S');
+  doc.setTextColor(navy); doc.setFont('times', 'bold'); doc.setFontSize(8.5);
+  doc.text('CERTIFIED', emX, emY - 2, { align: 'center' });
+  doc.setFont('times', 'normal'); doc.setFontSize(6.5);
+  doc.text('SELKO COMPLY', emX, emY + 7, { align: 'center' });
 
   // Title
-  doc.setTextColor(navy); doc.setFont('helvetica', 'bold'); doc.setFontSize(24);
-  doc.text('CERTIFICATE OF COMPLETION', W / 2, 145, { align: 'center' });
+  doc.setTextColor(navy); doc.setFont('times', 'bold'); doc.setFontSize(28);
+  doc.text('Certificate of Completion', W / 2, 178, { align: 'center' });
   doc.setDrawColor(gold); doc.setLineWidth(1);
-  doc.line(W / 2 - 60, 156, W / 2 + 60, 156);
+  doc.line(W / 2 - 90, 190, W / 2 - 10, 190);
+  doc.line(W / 2 + 10, 190, W / 2 + 90, 190);
+  diamond(W / 2, 190, 4, gold);
 
   // Subtext
-  doc.setTextColor(muted); doc.setFont('helvetica', 'normal'); doc.setFontSize(12);
-  doc.text('This certifies that', W / 2, 190, { align: 'center' });
+  doc.setTextColor(muted); doc.setFont('times', 'italic'); doc.setFontSize(13);
+  doc.text('This certifies that', W / 2, 222, { align: 'center' });
 
   // Name
-  doc.setTextColor(teal); doc.setFont('helvetica', 'bolditalic'); doc.setFontSize(30);
-  doc.text(opts.employeeName || 'Staff Member', W / 2, 225, { align: 'center' });
-  doc.setDrawColor(muted); doc.setLineWidth(0.5);
-  const nameWidth = doc.getTextWidth(opts.employeeName || 'Staff Member') * 1.3;
-  doc.line(W / 2 - nameWidth / 2, 233, W / 2 + nameWidth / 2, 233);
+  doc.setTextColor(navy2); doc.setFont('times', 'bolditalic'); doc.setFontSize(32);
+  doc.text(opts.employeeName || 'Staff Member', W / 2, 258, { align: 'center' });
+  doc.setDrawColor(gold); doc.setLineWidth(1);
+  const nameWidth = Math.min(doc.getTextWidth(opts.employeeName || 'Staff Member') * 1.25, 420);
+  doc.line(W / 2 - nameWidth / 2, 267, W / 2 + nameWidth / 2, 267);
 
   // Description
-  doc.setTextColor(navy); doc.setFont('helvetica', 'normal'); doc.setFontSize(13);
+  doc.setTextColor(navy); doc.setFont('times', 'normal'); doc.setFontSize(13);
   const desc = 'has successfully completed the "' + (opts.moduleTitle || 'Compliance Training') +
     '" training module' + (opts.companyName ? ' as part of ' + opts.companyName + '\u2019s compliance training program.' : '.');
-  const descLines = doc.splitTextToSize(desc, W - 220);
-  doc.text(descLines, W / 2, 268, { align: 'center' });
+  const descLines = doc.splitTextToSize(desc, W - 260);
+  doc.text(descLines, W / 2, 296, { align: 'center' });
 
   const dateStr = opts.completedDate
     ? new Date(opts.completedDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
     : new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(12);
-  doc.text('Awarded on ' + dateStr + (opts.score != null ? '   \u00b7   Score: ' + opts.score + '%' : ''), W / 2, 268 + descLines.length * 16 + 14, { align: 'center' });
+  doc.setFont('times', 'bolditalic'); doc.setFontSize(12);
+  doc.text('Awarded on ' + dateStr + (opts.score != null ? '   \u00b7   Score: ' + opts.score + '%' : ''), W / 2, 296 + descLines.length * 16 + 16, { align: 'center' });
 
-  // Signature blocks
-  const sigY = H - 100;
-  doc.setDrawColor(muted); doc.setLineWidth(0.75);
-  doc.line(100, sigY, 300, sigY);
-  doc.line(W - 300, sigY, W - 100, sigY);
-  doc.setTextColor(navy); doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
-  doc.text(opts.companyName || 'Compliance Program', 100, sigY + 16);
-  doc.text('Selko Comply', W - 300, sigY + 16);
-  doc.setTextColor(muted); doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
-  doc.text('Training Organization', 100, sigY + 30);
-  doc.text('Certified Training Platform', W - 300, sigY + 30);
+  // Signature block — company representative
+  const sigY = H - 118;
+  const signerName = opts.signerName || opts.companyName || 'Compliance Department';
+  const signerTitle = opts.signerTitle || 'Authorized Representative';
+  doc.setTextColor(navy2); doc.setFont('times', 'italic'); doc.setFontSize(17);
+  doc.text(signerName, 130, sigY - 8, { align: 'center' });
+  doc.setDrawColor(navy); doc.setLineWidth(0.75);
+  doc.line(60, sigY, 200, sigY);
+  doc.setTextColor(navy); doc.setFont('times', 'bold'); doc.setFontSize(10.5);
+  doc.text(signerTitle, 130, sigY + 15, { align: 'center' });
+  doc.setTextColor(muted); doc.setFont('times', 'normal'); doc.setFontSize(9);
+  doc.text(opts.companyName || 'Selko Comply', 130, sigY + 28, { align: 'center' });
+
+  // Date issued block (mirrors signature on the right)
+  doc.setTextColor(navy2); doc.setFont('times', 'italic'); doc.setFontSize(17);
+  doc.text(dateStr, W - 130, sigY - 8, { align: 'center' });
+  doc.line(W - 200, sigY, W - 60, sigY);
+  doc.setTextColor(navy); doc.setFont('times', 'bold'); doc.setFontSize(10.5);
+  doc.text('Date Issued', W - 130, sigY + 15, { align: 'center' });
+  doc.setTextColor(muted); doc.setFont('times', 'normal'); doc.setFontSize(9);
+  doc.text('Selko Comply \u00b7 Compliance Training', W - 130, sigY + 28, { align: 'center' });
 
   // Certificate ID footer
   const certId = 'SC-' + (opts.moduleId || 'MOD').toString().slice(0, 6).toUpperCase() + '-' + new Date(opts.completedDate || Date.now()).getTime().toString().slice(-6);
-  doc.setTextColor(muted); doc.setFontSize(8);
-  doc.text('Certificate ID: ' + certId, W / 2, H - 26, { align: 'center' });
+  doc.setTextColor(muted); doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
+  doc.text('Certificate ID: ' + certId, W / 2, H - 62, { align: 'center' });
 
   const fileName = (opts.employeeName || 'certificate').replace(/[^a-z0-9]+/gi, '_') + '-' + (opts.moduleId || 'module') + '.pdf';
   doc.save(fileName);
@@ -777,6 +812,18 @@ async function downloadMyCertificate(moduleId){
     );
     const compData = await compRes.json();
     if(!Array.isArray(compData) || !compData.length){ showToast('No completion record found for this module.'); return; }
+
+    // Find a company admin to appear as the signing authority
+    let signerName = null;
+    try{
+      const adminRes = await fetch(
+        SUPABASE_URL + '/rest/v1/compliance_staff?company_id=eq.' + currentProfile.company_id + '&role=eq.admin&order=full_name&select=full_name&limit=1',
+        { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON) }}
+      );
+      const adminData = await adminRes.json();
+      if(Array.isArray(adminData) && adminData.length) signerName = adminData[0].full_name;
+    } catch(e){ console.warn('Could not look up signing admin:', e); }
+
     const mod = (typeof MODULES !== 'undefined' ? MODULES : []).find(m => m.id === moduleId);
     generateCertificatePDF({
       employeeName,
@@ -784,7 +831,9 @@ async function downloadMyCertificate(moduleId){
       moduleId,
       companyName: currentProfile.companies?.name || '',
       completedDate: compData[0].completed_at,
-      score: compData[0].score
+      score: compData[0].score,
+      signerName: signerName,
+      signerTitle: 'Program Administrator'
     });
   } catch(e){
     console.error('Certificate generation failed:', e);
@@ -804,7 +853,9 @@ function downloadStaffCertificate(staffIndex, moduleId){
       moduleId,
       companyName: currentProfile.companies?.name || '',
       completedDate: c.date,
-      score: c.score
+      score: c.score,
+      signerName: currentProfile.full_name || null,
+      signerTitle: 'Program Administrator'
     });
   } catch(e){
     console.error('Certificate generation failed:', e);
