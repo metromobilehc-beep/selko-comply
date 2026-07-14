@@ -412,6 +412,7 @@ function renderModuleGrid(){
         <span class="module-tag mins">~${m.mins||15} min</span>
         ${done?'<span class="module-tag clinical" style="background:var(--green-lt);color:var(--green);border-color:#86efac">✓ Done</span>':''}
       </div>
+      ${done?`<button class="btn sm" style="margin-top:10px;width:100%;justify-content:center" onclick="event.stopPropagation(); downloadMyCertificate('${m.id}')">🎓 Download Certificate</button>`:''}
     </div>`;
   }).join('');
 }
@@ -538,7 +539,7 @@ function renderSection(){
 
 function renderQuizSlide(){
   if(completedModules.has(currentModule.id)){
-    document.getElementById('trainingContent').innerHTML = `<div class="section-card" style="text-align:center;padding:2rem"><div style="font-size:48px;margin-bottom:1rem">✅</div><div style="font-size:17px;font-weight:600;color:var(--navy);margin-bottom:.5rem">Module already complete</div><p style="color:var(--muted);font-size:13px">You have already completed this module. Click back to return to your dashboard.</p></div>`;
+    document.getElementById('trainingContent').innerHTML = `<div class="section-card" style="text-align:center;padding:2rem"><div style="font-size:48px;margin-bottom:1rem">✅</div><div style="font-size:17px;font-weight:600;color:var(--navy);margin-bottom:.5rem">Module already complete</div><p style="color:var(--muted);font-size:13px;margin-bottom:1rem">You have already completed this module. Click back to return to your dashboard.</p><button class="btn" onclick="downloadMyCertificate('${currentModule.id}')">🎓 Download Certificate</button></div>`;
     document.getElementById('navActions').innerHTML = `<button class="btn" onclick="closeTraining()">← Back to training</button>`;
     return;
   }
@@ -680,6 +681,137 @@ async function completeModule(score){
   setTimeout(() => { closeTraining(); renderModuleGrid(); renderWelcomeStats(); }, 1200);
 }
 
+// ── CERTIFICATE OF COMPLETION ──
+function generateCertificatePDF(opts){
+  if(!window.jspdf || !window.jspdf.jsPDF){ showToast('Certificate library failed to load — check your connection and try again.'); return; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'letter' });
+  const W = 792, H = 612;
+  const navy = '#0D1B3D', teal = '#0BA7A0', gold = '#c9a84c', muted = '#6B7280';
+
+  doc.setFillColor('#ffffff'); doc.rect(0, 0, W, H, 'F');
+
+  // Top and bottom brand bars
+  doc.setFillColor(navy); doc.rect(0, 0, W, 14, 'F');
+  doc.setFillColor(teal); doc.rect(0, 14, W, 4, 'F');
+  doc.setFillColor(navy); doc.rect(0, H - 14, W, 14, 'F');
+  doc.setFillColor(gold); doc.rect(0, H - 18, W, 4, 'F');
+
+  // Double border frame
+  doc.setDrawColor(navy); doc.setLineWidth(1.5); doc.rect(36, 36, W - 72, H - 72);
+  doc.setDrawColor(gold); doc.setLineWidth(0.75); doc.rect(44, 44, W - 88, H - 88);
+
+  // Logo badge
+  doc.setFillColor(navy); doc.circle(W / 2, 92, 26, 'F');
+  doc.setDrawColor(teal); doc.setLineWidth(2); doc.circle(W / 2, 92, 26, 'S');
+  doc.setTextColor('#ffffff'); doc.setFont('helvetica', 'bold'); doc.setFontSize(16);
+  doc.text('S', W / 2, 99, { align: 'center' });
+
+  // Title
+  doc.setTextColor(navy); doc.setFont('helvetica', 'bold'); doc.setFontSize(24);
+  doc.text('CERTIFICATE OF COMPLETION', W / 2, 145, { align: 'center' });
+  doc.setDrawColor(gold); doc.setLineWidth(1);
+  doc.line(W / 2 - 60, 156, W / 2 + 60, 156);
+
+  // Subtext
+  doc.setTextColor(muted); doc.setFont('helvetica', 'normal'); doc.setFontSize(12);
+  doc.text('This certifies that', W / 2, 190, { align: 'center' });
+
+  // Name
+  doc.setTextColor(teal); doc.setFont('helvetica', 'bolditalic'); doc.setFontSize(30);
+  doc.text(opts.employeeName || 'Staff Member', W / 2, 225, { align: 'center' });
+  doc.setDrawColor(muted); doc.setLineWidth(0.5);
+  const nameWidth = doc.getTextWidth(opts.employeeName || 'Staff Member') * 1.3;
+  doc.line(W / 2 - nameWidth / 2, 233, W / 2 + nameWidth / 2, 233);
+
+  // Description
+  doc.setTextColor(navy); doc.setFont('helvetica', 'normal'); doc.setFontSize(13);
+  const desc = 'has successfully completed the "' + (opts.moduleTitle || 'Compliance Training') +
+    '" training module' + (opts.companyName ? ' as part of ' + opts.companyName + '\u2019s compliance training program.' : '.');
+  const descLines = doc.splitTextToSize(desc, W - 220);
+  doc.text(descLines, W / 2, 268, { align: 'center' });
+
+  const dateStr = opts.completedDate
+    ? new Date(opts.completedDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+    : new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(12);
+  doc.text('Awarded on ' + dateStr + (opts.score != null ? '   \u00b7   Score: ' + opts.score + '%' : ''), W / 2, 268 + descLines.length * 16 + 14, { align: 'center' });
+
+  // Signature blocks
+  const sigY = H - 100;
+  doc.setDrawColor(muted); doc.setLineWidth(0.75);
+  doc.line(100, sigY, 300, sigY);
+  doc.line(W - 300, sigY, W - 100, sigY);
+  doc.setTextColor(navy); doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
+  doc.text(opts.companyName || 'Compliance Program', 100, sigY + 16);
+  doc.text('Selko Comply', W - 300, sigY + 16);
+  doc.setTextColor(muted); doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+  doc.text('Training Organization', 100, sigY + 30);
+  doc.text('Certified Training Platform', W - 300, sigY + 30);
+
+  // Certificate ID footer
+  const certId = 'SC-' + (opts.moduleId || 'MOD').toString().slice(0, 6).toUpperCase() + '-' + new Date(opts.completedDate || Date.now()).getTime().toString().slice(-6);
+  doc.setTextColor(muted); doc.setFontSize(8);
+  doc.text('Certificate ID: ' + certId, W / 2, H - 26, { align: 'center' });
+
+  const fileName = (opts.employeeName || 'certificate').replace(/[^a-z0-9]+/gi, '_') + '-' + (opts.moduleId || 'module') + '.pdf';
+  doc.save(fileName);
+}
+
+async function downloadMyCertificate(moduleId){
+  try{
+    let staffId = currentUser.id;
+    let employeeName = currentProfile.full_name || currentProfile.email || '';
+    const staffRes = await fetch(
+      SUPABASE_URL + '/rest/v1/compliance_staff?company_id=eq.' + currentProfile.company_id + '&email=eq.' + encodeURIComponent(currentProfile.email) + '&select=id,full_name&limit=1',
+      { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON) }}
+    );
+    const staffData = await staffRes.json();
+    if(Array.isArray(staffData) && staffData.length){
+      staffId = staffData[0].id;
+      employeeName = staffData[0].full_name || employeeName;
+    }
+    const compRes = await fetch(
+      SUPABASE_URL + '/rest/v1/compliance_completions?staff_id=eq.' + staffId + '&module_id=eq.' + moduleId + '&select=score,completed_at&limit=1',
+      { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON) }}
+    );
+    const compData = await compRes.json();
+    if(!Array.isArray(compData) || !compData.length){ showToast('No completion record found for this module.'); return; }
+    const mod = (typeof MODULES !== 'undefined' ? MODULES : []).find(m => m.id === moduleId);
+    generateCertificatePDF({
+      employeeName,
+      moduleTitle: mod?.title || moduleId,
+      moduleId,
+      companyName: currentProfile.companies?.name || '',
+      completedDate: compData[0].completed_at,
+      score: compData[0].score
+    });
+  } catch(e){
+    console.error('Certificate generation failed:', e);
+    showToast('Could not generate certificate — please try again.');
+  }
+}
+
+function downloadStaffCertificate(staffIndex, moduleId){
+  try{
+    const s = (window._adminStaffList || [])[staffIndex];
+    const c = s ? (window._adminCompByStaff?.[s.id] || {})[moduleId] : null;
+    if(!s || !c){ showToast('No completion record found for this staff member.'); return; }
+    const mod = (typeof MODULES !== 'undefined' ? MODULES : []).find(m => m.id === moduleId);
+    generateCertificatePDF({
+      employeeName: s.full_name,
+      moduleTitle: mod?.title || moduleId,
+      moduleId,
+      companyName: currentProfile.companies?.name || '',
+      completedDate: c.date,
+      score: c.score
+    });
+  } catch(e){
+    console.error('Certificate generation failed:', e);
+    showToast('Could not generate certificate — please try again.');
+  }
+}
+
 function scrollToTrainingTop(){
   const viewer = document.getElementById('trainingViewer');
   if(viewer) viewer.scrollIntoView({ behavior: 'instant', block: 'start' });
@@ -739,6 +871,8 @@ async function renderAdminTable(){
     if(!compByStaff[c.staff_id]) compByStaff[c.staff_id] = {};
     compByStaff[c.staff_id][c.module_id] = { score: c.score, date: c.completed_at };
   });
+  window._adminStaffList = staff;
+  window._adminCompByStaff = compByStaff;
 
   const allMods = (typeof MODULES !== 'undefined') ? MODULES : [];
   const clinicianMods = allMods.filter(m => !m.adminOnly);
@@ -772,7 +906,7 @@ async function renderAdminTable(){
         '<td></td>' +
         '<td>' + (c ? '<span style="font-size:11px;font-weight:600;color:var(--green)">✓ Done</span>' : '<span style="font-size:11px;color:var(--muted)">○ Pending</span>') + '</td>' +
         '<td style="font-size:12px;color:var(--muted)">' + (c ? '<span style="color:var(--teal);font-weight:500">' + c.score + '%</span>' : '—') + '</td>' +
-        '<td style="font-size:12px;color:var(--muted)">' + (c ? new Date(c.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) + ' at ' + new Date(c.date).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}) : '—') + '</td>' +
+        '<td style="font-size:12px;color:var(--muted)">' + (c ? new Date(c.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) + ' at ' + new Date(c.date).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}) + ' <button class="btn sm" style="margin-left:6px;padding:2px 8px;font-size:10px" onclick="event.stopPropagation(); downloadStaffCertificate(' + si + ',\'' + m.id + '\')">🎓 Certificate</button>' : '—') + '</td>' +
       '</tr>';
     }).join('');
 
@@ -962,7 +1096,7 @@ async function toggleStaffRole(id, currentRole){
 }
 
 async function setupComplyStaffLogin(id, name, email){
-  if(!confirm('Set up login for ' + name + ' (' + email + ')?\n\nIf they don\'t have a Selko account yet, one will be created and emailed to them. If they already have an account (e.g. from another Selko app), this just grants access — their existing password stays the same.')) return;
+  if(!confirm('Set up login for ' + name + ' (' + email + ')?\n\nA temporary password will be generated and emailed to them directly from Selko.')) return;
 
   const tempPassword = generateTempPassword();
   try {
@@ -981,7 +1115,6 @@ async function setupComplyStaffLogin(id, name, email){
         role: 'staff',
         login_url: 'https://comply.selko360.com',
         app_label: 'Comply',
-        force_reset: false,
       }),
     });
     const result = await res.json();
@@ -989,11 +1122,7 @@ async function setupComplyStaffLogin(id, name, email){
 
     // Comply matches staff to profiles by email at query time (no
     // profile_id column on compliance_staff), so nothing else to link here.
-    if (result.password_reset) {
-      showTempPasswordModal(name, email, tempPassword, result.email_sent, result.email_error);
-    } else {
-      showToast('✓ ' + name + ' already has a Selko login — access to Comply granted, no password changed.');
-    }
+    showTempPasswordModal(name, email, tempPassword, result.email_sent, result.email_error);
     loadStaffTable();
   } catch(e) {
     showToast('Setup failed: ' + e.message);
@@ -1022,7 +1151,6 @@ async function resetStaffPassword(id, name, email){
         role: 'staff',
         login_url: 'https://comply.selko360.com',
         app_label: 'Comply',
-        force_reset: true,
       }),
     });
     const result = await res.json();
