@@ -714,18 +714,16 @@ function drawCertificatePage(doc, opts){
   }
   [[56,56],[W-56,56],[56,H-56],[W-56,H-56]].forEach(([x,y]) => diamond(x, y, 6, gold));
 
-  // Emblem — gold seal with ribbon tails
-  const emX = W / 2, emY = 96, emR = 24;
-  doc.setFillColor(navy2);
-  doc.triangle(emX - 16, emY + 10, emX - 4, emY + 10, emX - 10, emY + 54, 'F');
-  doc.triangle(emX + 16, emY + 10, emX + 4, emY + 10, emX + 10, emY + 54, 'F');
-  doc.setFillColor(gold); doc.circle(emX, emY, emR, 'F');
-  doc.setDrawColor(navy); doc.setLineWidth(1.5); doc.circle(emX, emY, emR, 'S');
-  doc.setDrawColor(cream); doc.setLineWidth(0.75); doc.circle(emX, emY, emR - 4.5, 'S');
-  doc.setTextColor(navy); doc.setFont('times', 'bold'); doc.setFontSize(8.5);
-  doc.text('CERTIFIED', emX, emY - 2, { align: 'center' });
-  doc.setFont('times', 'normal'); doc.setFontSize(6.5);
-  doc.text('SELKO COMPLY', emX, emY + 7, { align: 'center' });
+  // Emblem — clean concentric medallion with monogram
+  const emX = W / 2, emY = 92, emR = 25;
+  doc.setFillColor(navy); doc.circle(emX, emY, emR, 'F');
+  doc.setDrawColor(gold); doc.setLineWidth(2); doc.circle(emX, emY, emR, 'S');
+  doc.setDrawColor(gold); doc.setLineWidth(0.75); doc.circle(emX, emY, emR - 5, 'S');
+  doc.setTextColor(gold); doc.setFont('times', 'bolditalic'); doc.setFontSize(24);
+  doc.text('S', emX, emY + 8, { align: 'center' });
+  doc.setDrawColor(gold); doc.setLineWidth(1);
+  doc.line(emX - emR - 16, emY, emX - emR - 4, emY);
+  doc.line(emX + emR + 4, emY, emX + emR + 16, emY);
 
   // Title
   doc.setTextColor(navy); doc.setFont('times', 'bold'); doc.setFontSize(28);
