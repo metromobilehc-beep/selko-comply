@@ -878,8 +878,14 @@ function bulkDownloadCertificates(){
     const signerName = currentProfile.full_name || null;
     let count = 0;
 
+    const filterEl = document.getElementById('certStaffFilter');
+    const filterId = filterEl ? filterEl.value : '';
+    const filteredStaff = filterId ? staffList.filter(s => s.id === filterId) : staffList;
+
+    if(filterId && !filteredStaff.length){ showToast('Could not find that staff member.'); return; }
+
     // Sort staff alphabetically so the packet prints in a predictable order
-    const sortedStaff = [...staffList].sort((a, b) => (a.full_name || '').localeCompare(b.full_name || ''));
+    const sortedStaff = [...filteredStaff].sort((a, b) => (a.full_name || '').localeCompare(b.full_name || ''));
 
     sortedStaff.forEach(s => {
       const comp = compByStaff[s.id] || {};
@@ -903,9 +909,13 @@ function bulkDownloadCertificates(){
         });
     });
 
-    if(count === 0){ showToast('No completed certificates found yet for this company.'); return; }
+    if(count === 0){
+      showToast(filterId ? 'No completed certificates found for that staff member.' : 'No completed certificates found yet for this company.');
+      return;
+    }
 
-    const fileName = (companyName || 'company').replace(/[^a-z0-9]+/gi, '_') + '-all-certificates-' + new Date().toISOString().split('T')[0] + '.pdf';
+    const namePart = filterId && sortedStaff[0] ? sortedStaff[0].full_name : (companyName || 'company');
+    const fileName = namePart.replace(/[^a-z0-9]+/gi, '_') + '-certificates-' + new Date().toISOString().split('T')[0] + '.pdf';
     doc.save(fileName);
     showToast('Downloaded ' + count + ' certificate' + (count === 1 ? '' : 's') + '.');
   } catch(e){
@@ -1026,13 +1036,22 @@ async function renderAdminTable(){
     return mainRow + detailRows;
   }).join('');
 
+  const sortedForFilter = [...staff].sort((a, b) => (a.full_name || '').localeCompare(b.full_name || ''));
+  const staffOptions = sortedForFilter.map(s => '<option value="' + s.id + '">' + (s.full_name || 'Unnamed') + '</option>').join('');
+
   el.innerHTML =
     '<div style="display:flex;gap:1rem;margin-bottom:1rem;flex-wrap:wrap">' +
       '<div style="padding:10px 16px;background:var(--teal-lt);border:0.5px solid var(--teal-md);border-radius:8px;font-size:13px"><strong style="color:var(--teal);font-size:18px">' + completeStaff + '/' + totalStaff + '</strong> <span style="color:var(--muted)">staff complete</span></div>' +
       '<div style="padding:10px 16px;background:var(--surface);border:0.5px solid var(--border);border-radius:8px;font-size:13px"><strong style="color:var(--navy);font-size:18px">' + (completions||[]).length + '</strong> <span style="color:var(--muted)">total completions</span></div>' +
       '<div style="padding:10px 16px;background:var(--gold-lt);border:0.5px solid var(--gold-md);border-radius:8px;font-size:13px"><strong style="color:var(--gold);font-size:18px">' + clinicianMods.length + '</strong> <span style="color:var(--muted)">required modules</span></div>' +
       '<div style="padding:10px 16px;background:var(--surface);border:0.5px solid var(--border);border-radius:8px;font-size:12px;color:var(--muted);display:flex;align-items:center">▶ Click any row to see individual module dates</div>' +
-      '<button class="btn" style="margin-left:auto" onclick="bulkDownloadCertificates()">🎓 Download All Certificates</button>' +
+      '<div style="margin-left:auto;display:flex;gap:8px;align-items:center">' +
+        '<select id="certStaffFilter" style="padding:9px 10px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:13px;color:var(--text);background:var(--white);font-family:\'Sora\',system-ui,sans-serif">' +
+          '<option value="">All Staff</option>' +
+          staffOptions +
+        '</select>' +
+        '<button class="btn" onclick="bulkDownloadCertificates()">🎓 Download Certificates</button>' +
+      '</div>' +
     '</div>' +
     '<div style="overflow-x:auto"><table class="staff-table" style="min-width:700px">' +
       '<thead><tr><th>Name</th><th>Role</th><th>Status</th><th>Modules</th><th>Last activity</th></tr></thead>' +
