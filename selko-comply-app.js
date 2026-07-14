@@ -682,6 +682,27 @@ async function completeModule(score){
 }
 
 // ── CERTIFICATE OF COMPLETION ──
+let _selkoLogoDataUrl = undefined; // undefined = not yet tried, null = tried & failed, string = ready
+async function getSelkoLogoDataUrl(){
+  if(_selkoLogoDataUrl !== undefined) return _selkoLogoDataUrl;
+  try{
+    const res = await fetch('selko-logo-icon-white.png');
+    if(!res.ok) throw new Error('logo fetch failed: ' + res.status);
+    const blob = await res.blob();
+    const dataUrl = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+    _selkoLogoDataUrl = dataUrl;
+  } catch(e){
+    console.warn('Could not load Selko logo for certificates, using monogram fallback:', e);
+    _selkoLogoDataUrl = null;
+  }
+  return _selkoLogoDataUrl;
+}
+
 function drawCertificatePage(doc, opts){
   const W = 792, H = 612;
   const navy = '#0D1B3D', navy2 = '#1E3A8A', teal = '#0BA7A0', gold = '#c9a84c', goldLt = '#e8d9a8', cream = '#fdfaf2', muted = '#6B7280';
@@ -714,13 +735,24 @@ function drawCertificatePage(doc, opts){
   }
   [[56,56],[W-56,56],[56,H-56],[W-56,H-56]].forEach(([x,y]) => diamond(x, y, 6, gold));
 
-  // Emblem — clean concentric medallion with monogram
+  // Emblem — clean concentric medallion with the Selko logo (falls back to monogram if unavailable)
   const emX = W / 2, emY = 92, emR = 25;
   doc.setFillColor(navy); doc.circle(emX, emY, emR, 'F');
   doc.setDrawColor(gold); doc.setLineWidth(2); doc.circle(emX, emY, emR, 'S');
   doc.setDrawColor(gold); doc.setLineWidth(0.75); doc.circle(emX, emY, emR - 5, 'S');
-  doc.setTextColor(gold); doc.setFont('times', 'bolditalic'); doc.setFontSize(24);
-  doc.text('S', emX, emY + 8, { align: 'center' });
+  if(opts.logoDataUrl){
+    const logoH = (emR - 9) * 2;
+    const logoW = logoH * (opts.logoAspect || 0.91);
+    try{ doc.addImage(opts.logoDataUrl, 'PNG', emX - logoW / 2, emY - logoH / 2, logoW, logoH); }
+    catch(e){
+      console.warn('Logo embed failed, using monogram:', e);
+      doc.setTextColor(gold); doc.setFont('times', 'bolditalic'); doc.setFontSize(24);
+      doc.text('S', emX, emY + 8, { align: 'center' });
+    }
+  } else {
+    doc.setTextColor(gold); doc.setFont('times', 'bolditalic'); doc.setFontSize(24);
+    doc.text('S', emX, emY + 8, { align: 'center' });
+  }
   doc.setDrawColor(gold); doc.setLineWidth(1);
   doc.line(emX - emR - 16, emY, emX - emR - 4, emY);
   doc.line(emX + emR + 4, emY, emX + emR + 16, emY);
@@ -785,11 +817,12 @@ function drawCertificatePage(doc, opts){
   doc.text('Certificate ID: ' + certId, W / 2, H - 62, { align: 'center' });
 }
 
-function generateCertificatePDF(opts){
+async function generateCertificatePDF(opts){
   if(!window.jspdf || !window.jspdf.jsPDF){ showToast('Certificate library failed to load — check your connection and try again.'); return; }
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'letter' });
-  drawCertificatePage(doc, opts);
+  const logoDataUrl = await getSelkoLogoDataUrl();
+  drawCertificatePage(doc, { ...opts, logoDataUrl, logoAspect: 0.91 });
   const fileName = (opts.employeeName || 'certificate').replace(/[^a-z0-9]+/gi, '_') + '-' + (opts.moduleId || 'module') + '.pdf';
   doc.save(fileName);
 }
@@ -826,7 +859,7 @@ async function downloadMyCertificate(moduleId){
     } catch(e){ console.warn('Could not look up signing admin:', e); }
 
     const mod = (typeof MODULES !== 'undefined' ? MODULES : []).find(m => m.id === moduleId);
-    generateCertificatePDF({
+    await generateCertificatePDF({
       employeeName,
       moduleTitle: mod?.title || moduleId,
       moduleId,
@@ -842,13 +875,13 @@ async function downloadMyCertificate(moduleId){
   }
 }
 
-function downloadStaffCertificate(staffIndex, moduleId){
+async function downloadStaffCertificate(staffIndex, moduleId){
   try{
     const s = (window._adminStaffList || [])[staffIndex];
     const c = s ? (window._adminCompByStaff?.[s.id] || {})[moduleId] : null;
     if(!s || !c){ showToast('No completion record found for this staff member.'); return; }
     const mod = (typeof MODULES !== 'undefined' ? MODULES : []).find(m => m.id === moduleId);
-    generateCertificatePDF({
+    await generateCertificatePDF({
       employeeName: s.full_name,
       moduleTitle: mod?.title || moduleId,
       moduleId,
@@ -864,7 +897,7 @@ function downloadStaffCertificate(staffIndex, moduleId){
   }
 }
 
-function bulkDownloadCertificates(){
+async function bulkDownloadCertificates(){
   try{
     if(!window.jspdf || !window.jspdf.jsPDF){ showToast('Certificate library failed to load — check your connection and try again.'); return; }
     const staffList = window._adminStaffList || [];
@@ -874,6 +907,7 @@ function bulkDownloadCertificates(){
     const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'letter' });
     const companyName = currentProfile.companies?.name || '';
     const signerName = currentProfile.full_name || null;
+    const logoDataUrl = await getSelkoLogoDataUrl();
     let count = 0;
 
     const filterEl = document.getElementById('certStaffFilter');
@@ -901,7 +935,9 @@ function bulkDownloadCertificates(){
             completedDate: c.date,
             score: c.score,
             signerName,
-            signerTitle: 'Program Administrator'
+            signerTitle: 'Program Administrator',
+            logoDataUrl,
+            logoAspect: 0.91
           });
           count++;
         });
