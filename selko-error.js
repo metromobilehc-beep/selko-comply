@@ -3,14 +3,20 @@
  * Writes to the existing error_logs table — no migration needed.
  * Rich detail is packed as JSON into the `context` text column.
  *
- * Usage, once per app, after the Supabase client exists:
+ * Plain script, no modules. Load it BEFORE the app script:
  *
- *   import { initErrorLogging, logError, breadcrumb } from './selko-error.js';
- *   initErrorLogging({ app: 'cred', supabase });
+ *   <script src="selko-error.js"></script>
+ *   <script src="selko-comply-app.js"></script>
+ *
+ * Then once, after the Supabase CLIENT exists (not the CDN library):
+ *
+ *   SelkoError.init({ app: 'comply', supabase: sb });
  *
  * The `app` value is explicit on purpose. Inferring it from the hostname is
  * what produced the untagged rows on the board.
  */
+(function (global) {
+'use strict';
 
 let CFG = { app: 'unknown', supabase: null, companyId: null, debug: false };
 let READY = false;
@@ -22,7 +28,7 @@ const DEDUPE_MS = 5000;    // three identical rejections in one second = one row
 
 /* ---------- breadcrumbs ---------- */
 
-export function breadcrumb(kind, detail) {
+function breadcrumb(kind, detail) {
   TRAIL.push({
     t: new Date().toISOString().slice(11, 19),
     kind,
@@ -83,7 +89,7 @@ async function currentUser() {
   }
 }
 
-export async function logError(type, message, extra = {}) {
+async function logError(type, message, extra = {}) {
   if (!READY || !CFG.supabase) return;
 
   const msg = String(message || '').slice(0, 500);
@@ -133,7 +139,7 @@ export async function logError(type, message, extra = {}) {
 
 /* ---------- setup ---------- */
 
-export function initErrorLogging({ app, supabase, companyId = null, debug = false }) {
+function initErrorLogging({ app, supabase, companyId = null, debug = false }) {
   if (!app) throw new Error('initErrorLogging needs an app name');
   if (!supabase) throw new Error('initErrorLogging needs the Supabase client');
 
@@ -166,6 +172,15 @@ export function initErrorLogging({ app, supabase, companyId = null, debug = fals
 }
 
 /* Call from a catch block when you already know what broke. */
-export function logCaught(where, err) {
+function logCaught(where, err) {
   logError('caught', (err && err.message) || String(err), { where });
 }
+
+global.SelkoError = {
+  init: initErrorLogging,
+  log: logError,
+  caught: logCaught,
+  breadcrumb: breadcrumb
+};
+
+})(window);
