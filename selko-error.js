@@ -171,6 +171,12 @@ function initErrorLogging({ app, supabase, companyId = null, debug = false }) {
   breadcrumb('init', `${app} loaded`);
 }
 
+/* company_id isn't known at init — the profile loads later. Call this once
+ * it is, so rows are attributable to the right company. */
+function setCompany(companyId) {
+  CFG.companyId = companyId || null;
+}
+
 /* Call from a catch block when you already know what broke. */
 function logCaught(where, err) {
   logError('caught', (err && err.message) || String(err), { where });
@@ -178,6 +184,7 @@ function logCaught(where, err) {
 
 global.SelkoError = {
   init: initErrorLogging,
+  setCompany: setCompany,
   log: logError,
   caught: logCaught,
   breadcrumb: breadcrumb

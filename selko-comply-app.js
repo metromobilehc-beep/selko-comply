@@ -211,7 +211,7 @@ async function loadApp(user){
     console.log('Company:', data.companies);
 
     currentProfile = data;
-    if(window.SelkoError) SelkoError.setCompany(data.company_id);
+    if(window.SelkoError && SelkoError.setCompany) SelkoError.setCompany(data.company_id);
 
     // Access gate: having a shared profiles row for this company is not
     // enough — only people with an actual compliance_staff record should
