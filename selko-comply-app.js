@@ -11,6 +11,8 @@ document.addEventListener('DOMContentLoaded', function(){
   }
   sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
   // Wire up event listeners
+  sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+SelkoError.init({ app: 'comply', supabase: sb });
   document.getElementById('loginBtnTrigger')?.addEventListener('click', doLogin);
   document.getElementById('loginPassInput')?.addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
   document.getElementById('signOutBtn')?.addEventListener('click', doSignOut);
