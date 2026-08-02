@@ -28,8 +28,13 @@ document.addEventListener('DOMContentLoaded', function(){
     if(loader) loader.style.display = 'none';
   });
 
-  // Listen for auth state changes (login/logout)
+  // Listen for auth state changes (login/logout/refresh)
   sb.auth.onAuthStateChange(async (event, session) => {
+    // Access tokens expire after about an hour. supabase-js refreshes them in
+    // the background, but authToken is captured once at login — without this
+    // every REST write starts failing with "JWT expired" on a long session.
+    if(session?.access_token) authToken = session.access_token;
+
     if(event === 'SIGNED_IN' && session?.user && !currentUser){
       authToken = session.access_token || '';
       await loadApp(session.user);
