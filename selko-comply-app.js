@@ -10,9 +10,9 @@ document.addEventListener('DOMContentLoaded', function(){
     return;
   }
   sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+  SelkoError.init({ app: 'comply', supabase: sb });
+
   // Wire up event listeners
-  sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-SelkoError.init({ app: 'comply', supabase: sb });
   document.getElementById('loginBtnTrigger')?.addEventListener('click', doLogin);
   document.getElementById('loginPassInput')?.addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
   document.getElementById('signOutBtn')?.addEventListener('click', doSignOut);
@@ -166,6 +166,9 @@ async function doSignOut(){
 
 // ── LOAD APP ──
 async function loadApp(user){
+  // getSession() and onAuthStateChange both fire on load — without this guard
+  // the whole app initialises twice.
+  if(currentUser && currentUser.id === user.id) return;
   currentUser = user;
   console.log('loadApp called for:', user.email, 'id:', user.id);
 
@@ -208,6 +211,7 @@ async function loadApp(user){
     console.log('Company:', data.companies);
 
     currentProfile = data;
+    if(window.SelkoError) SelkoError.setCompany(data.company_id);
 
     // Access gate: having a shared profiles row for this company is not
     // enough — only people with an actual compliance_staff record should
@@ -1886,33 +1890,13 @@ async function clearErrorLog(){
 }
 
 // ── ERROR LOGGING ──
-async function logError(type, message, context){
-  try {
-    await fetch(
-      SUPABASE_URL + '/rest/v1/error_logs',
-      { method: 'POST',
-        headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON), 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          company_id: currentProfile?.company_id || null,
-          user_email: currentProfile?.email || null,
-          error_type: type,
-          error_message: message,
-          context: context || null,
-          url: window.location.href
-        })
-      }
-    );
-  } catch(e){ console.warn('Error logging failed:', e); }
+// Global error and rejection handlers now live in selko-error.js, which is
+// loaded before this file. This shim keeps existing logError(...) call sites
+// working while routing them through the shared logger.
+function logError(type, message, context){
+  if(window.SelkoError) SelkoError.log(type, message, context ? { where: context } : {});
+  else console.warn('[logError]', type, message, context);
 }
-
-// Global JS error catcher
-window.addEventListener('error', function(e){
-  logError('js_error', e.message, e.filename + ':' + e.lineno);
-});
-
-window.addEventListener('unhandledrejection', function(e){
-  logError('promise_rejection', String(e.reason), null);
-});
 
 // ── SUPER ADMIN ──
 let allCompanies = [];
