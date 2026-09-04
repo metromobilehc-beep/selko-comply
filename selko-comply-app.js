@@ -165,7 +165,7 @@ async function doSignOut(){
   await sb.auth.signOut();
   document.getElementById('app').style.display = 'none';
   document.getElementById('loginWrap').style.display = 'flex';
-  document.getElementById('loginPass').value = '';
+  document.getElementById('loginPassInput').value = '';
   currentUser = null; currentProfile = null;
 }
 
