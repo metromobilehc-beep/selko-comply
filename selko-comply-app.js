@@ -562,7 +562,7 @@ function renderQuizSlide(){
       ${qs.map((q,qi)=>`
         <div class="quiz-card" style="margin-bottom:1rem" id="qq${qi}">
           <div class="qa-q" style="font-size:14px;font-weight:500;color:var(--navy);margin-bottom:.75rem">${qi+1}. ${q.q}</div>
-          ${q.options.map((o,oi)=>`<button class="quiz-opt" id="opt_${qi}_${oi}" onclick="selectOpt(${qi},${oi})">${o}</button>`).join('')}
+          ${q.options.map((o,oi)=>`<button class="quiz-opt" id="opt_${qi}_${oi}" onclick="selectOpt(${qi},${oi})"><span class="quiz-opt-letter">${String.fromCharCode(65+oi)}</span>${o}</button>`).join('')}
           <div class="quiz-feedback" id="qf${qi}" style="display:none;margin-top:.5rem;padding:8px 12px;border-radius:var(--radius);font-size:12px;line-height:1.5"></div>
         </div>`).join('')}
     </div>`;
