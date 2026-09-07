@@ -639,7 +639,12 @@ function toggleComplete(){
 async function completeModule(score){
   const btn = document.getElementById('completeBtn');
   btn.disabled = true; btn.textContent = 'Saving…';
-  // Look up the compliance_staff record for this user
+  // staff_id must stay the person's real auth ID — that's what the RLS
+  // policy on compliance_completions actually checks (staff_id =
+  // auth.uid()). This used to get overwritten with a matching
+  // compliance_staff row's own ID below, which broke the insert for
+  // anyone who had a compliance_staff record on file, since that ID never
+  // equals their actual auth ID.
   let staffId = currentUser.id;
   let employeeName = currentProfile.full_name || currentProfile.email || '';
   try {
@@ -649,7 +654,7 @@ async function completeModule(score){
     );
     const staffData = await staffRes.json();
     if(Array.isArray(staffData) && staffData.length){
-      staffId = staffData[0].id;
+      // Only take the name from this lookup — never the id.
       employeeName = staffData[0].full_name || employeeName;
     }
   } catch(e){ console.warn('Could not look up staff record:', e); }
@@ -840,6 +845,9 @@ async function generateCertificatePDF(opts){
 
 async function downloadMyCertificate(moduleId){
   try{
+    // Same fix as completeModule() — staff_id in compliance_completions is
+    // always the person's real auth ID, never compliance_staff's own row
+    // ID, so this lookup must not overwrite staffId with it either.
     let staffId = currentUser.id;
     let employeeName = currentProfile.full_name || currentProfile.email || '';
     const staffRes = await fetch(
@@ -848,7 +856,6 @@ async function downloadMyCertificate(moduleId){
     );
     const staffData = await staffRes.json();
     if(Array.isArray(staffData) && staffData.length){
-      staffId = staffData[0].id;
       employeeName = staffData[0].full_name || employeeName;
     }
     const compRes = await fetch(
