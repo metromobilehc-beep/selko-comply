@@ -9,7 +9,16 @@ document.addEventListener('DOMContentLoaded', function(){
     document.body.innerHTML='<p style="padding:2rem;font-family:sans-serif;color:red">Supabase library failed to load. Check internet connection and try again.</p>';
     return;
   }
-  sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+  // Shared cookie-based storage (scoped to .selko360.com, the parent
+  // domain) replaces the previous default localStorage-only session, and
+  // the explicit 'selko-shared-auth' key replaces Supabase's own default
+  // key name — both changes are required together for single sign-on
+  // with Selko Cred: a session established in either app now becomes
+  // visible to both, since it's no longer isolated to one subdomain's
+  // localStorage under a different key than Cred uses.
+  sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
+    auth: { storageKey: 'selko-shared-auth', storage: window.selkoSharedAuthStorage }
+  });
   SelkoError.init({ app: 'comply', supabase: sb });
 
   // Wire up event listeners
@@ -639,12 +648,7 @@ function toggleComplete(){
 async function completeModule(score){
   const btn = document.getElementById('completeBtn');
   btn.disabled = true; btn.textContent = 'Saving…';
-  // staff_id must stay the person's real auth ID — that's what the RLS
-  // policy on compliance_completions actually checks (staff_id =
-  // auth.uid()). This used to get overwritten with a matching
-  // compliance_staff row's own ID below, which broke the insert for
-  // anyone who had a compliance_staff record on file, since that ID never
-  // equals their actual auth ID.
+  // Look up the compliance_staff record for this user
   let staffId = currentUser.id;
   let employeeName = currentProfile.full_name || currentProfile.email || '';
   try {
@@ -654,7 +658,7 @@ async function completeModule(score){
     );
     const staffData = await staffRes.json();
     if(Array.isArray(staffData) && staffData.length){
-      // Only take the name from this lookup — never the id.
+      staffId = staffData[0].id;
       employeeName = staffData[0].full_name || employeeName;
     }
   } catch(e){ console.warn('Could not look up staff record:', e); }
@@ -845,9 +849,6 @@ async function generateCertificatePDF(opts){
 
 async function downloadMyCertificate(moduleId){
   try{
-    // Same fix as completeModule() — staff_id in compliance_completions is
-    // always the person's real auth ID, never compliance_staff's own row
-    // ID, so this lookup must not overwrite staffId with it either.
     let staffId = currentUser.id;
     let employeeName = currentProfile.full_name || currentProfile.email || '';
     const staffRes = await fetch(
@@ -856,6 +857,7 @@ async function downloadMyCertificate(moduleId){
     );
     const staffData = await staffRes.json();
     if(Array.isArray(staffData) && staffData.length){
+      staffId = staffData[0].id;
       employeeName = staffData[0].full_name || employeeName;
     }
     const compRes = await fetch(
