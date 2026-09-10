@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Selko Comply</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="selko-comply-styles.css">
+<style>
+@media(max-width:768px){
+  #companyDrawer [style*="grid-template-columns:1fr 1fr"],
+  #addCompanyForm [style*="grid-template-columns:1fr 1fr"],
+  #addCompanyForm [style*="flex-direction:column"] > [style*="display:flex"],
+  .super-admin-grid{
+    grid-template-columns:1fr !important;
+  }
+  [style*="display:flex;gap:10px"] > div{
+    min-width:0;
+  }
+  .staff-table-wrap{overflow-x:auto}
+}
+</style>
+</head>
+<body>
+
+
+<!-- LOGIN -->
+<div id="initialLoader" style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f0f2f5">
+  <div style="width:32px;height:32px;border:3px solid #e2e6ea;border-top-color:#0BA7A0;border-radius:50%;animation:spin .7s linear infinite"></div>
+</div>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+
+<div class="login-wrap" id="loginWrap" style="display:none">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="mark"><img src="selko-logo-icon-white.png" alt="Selko" onerror="this.style.display='none'"></div>
+      <div class="name">Sel<span>ko</span></div>
+    </div>
+    <div class="login-tagline">Where clarity meets care</div>
+    <div class="login-module">📋 Selko Comply — compliance training</div>
+    <div class="login-err" id="loginErr"></div>
+    <div class="field"><label>Email</label><input type="email" id="loginEmail" placeholder="you@practice.com" autocomplete="email"></div>
+    <div class="field"><label>Password</label><input type="password" id="loginPassInput" placeholder="••••••••" autocomplete="current-password"></div>
+    <button class="login-btn" id="loginBtnTrigger">Sign in</button>
+    <div class="login-footer">Powered by <span>Selko</span> · selko360.com</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app" id="app">
+  <div class="topbar">
+    <a class="logo" href="#">
+      <div class="logo-mark"><img src="selko-logo-icon-white.png" alt="Selko" onerror="this.style.display='none'"></div>
+      <span class="logo-name">Sel<span>ko</span> <span class="logo-module">Comply</span></span>
+    </a>
+    <div class="top-space"></div>
+    <div class="top-user">
+      <div class="top-avatar" id="topAvatar"></div>
+      <div>
+        <div id="topName" style="color:#fff;font-size:13px"></div>
+        <div class="top-company" id="topCompany"></div>
+      </div>
+      <button class="top-signout" id="signOutBtn">Sign out</button>
+    </div>
+  </div>
+
+  <div class="page">
+    <div id="statusBar"></div>
+
+    <!-- WELCOME -->
+    <div class="welcome-bar" id="welcomeBar">
+      <div class="welcome-left">
+        <h2 id="welcomeName">Welcome back</h2>
+        <p id="welcomeSub">Complete your required training below</p>
+      </div>
+      <div class="welcome-stats" id="welcomeStats"></div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tab-bar" id="tabBar">
+      <button class="tab-btn active" onclick="showTab('training')">My training</button>
+      <button class="tab-btn" id="adminTab" onclick="showTab('admin')" style="display:none">Staff overview</button>
+      <button class="tab-btn" id="manageTab" onclick="showTab('manage')" style="display:none">Manage staff</button>
+      <button class="tab-btn" id="superAdminTab" onclick="showTab('superadmin')" style="display:none;background:var(--navy);color:var(--gold);border-color:var(--gold)">⚡ Selko Admin</button>
+      <button class="tab-btn" id="moduleEditorTab" onclick="showTab('moduleeditor')" style="display:none;background:var(--navy);color:#0BA7A0;border-color:#0BA7A0">📋 Modules</button>
+    </div>
+
+    <!-- TRAINING TAB -->
+    <div id="trainingTab">
+      <div id="moduleGrid" class="module-grid"></div>
+    </div>
+
+    <!-- ADMIN TAB -->
+    <div id="adminTab2" style="display:none">
+      <div class="card">
+        <div class="card-title">Staff compliance status</div>
+        <div id="adminTable"></div>
+      </div>
+    </div>
+
+    <!-- MANAGE STAFF TAB -->
+    <div id="manageTab2" style="display:none">
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
+          <div class="card-title" style="margin:0">Staff management</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <div id="seatUsage"></div>
+            <button class="btn sm ghost" onclick="exportStaff('csv')" title="Export staff list as CSV">⬇ Export CSV</button>
+            <button class="btn sm" style="border-color:var(--teal);color:var(--teal)" onclick="sendAllReminders()">📧 Remind all</button>
+            <button class="btn primary sm" onclick="showAddStaffForm()">+ Add staff member</button>
+          </div>
+        </div>
+        <div id="bulkReminderStatus" style="display:none;font-size:12px;padding:8px 12px;border-radius:8px;margin-bottom:1rem"></div>
+        <div id="addStaffForm" style="display:none;background:var(--surface);border:0.5px solid var(--border);border-radius:10px;padding:1.25rem;margin-bottom:1rem">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+            <div class="field"><label>Full name</label><input type="text" id="newName" placeholder="Jane Smith, PTA"></div>
+            <div class="field"><label>Email</label><input type="email" id="newEmail" placeholder="jane@email.com"></div>
+            <div class="field">
+              <label>App access</label>
+              <select id="newRole">
+                <option value="clinician">Clinician (training only)</option>
+                <option value="admin">Admin (staff management)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Required modules</label>
+              <select id="newStaffType">
+                <option value="clinician">Clinician — all 6 modules</option>
+                <option value="office">Office / Admin — HIPAA, Abuse, Device</option>
+                <option value="owner">Owner / Director — all 7 modules</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn primary" onclick="saveNewStaff()">Save staff member</button>
+            <button class="btn ghost" onclick="hideAddStaffForm()">Cancel</button>
+          </div>
+          <div id="addStaffError" style="color:var(--red);font-size:12px;margin-top:8px;display:none"></div>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="staff-table">
+            <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Modules</th><th>Actions</th></tr></thead>
+            <tbody id="staffTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRAINING VIEWER -->
+    <div class="training-viewer" id="trainingViewer">
+      <div class="training-header">
+        <button class="back-btn" onclick="closeTraining()">← Back to training</button>
+        <span id="viewerTitle" style="font-size:14px;font-weight:600;color:var(--navy)"></span>
+      </div>
+      <div class="training-progress"><div class="training-progress-bar" id="progressBar" style="width:0%"></div></div>
+      <div id="trainingContent"></div>
+      <div class="nav-actions" id="navActions"></div>
+    </div>
+
+  </div>
+
+      <!-- MODULE EDITOR PANEL -->
+      <div id="moduleEditorTab2" style="display:none">
+        <div style="background:var(--navy);border-radius:12px;padding:1.25rem 1.5rem;margin-bottom:1.25rem;display:flex;gap:1.5rem;flex-wrap:wrap;align-items:center">
+          <div style="flex:1">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.4);margin-bottom:4px">Selko Comply</div>
+            <div style="font-size:16px;font-weight:600;color:#fff">Module Editor</div>
+          </div>
+          <div style="font-size:12px;color:rgba(255,255,255,.5)">Edit global modules or create Pro company overrides</div>
+        </div>
+
+        <!-- Module list -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px">
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--navy)">Global modules</div>
+            <div style="font-size:12px;color:var(--muted)">Available to all companies</div>
+          </div>
+          <button class="btn primary" onclick="openNewModuleForm()">+ Create custom module</button>
+        </div>
+        <div id="moduleList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;margin-bottom:1.25rem"></div>
+
+        <!-- New custom module form -->
+        <div id="newModuleForm" style="display:none" class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
+            <div class="card-title" style="margin:0">+ Create custom module</div>
+            <button class="btn ghost sm" onclick="closeNewModuleForm()">✕ Close</button>
+          </div>
+          <div style="background:var(--gold-lt);border:0.5px solid var(--gold-md);border-radius:8px;padding:10px 14px;margin-bottom:1rem;font-size:12px;color:#92710a">
+            ⭐ Custom modules are Pro only — they appear only for the selected company's staff.
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem">
+            <div class="field"><label>Module ID <span style="font-weight:400;color:var(--muted)">(unique, no spaces)</span></label><input type="text" id="newModuleId" placeholder="e.g. orientation_2026"></div>
+            <div class="field"><label>Icon</label><input type="text" id="newModuleIconNew" placeholder="📋" style="width:60px"></div>
+            <div class="field"><label>Title</label><input type="text" id="newModuleTitle" placeholder="e.g. Agency Orientation 2026"></div>
+            <div class="field"><label>Pass score (%)</label><input type="number" id="newModulePassScore" value="80" min="50" max="100"></div>
+            <div class="field" style="grid-column:1/-1"><label>Description</label><input type="text" id="newModuleDesc" placeholder="Brief description of what this module covers"></div>
+            <div class="field">
+              <label>Assign to company</label>
+              <select id="newModuleCompany">
+                <option value="">Loading companies...</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Staff types</label>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
+                <label style="font-size:12px;cursor:pointer"><input type="checkbox" id="newModTypeClinician" checked> Clinician</label>
+                <label style="font-size:12px;cursor:pointer"><input type="checkbox" id="newModTypeOffice"> Office</label>
+                <label style="font-size:12px;cursor:pointer"><input type="checkbox" id="newModTypeOwner" checked> Owner</label>
+                <label style="font-size:12px;cursor:pointer"><input type="checkbox" id="newModTypeAdmin" checked> Admin</label>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn primary" onclick="saveNewModule()">Create module</button>
+            <button class="btn ghost" onclick="closeNewModuleForm()">Cancel</button>
+          </div>
+          <div id="newModuleError" style="color:var(--red);font-size:12px;margin-top:8px;display:none"></div>
+        </div>
+
+        <!-- Module editor drawer -->
+        <div id="moduleEditorDrawer" style="display:none" class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
+            <div>
+              <div class="card-title" style="margin:0" id="moduleEditorTitle">Edit module</div>
+              <div style="font-size:12px;color:var(--muted);margin-top:3px" id="moduleEditorSubtitle"></div>
+            </div>
+            <button class="btn ghost sm" onclick="closeModuleEditor()">✕ Close</button>
+          </div>
+          <input type="hidden" id="editingModuleId">
+          <input type="hidden" id="editingModuleCompanyId">
+
+          <!-- Module metadata -->
+          <div style="background:var(--teal-lt);border:0.5px solid var(--teal-md);border-radius:10px;padding:1.25rem;margin-bottom:1rem">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--teal);margin-bottom:1rem">Module settings</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <div class="field"><label>Title</label><input type="text" id="editModuleTitle" placeholder="Module title"></div>
+              <div class="field"><label>Icon</label><input type="text" id="editModuleIcon" placeholder="🔒" style="width:60px"></div>
+              <div class="field"><label>Description</label><input type="text" id="editModuleDesc" placeholder="Brief description"></div>
+              <div class="field"><label>Pass score (%)</label><input type="number" id="editModulePassScore" min="50" max="100" value="80"></div>
+            </div>
+          </div>
+
+          <!-- Slides editor -->
+          <div style="margin-bottom:1rem">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+              <div class="card-title" style="margin:0">Slides <span id="slideCount" style="font-size:11px;font-weight:400;color:var(--muted)"></span></div>
+              <button class="btn sm primary" onclick="addSlide()">+ Add slide</button>
+            </div>
+            <div id="slidesEditor"></div>
+          </div>
+
+          <!-- Quiz editor -->
+          <div style="margin-bottom:1.25rem">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+              <div class="card-title" style="margin:0">Quiz questions <span id="quizCount" style="font-size:11px;font-weight:400;color:var(--muted)"></span></div>
+              <button class="btn sm primary" onclick="addQuizQuestion()">+ Add question</button>
+            </div>
+            <div id="quizEditor"></div>
+          </div>
+
+          <div style="display:flex;gap:8px">
+            <button class="btn primary" onclick="saveModuleEdits()">💾 Save module</button>
+            <button class="btn ghost" onclick="closeModuleEditor()">Cancel</button>
+          </div>
+          <div id="moduleEditorStatus" style="font-size:12px;margin-top:8px;display:none"></div>
+        </div>
+      </div>
+
+      <!-- SUPER ADMIN PANEL -->
+      <div id="superAdminTab2" style="display:none">
+
+        <!-- Platform stats bar -->
+        <div style="background:var(--navy);border-radius:12px;padding:1.25rem 1.5rem;margin-bottom:1.25rem;display:flex;gap:1.5rem;flex-wrap:wrap;align-items:center">
+          <div style="flex:1">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.4);margin-bottom:4px">Selko Platform</div>
+            <div style="font-size:16px;font-weight:600;color:#fff">Super Admin Console</div>
+          </div>
+          <div id="platformStats" style="display:flex;gap:1rem;flex-wrap:wrap"></div>
+        </div>
+
+        <!-- Company cards -->
+        <div id="companyCards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1rem;margin-bottom:1.25rem"></div>
+
+        <!-- Error log panel -->
+        <div class="card" style="margin-bottom:1.25rem">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+            <div class="card-title" style="margin:0">🔴 Recent errors</div>
+            <div style="display:flex;gap:6px">
+              <button class="btn sm ghost" onclick="loadSuperAdminData()">↻ Refresh</button>
+              <button class="btn sm" style="border-color:var(--red);color:var(--red)" onclick="clearErrorLog()">🗑 Clear all</button>
+            </div>
+          </div>
+          <div id="errorLogPanel" style="font-size:12px;color:var(--muted)">Loading...</div>
+        </div>
+
+        <!-- Add company button -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
+          <div style="font-size:13px;color:var(--muted)">Manage all Selko client companies from here.</div>
+          <button class="btn primary" onclick="showAddCompany()">+ Add new company</button>
+        </div>
+
+        <!-- Add company form -->
+        <div id="addCompanyForm" style="display:none" class="card">
+          <div class="card-title">New company</div>
+          <div style="font-size:12px;color:#0a6b58;background:var(--teal-lt);border:0.5px solid var(--teal-md);border-radius:8px;padding:9px 12px;margin-bottom:1rem;line-height:1.5">
+            💡 Enter the agency name — URL ID fills automatically. Add the admin email and choose a plan. Start all new clients on Standard.
+          </div>
+          <div style="display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:12px">
+            <div class="field">
+              <label>Company name</label>
+              <input type="text" id="newCoName" placeholder="e.g. Acme Home Health" oninput="autoSlug(this.value)">
+            </div>
+            <div class="field">
+              <label>URL ID (slug)</label>
+              <input type="text" id="newCoSlug" placeholder="e.g. acme">
+              <div style="font-size:11px;color:var(--muted);margin-top:3px">comply.selko360.com?org=<strong id="slugPreview">...</strong></div>
+            </div>
+            <div class="field">
+              <label>Admin email</label>
+              <input type="email" id="newCoEmail" placeholder="e.g. director@acmehomehealth.com">
+            </div>
+            <div class="field">
+              <label>Plan</label>
+              <select id="newCoPlan">
+                <option value="standard">Standard — $39/mo</option>
+                <option value="pro">Pro — $79/mo</option>
+              </select>
+            </div>
+          </div>
+          <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:12px">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px">Trial options</div>
+            <div style="display:flex;gap:1.5rem;flex-wrap:wrap">
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px">
+                <input type="checkbox" id="newCoTrial" checked style="accent-color:var(--teal)" onchange="toggleTrialDays()">
+                Start as 14-day trial
+              </label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px">
+                <input type="checkbox" id="newCoAddDemo" checked style="accent-color:var(--teal)">
+                Add demo employee
+              </label>
+            </div>
+            <div id="trialDaysRow" style="margin-top:8px;display:flex;align-items:center;gap:8px">
+              <label style="font-size:12px;color:var(--muted)">Trial length:</label>
+              <select id="newCoTrialDays" style="width:auto;padding:4px 8px;font-size:12px">
+                <option value="7">7 days</option>
+                <option value="14" selected>14 days</option>
+                <option value="21">21 days</option>
+                <option value="30">30 days</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn primary" onclick="saveNewCompany()">+ Create company</button>
+            <button class="btn ghost" onclick="hideAddCompanyForm()">Cancel</button>
+          </div>
+          <div id="newCoError" style="color:var(--red);font-size:12px;margin-top:8px;display:none"></div>
+        </div>
+
+        <!-- Company settings drawer -->
+        <div id="companyDrawer" style="display:none" class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
+            <div>
+              <div class="card-title" style="margin:0" id="drawerTitle">Company settings</div>
+              <div style="font-size:12px;color:var(--muted);margin-top:3px">Quick setup for every client. Advanced settings for Pro only.</div>
+            </div>
+            <button class="btn ghost sm" onclick="closeDrawer()">✕ Close</button>
+          </div>
+          <input type="hidden" id="drawerCompanyId">
+
+          <!-- QUICK SETUP -->
+          <div style="background:var(--teal-lt);border:0.5px solid var(--teal-md);border-radius:10px;padding:1.25rem;margin-bottom:1rem">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--teal);margin-bottom:1rem">⚡ Quick setup — fill this for every client</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+              <div class="field"><label>Company name</label><input type="text" id="dCoName" placeholder="e.g. Acme Home Health"></div>
+              <div class="field"><label>Plan</label><select id="dCoPlan" onchange="autoSetSeatLimit(this.value)"><option value="standard">Standard — $39/mo</option><option value="pro">Pro — $79/mo</option><option value="enterprise">Enterprise</option></select></div>
+              <div class="field"><label>Seat limit <span style="font-weight:400;color:var(--muted)">(auto-set by plan)</span></label><input type="number" id="dSeatLimit" placeholder="e.g. 20" min="1"></div>
+              <div class="field"><label>Admin email</label><input type="email" id="dOrgEmail" placeholder="e.g. admin@company.com"></div>
+              <div class="field"><label>Privacy Officer name</label><input type="text" id="dPrivacyOfficer" placeholder="e.g. Jane Smith, DPT"></div>
+              <div class="field"><label>Privacy Officer email</label><input type="email" id="dPrivacyEmail" placeholder="e.g. privacy@company.com"></div>
+              <div class="field"><label>Backup contact</label><input type="text" id="dBackupContact" placeholder="e.g. John Doe, PT"></div>
+              <div class="field">
+                <label>Account status</label>
+                <select id="dStatus">
+                  <option value="trial">Trial</option>
+                  <option value="active">Active</option>
+                  <option value="past_due">Past due</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Trial end date <span style="font-weight:400;color:var(--muted)">(leave blank if active)</span></label>
+                <input type="date" id="dTrialEndsAt">
+              </div>
+              <div class="field"><label>Logo URL <span style="font-weight:400;color:var(--muted)">(paste link)</span></label><input type="url" id="dCoLogo" placeholder="https://..."></div>
+              <div class="field"><label>Upload logo</label><input type="file" id="dCoLogoFile" accept="image/*" style="padding:6px 8px;font-size:12px;width:100%" onchange="uploadLogo(this)"></div>
+            </div>
+          </div>
+
+          <!-- INVITE ADMIN -->
+          <div style="background:#eff6ff;border:0.5px solid #bfdbfe;border-radius:10px;padding:1.25rem;margin-bottom:1rem">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#1E3A8A;margin-bottom:.75rem">🔑 Create admin login</div>
+            <div style="font-size:12px;color:#1E3A8A;margin-bottom:1rem;line-height:1.5">Creates a working login for this company's admin in one click — no Supabase needed.</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+              <div class="field"><label>Admin name</label><input type="text" id="inviteAdminName" placeholder="e.g. Jane Smith, DPT"></div>
+              <div class="field"><label>Admin email</label><input type="email" id="inviteAdminEmail" placeholder="e.g. jane@company.com"></div>
+              <div class="field"><label>Temporary password</label><input type="text" id="inviteAdminPassword" placeholder="e.g. Welcome2026!" value="Welcome2026!"></div>
+              <div class="field" style="display:flex;align-items:flex-end">
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;margin:0"><input type="checkbox" id="inviteIsSuperAdmin" style="accent-color:var(--gold)"> Make super admin</label>
+              </div>
+            </div>
+            <button class="btn primary" onclick="createAdminLogin()" style="background:#1E3A8A;border-color:#1E3A8A">🔑 Create login</button>
+            <div id="inviteAdminStatus" style="font-size:12px;margin-top:8px;display:none"></div>
+          </div>
+
+          <!-- COMPLY SETTINGS -->
+          <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:1rem">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.75rem">⚙ Selko Comply settings</div>
+            <div style="display:flex;gap:1.25rem;flex-wrap:wrap">
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px"><input type="checkbox" id="dBranding" style="accent-color:var(--gold)"> ⭐ Pro branding enabled</label>
+            </div>
+            <div style="font-size:11px;color:var(--muted);margin-top:8px">Enable to activate company name substitution and custom contacts in all training modules.</div>
+            <!-- Hidden fields kept for save compatibility -->
+            <input type="hidden" id="dHasCompliance" value="true">
+            <input type="hidden" id="dHasCred" value="false">
+            <input type="hidden" id="dHasHep" value="false">
+          </div>
+
+          <!-- ADVANCED TOGGLE -->
+          <button onclick="toggleAdvanced()" class="btn sm ghost" id="advancedToggle" style="width:100%;justify-content:center;border:0.5px dashed var(--border);margin-bottom:1rem">
+            ▶ Show advanced settings — Pro client customization
+          </button>
+
+          <div id="advancedSettings" style="display:none;margin-bottom:1rem">
+            <div style="background:var(--gold-lt);border:0.5px solid var(--gold-md);border-radius:10px;padding:1.25rem">
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--gold);margin-bottom:.5rem">⭐ Pro — custom variables</div>
+              <div style="font-size:12px;color:#92710a;margin-bottom:1rem;line-height:1.5">Replace generic terms in training modules. Leave blank to keep generic language.</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <div class="field"><label>State</label><input type="text" id="dState" placeholder="e.g. Oklahoma"></div>
+                <div class="field"><label>APS hotline</label><input type="text" id="dApsHotline" placeholder="e.g. 1-800-522-3511"></div>
+                <div class="field"><label>APS website</label><input type="text" id="dApsWebsite" placeholder="e.g. okdhs.org"></div>
+                <div class="field"><label>Scheduling tool</label><input type="text" id="dSchedulingTool" placeholder="e.g. ConnectTeam"></div>
+                <div class="field"><label>Device type</label><input type="text" id="dDevice" placeholder="e.g. Samsung Galaxy Tab"></div>
+                <div class="field"><label>MDM system</label><input type="text" id="dMdm" placeholder="e.g. Knox MDM"></div>
+                <div class="field"><label>OSHA region</label><input type="text" id="dOshaRegion" placeholder="e.g. Federal OSHA Region VI"></div>
+                <div class="field"><label>Workers comp</label><input type="text" id="dWorkersComp" placeholder="e.g. Oklahoma workers compensation"></div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap">
+            <div style="display:flex;gap:8px">
+              <button class="btn primary" onclick="saveCompanySettings()">💾 Save changes</button>
+              <button class="btn" onclick="viewAsAdmin()" style="border-color:var(--gold);color:var(--gold)">👁 View as admin</button>
+              <button class="btn ghost" onclick="closeDrawer()">Cancel</button>
+            </div>
+            <button class="btn" onclick="deleteCompany()" style="border-color:var(--red);color:var(--red)">🗑 Delete company</button>
+          </div>
+          <div id="drawerStatus" style="font-size:12px;margin-top:8px;display:none"></div>
+        </div>
+
+      </div>
+
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// Shared SSO storage adapter — used identically in both Selko Cred and
+// Selko Comply's createClient() calls, so a session established in either
+// app is visible to both, rather than each subdomain keeping its own
+// isolated localStorage session (the actual reason logging into one app
+// didn't carry over to the other before this).
+//
+// Supabase's default storage is localStorage, which the browser scopes
+// per-subdomain (cred.selko360.com and comply.selko360.com each get their
+// own separate storage even on the same parent domain). Cookies scoped to
+// the PARENT domain (".selko360.com", with the leading dot) are visible
+// to every subdomain instead — that's what actually makes this work.
+//
+// A Supabase session (access token + refresh token + user metadata) can
+// occasionally exceed a single cookie's ~4KB limit, so this chunks across
+// numbered cookies (key_0, key_1, ...) rather than assuming it'll always
+// fit in one.
+
+const COOKIE_DOMAIN = '.selko360.com';
+const MAX_COOKIE_CHUNK = 3800; // safely under the ~4096 byte per-cookie limit, leaving room for the cookie's own name/attributes
+
+function setCookie(name, value, days = 400) { // 400 days = the max Chrome will actually honor
+  const expires = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toUTCString();
+  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; domain=${COOKIE_DOMAIN}; Secure; SameSite=Lax`;
+}
+
+function getCookie(name) {
+  const match = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/[.$?*|{}()[\]\\/+^]/g, '\\$&') + '=([^;]*)'));
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+function deleteCookie(name) {
+  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=${COOKIE_DOMAIN}; Secure; SameSite=Lax`;
+}
+
+// Chunk index cookies get cleaned up one past however many currently
+// exist, so a shrinking value (e.g. going from 3 chunks to 1) doesn't
+// leave stale chunk_1/chunk_2 cookies behind from a previous, larger value.
+const MAX_POSSIBLE_CHUNKS = 10;
+
+window.selkoSharedAuthStorage = {
+  getItem: (key) => {
+    const chunkCount = getCookie(`${key}_chunks`);
+    if (!chunkCount) return null;
+    let value = '';
+    for (let i = 0; i < parseInt(chunkCount, 10); i++) {
+      value += getCookie(`${key}_${i}`) || '';
+    }
+    return value || null;
+  },
+  setItem: (key, value) => {
+    const chunks = [];
+    for (let i = 0; i < value.length; i += MAX_COOKIE_CHUNK) {
+      chunks.push(value.slice(i, i + MAX_COOKIE_CHUNK));
+    }
+    chunks.forEach((chunk, i) => setCookie(`${key}_${i}`, chunk));
+    setCookie(`${key}_chunks`, String(chunks.length));
+    // Clean up any leftover chunks from a previous, larger value
+    for (let i = chunks.length; i < MAX_POSSIBLE_CHUNKS; i++) {
+      deleteCookie(`${key}_${i}`);
+    }
+  },
+  removeItem: (key) => {
+    deleteCookie(`${key}_chunks`);
+    for (let i = 0; i < MAX_POSSIBLE_CHUNKS; i++) {
+      deleteCookie(`${key}_${i}`);
+    }
+  },
+};
+
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="selko-comply-modules.js"></script>
+<script src="selko-error.js"></script>
+<script src="selko-comply-app.js"></script>
+<!-- STAFF TYPE MODAL -->
+<div id="staffTypeModal" style="display:none;position:fixed;inset:0;background:rgba(13,27,61,.6);z-index:200;align-items:center;justify-content:center;padding:1rem">
+  <div style="background:#fff;border-radius:14px;width:100%;max-width:420px;overflow:hidden">
+    <div style="background:var(--navy);padding:1.25rem 1.5rem">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.5);margin-bottom:3px">Update staff type</div>
+      <div style="font-size:16px;font-weight:600;color:#fff" id="stModalName">Staff name</div>
+    </div>
+    <div style="padding:1.5rem">
+      <div id="stModalOptions" style="display:flex;flex-direction:column;gap:8px;margin-bottom:1.25rem"></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn primary" onclick="confirmStaffType()" style="flex:1;justify-content:center">Save</button>
+        <button class="btn ghost" onclick="closeStaffTypeModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
