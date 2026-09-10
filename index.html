@@ -464,6 +464,77 @@
 
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// Shared SSO storage adapter — used identically in both Selko Cred and
+// Selko Comply's createClient() calls, so a session established in either
+// app is visible to both, rather than each subdomain keeping its own
+// isolated localStorage session (the actual reason logging into one app
+// didn't carry over to the other before this).
+//
+// Supabase's default storage is localStorage, which the browser scopes
+// per-subdomain (cred.selko360.com and comply.selko360.com each get their
+// own separate storage even on the same parent domain). Cookies scoped to
+// the PARENT domain (".selko360.com", with the leading dot) are visible
+// to every subdomain instead — that's what actually makes this work.
+//
+// A Supabase session (access token + refresh token + user metadata) can
+// occasionally exceed a single cookie's ~4KB limit, so this chunks across
+// numbered cookies (key_0, key_1, ...) rather than assuming it'll always
+// fit in one.
+
+const COOKIE_DOMAIN = '.selko360.com';
+const MAX_COOKIE_CHUNK = 3800; // safely under the ~4096 byte per-cookie limit, leaving room for the cookie's own name/attributes
+
+function setCookie(name, value, days = 400) { // 400 days = the max Chrome will actually honor
+  const expires = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toUTCString();
+  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; domain=${COOKIE_DOMAIN}; Secure; SameSite=Lax`;
+}
+
+function getCookie(name) {
+  const match = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/[.$?*|{}()[\]\\/+^]/g, '\\$&') + '=([^;]*)'));
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+function deleteCookie(name) {
+  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=${COOKIE_DOMAIN}; Secure; SameSite=Lax`;
+}
+
+// Chunk index cookies get cleaned up one past however many currently
+// exist, so a shrinking value (e.g. going from 3 chunks to 1) doesn't
+// leave stale chunk_1/chunk_2 cookies behind from a previous, larger value.
+const MAX_POSSIBLE_CHUNKS = 10;
+
+window.selkoSharedAuthStorage = {
+  getItem: (key) => {
+    const chunkCount = getCookie(`${key}_chunks`);
+    if (!chunkCount) return null;
+    let value = '';
+    for (let i = 0; i < parseInt(chunkCount, 10); i++) {
+      value += getCookie(`${key}_${i}`) || '';
+    }
+    return value || null;
+  },
+  setItem: (key, value) => {
+    const chunks = [];
+    for (let i = 0; i < value.length; i += MAX_COOKIE_CHUNK) {
+      chunks.push(value.slice(i, i + MAX_COOKIE_CHUNK));
+    }
+    chunks.forEach((chunk, i) => setCookie(`${key}_${i}`, chunk));
+    setCookie(`${key}_chunks`, String(chunks.length));
+    // Clean up any leftover chunks from a previous, larger value
+    for (let i = chunks.length; i < MAX_POSSIBLE_CHUNKS; i++) {
+      deleteCookie(`${key}_${i}`);
+    }
+  },
+  removeItem: (key) => {
+    deleteCookie(`${key}_chunks`);
+    for (let i = 0; i < MAX_POSSIBLE_CHUNKS; i++) {
+      deleteCookie(`${key}_${i}`);
+    }
+  },
+};
+
+</script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="selko-comply-modules.js"></script>
