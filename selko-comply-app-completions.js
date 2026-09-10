@@ -9,16 +9,7 @@ document.addEventListener('DOMContentLoaded', function(){
     document.body.innerHTML='<p style="padding:2rem;font-family:sans-serif;color:red">Supabase library failed to load. Check internet connection and try again.</p>';
     return;
   }
-  // Shared cookie-based storage (scoped to .selko360.com, the parent
-  // domain) replaces the previous default localStorage-only session, and
-  // the explicit 'selko-shared-auth' key replaces Supabase's own default
-  // key name — both changes are required together for single sign-on
-  // with Selko Cred: a session established in either app now becomes
-  // visible to both, since it's no longer isolated to one subdomain's
-  // localStorage under a different key than Cred uses.
-  sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
-    auth: { storageKey: 'selko-shared-auth', storage: window.selkoSharedAuthStorage }
-  });
+  sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
   SelkoError.init({ app: 'comply', supabase: sb });
 
   // Wire up event listeners
