@@ -207,7 +207,7 @@ async function loadApp(user){
 
     // Get company separately
     const coRes = await fetch(
-      SUPABASE_URL + '/rest/v1/companies?id=eq.' + data.company_id + '&select=name,slug',
+      SUPABASE_URL + '/rest/v1/companies?id=eq.' + data.company_id + '&select=name,slug,deleted_at',
       { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON) }}
     );
     const coArr = await coRes.json();
@@ -223,6 +223,14 @@ async function loadApp(user){
       data.companies = (Array.isArray(coArr2) && coArr2.length) ? coArr2[0] : { name: 'Your Organization', slug: '' };
     }
     console.log('Company:', data.companies);
+
+    // A company on the 30-day deletion hold is locked out, same as in Selko Cred.
+    // Super admins can still sign in (to restore it).
+    if (!data.is_super_admin && data.companies && data.companies.deleted_at) {
+      showErr('This organization has been deleted and its access is turned off. Contact Selko if this is a mistake.');
+      await sb.auth.signOut();
+      return;
+    }
 
     currentProfile = data;
     if(window.SelkoError && SelkoError.setCompany) SelkoError.setCompany(data.company_id);
@@ -1819,7 +1827,7 @@ function openNewModuleForm(){
   // Populate company dropdown
   const sel = document.getElementById('newModuleCompany');
   if(sel && allCompanies.length){
-    sel.innerHTML = allCompanies
+    sel.innerHTML = allCompanies.filter(c => !c.deleted_at)
       .filter(co => co.plan === 'pro' || co.plan === 'enterprise')
       .map(co => `<option value="${co.id}">${co.name} (${co.plan})</option>`)
       .join('');
@@ -1955,7 +1963,7 @@ async function loadSuperAdminData(){
   const totalStaff = Object.values(staffCounts).reduce((a,b)=>a+b,0);
   const totalComps = Object.values(compCounts).reduce((a,b)=>a+b,0);
   document.getElementById('platformStats').innerHTML = `
-    <div style="text-align:center"><div style="font-size:22px;font-weight:700;color:var(--teal)">${allCompanies.length}</div><div style="font-size:11px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.06em">Companies</div></div>
+    <div style="text-align:center"><div style="font-size:22px;font-weight:700;color:var(--teal)">${allCompanies.filter(c => !c.deleted_at).length}</div><div style="font-size:11px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.06em">Companies</div></div>
     <div style="text-align:center"><div style="font-size:22px;font-weight:700;color:var(--teal)">${totalStaff}</div><div style="font-size:11px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.06em">Total staff</div></div>
     <div style="text-align:center"><div style="font-size:22px;font-weight:700;color:var(--teal)">${totalComps}</div><div style="font-size:11px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.06em">Completions</div></div>
   `;
@@ -2010,7 +2018,14 @@ async function loadSuperAdminData(){
       statusBadge = '<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:#f3f4f6;color:#6b7280;border:0.5px solid #d1d5db;margin-left:6px">CANCELLED</span>';
     }
 
-    return `<div style="background:var(--white);border:0.5px solid var(--border);border-radius:12px;padding:1.25rem;position:relative">
+    const isDeleted = !!co.deleted_at;
+    const purgeDays = isDeleted && co.purge_scheduled_at ? Math.max(0, Math.ceil((new Date(co.purge_scheduled_at) - new Date()) / 86400000)) : null;
+    if(isDeleted){
+      statusBadge = '<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:#7f1d1d;color:#fca5a5;margin-left:6px">DELETED</span>';
+      statusBar = '<div style="font-size:11px;color:#b91c1c;margin-bottom:.5rem">🗑 On 30-day hold' + (purgeDays !== null ? ' — permanently removed in ' + purgeDays + ' day' + (purgeDays===1?'':'s') : '') + '. Access is off.</div>';
+    }
+
+    return `<div style="background:var(--white);border:0.5px solid ${isDeleted ? '#fca5a5' : 'var(--border)'};border-radius:12px;padding:1.25rem;position:relative;${isDeleted ? 'opacity:.85' : ''}">
       <div style="position:absolute;top:12px;right:12px;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;background:${planColor}20;color:${planColor};border:0.5px solid ${planColor}">${planLabel}</div>
       <div style="font-size:15px;font-weight:600;color:var(--navy);margin-bottom:4px;padding-right:80px">${co.name}${statusBadge}</div>
       ${statusBar}
@@ -2019,8 +2034,10 @@ async function loadSuperAdminData(){
         ${co.seat_limit ? ' · <span style="font-weight:600;color:' + (staff/co.seat_limit>=1?'var(--red)':staff/co.seat_limit>=0.8?'#92400e':'var(--muted)') + '">' + staff + '/' + co.seat_limit + ' seats</span>' : ''}
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="btn sm primary" onclick="openCompanyDrawer('${co.id}')">⚙ Settings</button>
-        <button class="btn sm" style="border-color:var(--gold);color:var(--gold)" onclick="viewAsAdmin('${co.id}')">👁 View as admin</button>
+        ${isDeleted
+          ? `<button class="btn sm primary" onclick="restoreCompany('${co.id}')">↩ Restore</button>`
+          : `<button class="btn sm primary" onclick="openCompanyDrawer('${co.id}')">⚙ Settings</button>
+        <button class="btn sm" style="border-color:var(--gold);color:var(--gold)" onclick="viewAsAdmin('${co.id}')">👁 View as admin</button>`}
       </div>
     </div>`;
   }).join('');
@@ -2236,24 +2253,68 @@ function toggleAdvanced(){
 async function deleteCompany(){
   const id = document.getElementById('drawerCompanyId').value;
   const name = document.getElementById('dCoName').value;
-  if(!confirm('Permanently delete ' + name + '?\n\nThis will remove the company and is NOT reversible. Any staff or completions tied to this company will be orphaned.\n\nType the company name to confirm in the next prompt.')) return;
-  const confirmName = prompt('Type "' + name + '" to confirm deletion:');
-  if(confirmName !== name){ showToast('Name did not match — deletion cancelled'); return; }
+  const co = allCompanies.find(c => c.id === id);
+  if(co && co.deleted_at){ showToast('Already deleted — use Restore on the company card.'); return; }
+  if(!currentProfile || !currentProfile.is_super_admin){ showToast('Only super admins can delete a company.'); return; }
+  if(!confirm('Delete ' + name + '?\n\nThis blocks their access immediately and schedules permanent deletion in 30 days. Nothing is removed yet — you can restore it anytime before the purge date.\n\nType the company name to confirm in the next prompt.')) return;
+  const confirmName = prompt('Type "' + name + '" to confirm:');
+  if(confirmName !== name){ showToast('Name did not match — cancelled'); return; }
 
+  const purgeDate = new Date();
+  purgeDate.setDate(purgeDate.getDate() + 30);
   const res = await fetch(
     SUPABASE_URL + '/rest/v1/companies?id=eq.' + id,
-    { method: 'DELETE',
-      headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON) }
+    { method: 'PATCH',
+      headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON),
+                'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+      body: JSON.stringify({
+        deleted_at: new Date().toISOString(),
+        purge_scheduled_at: purgeDate.toISOString(),
+        deleted_by_profile_id: currentProfile.id
+      })
     }
   );
+  const out = await res.json().catch(()=>null);
 
-  if(res.ok){
+  // PATCH returns 200 even when nothing matched, so check a row actually came back.
+  if(res.ok && Array.isArray(out) && out.length){
     closeDrawer();
-    showToast('✓ ' + name + ' deleted');
+    showToast('✓ ' + name + ' deleted — permanently removed in 30 days unless restored');
+    loadSuperAdminData();
+    // Same notification email Selko Cred sends. Fire-and-forget: the delete already worked.
+    try {
+      sb.functions.invoke('notify-company-deletion', { body: {
+        companyName: name,
+        deletedByName: currentProfile.full_name || currentProfile.email,
+        deletedByEmail: currentProfile.email,
+        purgeDate: purgeDate.toLocaleDateString()
+      }}).catch(e => console.error('Deletion notification failed to send:', e));
+    } catch(e){ console.error('Deletion notification failed to send:', e); }
+  } else {
+    const msg = (out && out.message) || (res.ok ? 'no company was changed' : 'check permissions');
+    showToast('Delete failed — ' + msg);
+  }
+}
+
+async function restoreCompany(id){
+  const co = allCompanies.find(c => c.id === id);
+  const name = co ? co.name : 'this company';
+  if(!currentProfile || !currentProfile.is_super_admin){ showToast('Only super admins can restore a company.'); return; }
+  if(!confirm('Restore ' + name + '? This cancels the scheduled removal and turns their access back on right away.')) return;
+  const res = await fetch(
+    SUPABASE_URL + '/rest/v1/companies?id=eq.' + id,
+    { method: 'PATCH',
+      headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON),
+                'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+      body: JSON.stringify({ deleted_at: null, purge_scheduled_at: null, deleted_by_profile_id: null })
+    }
+  );
+  const out = await res.json().catch(()=>null);
+  if(res.ok && Array.isArray(out) && out.length){
+    showToast('✓ ' + name + ' restored');
     loadSuperAdminData();
   } else {
-    const err = await res.json().catch(()=>({}));
-    showToast('Delete failed — ' + (err.message || 'check for linked records'));
+    showToast('Restore failed — ' + ((out && out.message) || 'no company was changed'));
   }
 }
 
