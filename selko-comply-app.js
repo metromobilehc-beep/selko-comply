@@ -1,3 +1,7 @@
+// Version stamp: shown bottom-right of every screen so "which version is this?" is never a guess.
+const APP_VERSION = '2026-10-13-i';
+window.SELKO_VERSION = APP_VERSION;
+(function(){ function put(){ if(document.getElementById('appVersionTag')) return; var d=document.createElement('div'); d.id='appVersionTag'; d.textContent='Selko Comply v'+APP_VERSION; d.style.cssText='position:fixed;right:8px;bottom:4px;font-size:11px;color:#8a94a6;opacity:.7;pointer-events:none;z-index:5;font-family:monospace;'; document.body.appendChild(d); } if(document.body) put(); else window.addEventListener('DOMContentLoaded',put); })();
 window.addEventListener("load", function(){
 if(typeof supabase === "undefined"){ document.body.innerHTML="<p style='padding:2rem;color:red'>Failed to load Supabase library. Check your internet connection.</p>"; return; }
 });
