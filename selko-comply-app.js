@@ -566,6 +566,60 @@ function applyCompanyVars(html){
   return out;
 }
 
+// ── THINK-THEN-REVEAL SLIDES ──
+// A slide with `guess: {id, items:[{scen, ask, opts[], ans, why}]}` asks the learner to pick an
+// answer for each case. The slide with `reveal: '<id>'` shows their pick next to the correct
+// answer and the reason. Picks are kept in memory only.
+window._guesses = window._guesses || {};
+function guessKey(id){ return (currentModule ? currentModule.id : '') + ':' + id; }
+function guessComplete(slide){
+  const g = window._guesses[guessKey(slide.guess.id)] || [];
+  return slide.guess.items.every((_, i) => g[i] !== undefined && g[i] !== null);
+}
+function recordGuess(id, i, j){
+  const k = guessKey(id);
+  window._guesses[k] = window._guesses[k] || [];
+  window._guesses[k][i] = j;
+  const slide = currentModule.slides[currentSection];
+  document.querySelectorAll('[data-gopt="' + i + '"]').forEach(el => {
+    const sel = Number(el.getAttribute('data-j')) === j;
+    el.style.borderColor = sel ? 'var(--teal)' : 'var(--border)';
+    el.style.background = sel ? 'var(--teal-lt)' : 'var(--white)';
+  });
+  const btn = document.getElementById('nextSlideBtn');
+  if(btn && slide && slide.guess && guessComplete(slide)){ btn.disabled = false; btn.style.opacity = ''; btn.style.cursor = ''; }
+}
+function renderGuessItems(slide){
+  const g = window._guesses[guessKey(slide.guess.id)] || [];
+  return slide.guess.items.map((it, i) => `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin:12px 0">
+      <p style="margin:0 0 4px"><strong>Case ${i+1}.</strong> ${it.scen}</p>
+      <p style="margin:0 0 8px;color:var(--muted);font-size:12px">${it.ask || 'Which response applies?'}</p>
+      ${it.opts.map((o, j) => `
+        <label data-gopt="${i}" data-j="${j}" style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;margin:4px 0;border:1.5px solid ${g[i]===j?'var(--teal)':'var(--border)'};background:${g[i]===j?'var(--teal-lt)':'var(--white)'};border-radius:8px;cursor:pointer;font-size:13px">
+          <input type="radio" name="guess_${i}" ${g[i]===j?'checked':''} onchange="recordGuess('${slide.guess.id}', ${i}, ${j})" style="margin-top:2px;accent-color:var(--teal)">
+          <span>${o}</span>
+        </label>`).join('')}
+    </div>`).join('');
+}
+function renderRevealItems(slide){
+  const gs = currentModule.slides.find(x => x.guess && x.guess.id === slide.reveal);
+  if(!gs) return '';
+  const g = window._guesses[guessKey(slide.reveal)] || [];
+  const right = gs.guess.items.filter((it, i) => g[i] === it.ans).length;
+  const summary = `<div class="callout" style="margin-bottom:12px"><strong>You got ${right} of ${gs.guess.items.length} right.</strong> Read the reason on each case, including the ones you got right.</div>`;
+  return summary + gs.guess.items.map((it, i) => {
+    const ok = g[i] === it.ans;
+    const mine = (g[i] === undefined || g[i] === null) ? 'No answer' : it.opts[g[i]];
+    return `<div style="background:var(--surface);border:1px solid var(--border);border-left:4px solid ${ok?'var(--green)':'var(--red)'};border-radius:8px;padding:12px 16px;margin:12px 0">
+      <p style="margin:0 0 6px"><strong>Case ${i+1}.</strong> ${it.scen}</p>
+      <p style="margin:0 0 4px"><strong>Your answer:</strong> ${mine} ${ok?'✓':'✗'}</p>
+      <p style="margin:0 0 6px"><strong>Correct answer:</strong> ${it.opts[it.ans]}</p>
+      <p style="margin:0"><strong>Why:</strong> ${it.why}</p>
+    </div>`;
+  }).join('');
+}
+
 function renderSection(){
   const total = currentModule.slides.length + 1; // +1 for quiz slide
   const pct = Math.round((currentSection / (total)) * 100);
@@ -584,11 +638,12 @@ function renderSection(){
       <div class="section-card">
         <div class="section-eyebrow" style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--teal);margin-bottom:.5rem">Slide ${currentSection+1} of ${currentModule.slides.length}</div>
         <div class="section-title" style="font-size:17px;font-weight:600;color:var(--navy);margin-bottom:.75rem">${s.title}</div>
-        <div class="section-body">${applyCompanyVars(s.content)}</div>
+        <div class="section-body">${applyCompanyVars(s.content)}${s.guess ? renderGuessItems(s) : ''}${s.reveal ? renderRevealItems(s) : ''}</div>
       </div>`;
+    const _needsGuess = !!(s.guess && !guessComplete(s));
     document.getElementById('navActions').innerHTML = `
       <button class="btn" onclick="prevSection()" ${currentSection===0?'disabled':''}>← Previous</button>
-      <button class="btn primary" onclick="nextSection()">Next →</button>`;
+      <button class="btn primary" id="nextSlideBtn" onclick="nextSection()" ${_needsGuess?'disabled style="opacity:.5;cursor:not-allowed"':''}>${s.guess ? 'Check my answers →' : 'Next →'}</button>`;
   } else {
     renderQuizSlide();
   }
@@ -1036,6 +1091,8 @@ function prevSection(){
 }
 function nextSection(){ 
   if(window.speechSynthesis) window.speechSynthesis.cancel(); speechPlaying = false;
+  const _cs = currentModule && currentModule.slides[currentSection];
+  if(_cs && _cs.guess && !guessComplete(_cs)){ showToast('Pick an answer for every case first'); return; }
   currentSection++; quizSelections={}; renderSection(); scrollToTrainingTop();
 }
 
