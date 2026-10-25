@@ -113,6 +113,12 @@
         "answer": 1,
         "explanation": "Code the patient's current ability from your observation or reliable report."
       }
+    ],
+    "disciplines": [
+      "PT",
+      "OT",
+      "SLP",
+      "RN"
     ]
   },
   {
@@ -214,6 +220,12 @@
         "answer": 1,
         "explanation": "The recertification window is counted from the original SOC date."
       }
+    ],
+    "disciplines": [
+      "PT",
+      "OT",
+      "SLP",
+      "RN"
     ]
   },
   {
@@ -315,6 +327,12 @@
         "answer": 2,
         "explanation": "The last qualified clinician completes the assessment."
       }
+    ],
+    "disciplines": [
+      "PT",
+      "OT",
+      "SLP",
+      "RN"
     ]
   },
   {
@@ -420,6 +438,11 @@
         "answer": 1,
         "explanation": "Records must be consistent."
       }
+    ],
+    "disciplines": [
+      "PT",
+      "OT",
+      "SLP"
     ]
   },
   {
@@ -525,6 +548,13 @@
         "answer": 1,
         "explanation": "Words do not match data."
       }
+    ],
+    "disciplines": [
+      "PT",
+      "PTA",
+      "OT",
+      "COTA",
+      "SLP"
     ]
   }
 ];

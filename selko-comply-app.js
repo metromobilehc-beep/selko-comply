@@ -246,10 +246,12 @@ async function loadApp(user){
     // the same company-wide login.
     if (!data.is_super_admin) {
       const staffCheckRes = await fetch(
-        SUPABASE_URL + '/rest/v1/compliance_staff?company_id=eq.' + data.company_id + '&email=eq.' + encodeURIComponent(data.email) + '&select=id&limit=1',
+        SUPABASE_URL + '/rest/v1/compliance_staff?company_id=eq.' + data.company_id + '&email=eq.' + encodeURIComponent(data.email) + '&select=*&limit=1',
         { headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON) }}
       );
       const staffCheckArr = await staffCheckRes.json();
+      // Discipline (PT, PTA, OT...) lives on compliance_staff; used to scope clinical modules
+      if (Array.isArray(staffCheckArr) && staffCheckArr.length) data.discipline = staffCheckArr[0].discipline || null;
       if (!Array.isArray(staffCheckArr) || !staffCheckArr.length) {
         showErr("Your account doesn't have access to Selko Comply. Contact your admin if you believe this is a mistake.");
         await sb.auth.signOut();
@@ -430,6 +432,7 @@ function renderModuleGrid(){
     if(!m || !m.track || !m.track.includes(currentTrack)) return false;
     if(m.adminOnly && !isAdmin) return false;
     if(m.staffTypes && !m.staffTypes.includes(staffType)) return false;
+    if(!moduleAppliesToDiscipline(m, staffType, currentProfile?.discipline)) return false;
     return true;
   });
   grid.innerHTML = mods.map(m => {
@@ -449,10 +452,32 @@ function renderModuleGrid(){
   }).join('');
 }
 
+// ── DISCIPLINE SCOPING ──
+// A module may list `disciplines` (e.g. ['PT','OT','SLP','RN']). Only clinician-type staff are
+// filtered; owners/admins/office see every module. A clinician with no discipline set still sees it
+// (so nothing silently disappears) and the admin staff table flags "discipline not set".
+const DISCIPLINES = [
+  { value: 'PT', label: 'PT - Physical Therapist' },
+  { value: 'PTA', label: 'PTA - Physical Therapist Assistant' },
+  { value: 'OT', label: 'OT - Occupational Therapist' },
+  { value: 'COTA', label: 'COTA - Certified OT Assistant' },
+  { value: 'SLP', label: 'SLP - Speech-Language Pathologist' },
+  { value: 'RN', label: 'RN - Registered Nurse' },
+  { value: 'LPN', label: 'LPN - Licensed Practical Nurse' },
+  { value: 'OTHER', label: 'Other clinical staff' }
+];
+function moduleAppliesToDiscipline(m, staffType, discipline){
+  if(!m || !m.disciplines || !m.disciplines.length) return true;
+  if((staffType || 'clinician') !== 'clinician') return true;
+  if(!discipline) return true;
+  return m.disciplines.includes(discipline);
+}
+
 function renderWelcomeStats(){
   if(typeof MODULES === 'undefined' || !MODULES) return;
   const isAdmin = currentProfile && currentProfile.role === 'admin';
-  const mods = MODULES.filter(m => m && m.track && m.track.includes(currentTrack) && (!m.adminOnly || isAdmin));
+  const _st = currentProfile?.staff_type || (currentProfile && (currentProfile.role === 'admin' || currentProfile.role === 'owner') ? 'owner' : 'clinician');
+  const mods = MODULES.filter(m => m && m.track && m.track.includes(currentTrack) && (!m.adminOnly || isAdmin) && moduleAppliesToDiscipline(m, _st, currentProfile?.discipline));
   const total = mods.length;
   const done = mods.filter(m => completedModules.has(m.id)).length;
   const pct = total ? Math.round((done/total)*100) : 0;
@@ -1066,13 +1091,13 @@ async function renderAdminTable(){
   const adminMods = allMods;
   const totalStaff = staff.length;
   const completeStaff = staff.filter(s => {
-    const required = s.role === 'admin' ? adminMods.length : clinicianMods.length;
+    const required = (s.role === 'admin' ? adminMods : clinicianMods).filter(m => moduleAppliesToDiscipline(m, s.staff_type, s.discipline)).length;
     return Object.keys(compByStaff[s.id]||{}).length >= required;
   }).length;
 
   const rows = staff.map((s,si) => {
     const comp = compByStaff[s.id] || {};
-    const staffMods = s.role === 'admin' ? adminMods : clinicianMods;
+    const staffMods = (s.role === 'admin' ? adminMods : clinicianMods).filter(m => moduleAppliesToDiscipline(m, s.staff_type, s.discipline));
     const done = Object.keys(comp).length;
     const total = staffMods.length;
     const pct = total ? Math.round((done/total)*100) : 0;
@@ -1184,7 +1209,7 @@ async function loadStaffTable(){
   tbody.innerHTML = staff.map(s => {
     const compKey = s.id;
     const allMods = (typeof MODULES !== 'undefined') ? MODULES : [];
-    const staffModList = s.role === 'admin' ? allMods : allMods.filter(m => !m.adminOnly);
+    const staffModList = (s.role === 'admin' ? allMods : allMods.filter(m => !m.adminOnly)).filter(m => moduleAppliesToDiscipline(m, s.staff_type, s.discipline));
     const compDots = staffModList.map(m => {
       const done = compMap[compKey] && compMap[compKey].has(m.id);
       return '<div class="mdot ' + (done?'done':'todo') + '" title="' + (m.title||'') + '"></div>';
@@ -1204,7 +1229,7 @@ async function loadStaffTable(){
       '</td>' +
       '<td>' +
         '<span style="font-weight:500;color:' + (role==='admin'?'var(--gold)':'var(--teal)') + '">' + role + '</span>' +
-        '<br><span style="font-size:10px;color:var(--muted)">' + (s.staff_type||'clinician') + '</span>' +
+        '<br><span style="font-size:10px;color:var(--muted)">' + (s.staff_type||'clinician') + (((s.staff_type||'clinician')==='clinician') ? ' · ' + (s.discipline || '<span style="color:var(--red)">discipline not set</span>') : '') + '</span>' +
       '</td>' +
       '<td><span style="font-size:12px;font-weight:600;color:' + (active?'var(--green)':'var(--red)') + '">' + (active?'● Active':'○ Inactive') + '</span></td>' +
       '<td><div class="module-dots">' + compDots + '</div></td>' +
@@ -1213,6 +1238,7 @@ async function loadStaffTable(){
           (email ? '<button class="btn sm" style="border-color:var(--gold);color:var(--gold)" onclick="setupComplyStaffLogin(' + "'" + sid + "','" + name + "','" + email + "'" + ')">Set up login</button>' : '') +
           '<button class="btn sm" onclick="resetStaffPassword(' + "'" + sid + "','" + name + "','" + email + "'" + ')">Reset password</button>' +
           '<button class="btn sm" style="border-color:#7c3aed;color:#7c3aed" onclick="changeStaffType(' + "'" + sid + "','" + name + "','" + (s.staff_type||'clinician') + "'" + ')">⚙ Type</button>' +
+          '<button class="btn sm" style="border-color:#0BA7A0;color:#0BA7A0" onclick="changeDiscipline(' + "'" + sid + "','" + name + "','" + (s.discipline||'') + "'" + ')">🩺 Discipline</button>' +
           '<button class="btn sm" style="border-color:' + (active?'var(--red)':'var(--green)') + ';color:' + (active?'var(--red)':'var(--green)') + '" onclick="toggleStaffActive(' + "'" + sid + "'," + active + ')">' + (active?'Deactivate':'Reactivate') + '</button>' +
 
           (email ? '<button class="btn sm" style="border-color:var(--teal);color:var(--teal)" onclick="sendReminder(' + "'" + name + "','" + email + "'" + ')">📧 Remind</button>' : '') +
@@ -1258,6 +1284,7 @@ async function saveNewStaff(){
       headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON), 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
       body: JSON.stringify({ full_name: name, email: email || null, role, 
         staff_type: document.getElementById('newStaffType')?.value || 'clinician',
+        ...(document.getElementById('newDiscipline')?.value ? { discipline: document.getElementById('newDiscipline').value } : {}),
         active: true, company_id: currentProfile.company_id })
     }
   );
@@ -1411,6 +1438,39 @@ async function confirmStaffType(){
   closeStaffTypeModal();
   if(res.ok){ loadStaffTable(); showToast('✓ ' + stModalStaffName + ' updated'); }
   else { showToast('Error updating staff type'); }
+}
+
+// ── DISCIPLINE MODAL ──
+let discModalStaffId = null;
+let discModalStaffName = null;
+function changeDiscipline(id, name, current){
+  discModalStaffId = id;
+  discModalStaffName = name;
+  document.getElementById('discModalName').textContent = name;
+  document.getElementById('discModalOptions').innerHTML = DISCIPLINES.map(o => `
+    <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1.5px solid ${o.value===current?'var(--teal)':'var(--border)'};background:${o.value===current?'var(--teal-lt)':'var(--white)'};border-radius:10px;cursor:pointer">
+      <input type="radio" name="discOption" value="${o.value}" ${o.value===current?'checked':''} style="accent-color:var(--teal)">
+      <span style="font-size:13px;font-weight:600;color:var(--navy)">${o.label}</span>
+    </label>`).join('');
+  document.getElementById('disciplineModal').style.display = 'flex';
+}
+function closeDisciplineModal(){
+  document.getElementById('disciplineModal').style.display = 'none';
+  discModalStaffId = null;
+}
+async function confirmDiscipline(){
+  const selected = document.querySelector('input[name="discOption"]:checked');
+  if(!selected || !discModalStaffId) return;
+  const res = await fetch(
+    SUPABASE_URL + '/rest/v1/compliance_staff?id=eq.' + discModalStaffId,
+    { method: 'PATCH',
+      headers:{ 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (authToken || SUPABASE_ANON), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ discipline: selected.value })
+    }
+  );
+  closeDisciplineModal();
+  if(res.ok){ loadStaffTable(); showToast('✓ ' + discModalStaffName + ' set to ' + selected.value); }
+  else { showToast('Error saving discipline. Has the discipline column been added?'); }
 }
 
 async function editStaffName(id, currentName){
